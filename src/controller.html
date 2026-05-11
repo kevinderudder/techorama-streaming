@@ -1021,7 +1021,7 @@
           </div>
           <div class="toolbar-row">
             <label>Text <input type="color" id="text-color-picker" value="#ffffff"></label>
-            <label>BG <input type="color" id="bg-color-picker" value="#1a1a2e"></label>
+            <label>BG Color <input type="color" id="bg-color-picker" value="#1a1a2e"></label>
             <select id="font-size-picker">
               <option value="16px">16px</option>
               <option value="24px">24px</option>
@@ -1030,6 +1030,10 @@
               <option value="64px">64px</option>
               <option value="96px">96px</option>
             </select>
+          </div>
+          <div class="toolbar-row">
+            <input type="url" id="bg-image-input" placeholder="Background image URL (e.g., https://example.com/bg.jpg)">
+            <button id="bg-image-btn" style="flex: 0 0 auto;">Apply</button>
           </div>
         </div>
 
@@ -1205,7 +1209,7 @@
             </div>
             <div class="toolbar-row">
               <label>Text <input type="color" value="#ffffff"></label>
-              <label>BG <input type="color" id="tpl-bg-color" value="#1a1a2e"></label>
+              <label>BG Color <input type="color" id="tpl-bg-color" value="#1a1a2e"></label>
               <select id="tpl-font-size-picker">
                 <option value="16px">16px</option>
                 <option value="24px">24px</option>
@@ -1214,6 +1218,10 @@
                 <option value="64px">64px</option>
                 <option value="96px">96px</option>
               </select>
+            </div>
+            <div class="toolbar-row">
+              <input type="url" id="tpl-bg-image-input" placeholder="Background image URL">
+              <button id="tpl-bg-image-btn" style="flex: 0 0 auto;">Apply</button>
             </div>
           </div>
 
@@ -1443,6 +1451,7 @@
     // HTML Editor
     let editorMode = 'visual';
     let editorBgColor = '#1a1a2e';
+    let editorBgImage = '';
 
     document.querySelectorAll('[data-editormode]').forEach(btn => {
       btn.addEventListener('click', () => switchEditorMode(btn.dataset.editormode));
@@ -1493,6 +1502,17 @@
       updatePreview();
     });
 
+    document.getElementById('bg-image-btn').addEventListener('click', () => {
+      const imageUrl = document.getElementById('bg-image-input').value.trim();
+      if (imageUrl) {
+        editorBgImage = imageUrl;
+        document.getElementById('editor-canvas-wrapper').style.backgroundImage = `url(${imageUrl})`;
+        document.getElementById('editor-canvas-wrapper').style.backgroundSize = 'cover';
+        document.getElementById('editor-canvas-wrapper').style.backgroundPosition = 'center';
+        updatePreview();
+      }
+    });
+
     document.getElementById('font-size-picker').addEventListener('change', e => {
       const size = e.target.value;
       document.execCommand('fontSize', false, '7');
@@ -1505,13 +1525,14 @@
     function generateHtmlDocument() {
       const content = document.getElementById('editor-canvas').innerHTML;
       const bg = editorBgColor;
+      const bgImage = editorBgImage ? `background-image:url(${editorBgImage}); background-size:cover; background-position:center;` : '';
       return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { width:100vw; height:100vh; overflow:hidden; background:${bg};
+    body { width:100vw; height:100vh; overflow:hidden; background:${bg}; ${bgImage}
            display:flex; align-items:center; justify-content:center; }
     .content { padding:60px; text-align:center; width:100%;
                 font-family:'Segoe UI',system-ui,sans-serif; }
@@ -1724,6 +1745,7 @@
       let tplType = 'html';
       let tplMode = 'iframe';
       let tplBgColor = '#1a1a2e';
+      let tplBgImage = '';
 
       function loadTemplatesLocal() {
         try { return JSON.parse(localStorage.getItem(TEMPLATES_KEY) || '{}'); }
@@ -1816,8 +1838,16 @@
           if (existingTpl.type === 'html') {
             document.getElementById('tpl-editor-canvas').innerHTML = existingTpl.content.match(/<div class="content">([\s\S]*?)<\/div>/)[1] || '';
             tplBgColor = existingTpl.content.match(/background:([^;]+);/)[1] || '#1a1a2e';
+            const bgImageMatch = existingTpl.content.match(/background-image:url\(([^)]+)\)/);
+            tplBgImage = bgImageMatch ? bgImageMatch[1].replace(/^['"]|['"]$/g, '') : '';
             document.getElementById('tpl-bg-color').value = tplBgColor;
+            document.getElementById('tpl-bg-image-input').value = tplBgImage;
             document.getElementById('tpl-editor-canvas-wrapper').style.background = tplBgColor;
+            if (tplBgImage) {
+              document.getElementById('tpl-editor-canvas-wrapper').style.backgroundImage = `url(${tplBgImage})`;
+              document.getElementById('tpl-editor-canvas-wrapper').style.backgroundSize = 'cover';
+              document.getElementById('tpl-editor-canvas-wrapper').style.backgroundPosition = 'center';
+            }
           } else {
             document.getElementById('tpl-url-input').value = existingTpl.content;
             setTplModalMode(existingTpl.mode || 'iframe');
@@ -1825,6 +1855,8 @@
         } else {
           document.getElementById('tpl-editor-canvas').innerHTML = 'Click to type...';
           document.getElementById('tpl-url-input').value = '';
+          document.getElementById('tpl-bg-image-input').value = '';
+          tplBgImage = '';
           setTplModalMode('iframe');
         }
 
@@ -1860,13 +1892,14 @@
       function generateTplHtml() {
         const content = document.getElementById('tpl-editor-canvas').innerHTML;
         const bg = tplBgColor;
+        const bgImage = tplBgImage ? `background-image:url(${tplBgImage}); background-size:cover; background-position:center;` : '';
         return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { width:100vw; height:100vh; overflow:hidden; background:${bg};
+    body { width:100vw; height:100vh; overflow:hidden; background:${bg}; ${bgImage}
            display:flex; align-items:center; justify-content:center; }
     .content { padding:60px; text-align:center; width:100%;
                 font-family:'Segoe UI',system-ui,sans-serif; }
@@ -1925,6 +1958,16 @@
 
       document.getElementById('modal-close-btn').addEventListener('click', () => {
         document.getElementById('template-modal').classList.add('hidden');
+      });
+
+      document.getElementById('tpl-bg-image-btn').addEventListener('click', () => {
+        const imageUrl = document.getElementById('tpl-bg-image-input').value.trim();
+        if (imageUrl) {
+          tplBgImage = imageUrl;
+          document.getElementById('tpl-editor-canvas-wrapper').style.backgroundImage = `url(${imageUrl})`;
+          document.getElementById('tpl-editor-canvas-wrapper').style.backgroundSize = 'cover';
+          document.getElementById('tpl-editor-canvas-wrapper').style.backgroundPosition = 'center';
+        }
       });
 
       document.getElementById('add-template-btn').addEventListener('click', () => openAddTemplateModal());
