@@ -19,7 +19,7 @@
       position: fixed;
       inset: 0;
       background: #000;
-      z-index: 10;
+      z-index: 20;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -73,12 +73,30 @@
       font-size: 0.95rem;
     }
     #setup-warning.hidden { display: none; }
+
+    /* Logo overlay */
+    #logo-overlay {
+      position: fixed;
+      z-index: 15;
+      pointer-events: none;
+      display: none;
+    }
+    #logo-overlay.pos-top-left     { top: 20px; left: 20px; }
+    #logo-overlay.pos-top-right    { top: 20px; right: 20px; }
+    #logo-overlay.pos-bottom-left  { bottom: 20px; left: 20px; }
+    #logo-overlay.pos-bottom-right { bottom: 20px; right: 20px; }
+    #logo-overlay.size-small  { height: 40px; }
+    #logo-overlay.size-medium { height: 70px; }
+    #logo-overlay.size-large  { height: 110px; }
   </style>
 </head>
 <body>
 
   <!-- Shown when the controller sets mode to "blank" -->
   <div id="blank-screen"></div>
+
+  <!-- Logo overlay — controlled via Firebase settings -->
+  <img id="logo-overlay" src="" alt="">
 
   <!-- Main content frame -->
   <iframe
@@ -151,6 +169,11 @@
           blankEl.classList.remove('hidden');
           frameEl.src = 'about:blank';
 
+        } else if (mode === 'html') {
+          // Display inline HTML via srcdoc
+          blankEl.classList.add('hidden');
+          if (frameEl.srcdoc !== data.html) frameEl.srcdoc = data.html;
+
         } else if (mode === 'redirect') {
           // Navigate the whole browser to the URL
           window.location.href = url;
@@ -162,6 +185,19 @@
             frameEl.src = url;
           }
         }
+      });
+
+      // Logo overlay listener
+      const logoEl = document.getElementById('logo-overlay');
+      db.ref('signage/settings/logo').on('value', snap => {
+        const logo = snap.val();
+        if (!logo || !logo.url || !logo.visible) {
+          logoEl.style.display = 'none';
+          return;
+        }
+        if (logoEl.src !== logo.url) logoEl.src = logo.url;
+        logoEl.className = 'pos-' + (logo.position || 'bottom-right') + ' size-' + (logo.size || 'medium');
+        logoEl.style.display = 'block';
       });
     }
   </script>
