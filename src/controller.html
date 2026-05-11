@@ -355,6 +355,23 @@
       width: 0%;
       transition: width 0.2s;
     }
+    #img-drop-zone.uploading {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .upload-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--accent);
+      border-top: 2px solid transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
 
     #img-url-zone { display: none; }
 
@@ -1415,6 +1432,8 @@
 
     function uploadImage(file) {
       if (!storage) { showToast('Not connected to Firebase', true); return; }
+      imgDropZone.classList.add('uploading');
+      imgDropZone.innerHTML = '<span class="upload-spinner"></span>Uploading...';
       const reader = new FileReader();
       reader.onload = () => {
         const base64 = reader.result;
@@ -1425,11 +1444,20 @@
               const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
               document.getElementById('img-progress-bar').style.display = '';
               document.getElementById('img-progress-fill').style.width = pct + '%';
+              imgDropZone.innerHTML = `<span class="upload-spinner"></span>Uploading... ${pct}%`;
             },
-            err => showToast('Upload error: ' + err.message, true),
+            err => {
+              imgDropZone.classList.remove('uploading');
+              imgDropZone.innerHTML = 'Drop image here or click to browse';
+              document.getElementById('img-progress-bar').style.display = 'none';
+              showToast('Upload error: ' + err.message, true);
+            },
             () => {
               storage.ref(path).getDownloadURL().then(url => {
+                imgDropZone.classList.remove('uploading');
+                imgDropZone.innerHTML = 'Drop image here or click to browse';
                 document.getElementById('img-progress-bar').style.display = 'none';
+                showToast('Image uploaded and pushed!');
                 push(buildDisplayImageUrl(url), 'iframe');
               });
             }
