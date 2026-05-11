@@ -380,39 +380,48 @@
 
     #editor-toolbar {
       display: none;
-      gap: 12px;
-      margin-bottom: 14px;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      align-items: center;
     }
-    #editor-toolbar.show { display: flex; flex-direction: column; }
+    #editor-toolbar.show { display: flex; }
 
     .toolbar-row {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
     }
 
-    .toolbar-row select, .toolbar-row input[type="color"] {
-      padding: 7px 10px;
-      font-size: 0.82rem;
+    .toolbar-row select, .toolbar-row input[type="color"], .toolbar-row input[type="url"] {
+      padding: 6px 8px;
+      font-size: 0.78rem;
+      height: 32px;
     }
 
     .toolbar-row label {
       display: flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.78rem;
+      gap: 4px;
+      font-size: 0.72rem;
       font-weight: 600;
+      white-space: nowrap;
     }
 
     .tool-btn {
       background: var(--bg);
       color: var(--muted);
       border: 1px solid var(--border);
-      padding: 7px 11px;
-      font-size: 0.82rem;
+      padding: 6px 9px;
+      font-size: 0.78rem;
       flex: 0 0 auto;
-      border-radius: 6px;
+      border-radius: 5px;
       transition: all 0.15s;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
     }
     .tool-btn:hover { color: var(--text); border-color: var(--accent); }
 
@@ -1020,38 +1029,30 @@
 
       <div class="card" id="editor-toolbar-card">
         <div id="editor-toolbar" class="show">
-          <div class="toolbar-row">
-            <select id="block-type">
-              <option value="p">Body text</option>
-              <option value="h1">H1</option>
-              <option value="h2">H2</option>
-              <option value="h3">H3</option>
-            </select>
-          </div>
-          <div class="toolbar-row">
-            <button class="tool-btn" data-cmd="bold"><b>B</b></button>
-            <button class="tool-btn" data-cmd="italic"><i>I</i></button>
-            <button class="tool-btn" data-cmd="underline"><u>U</u></button>
-            <button class="tool-btn" data-align="left">⬅</button>
-            <button class="tool-btn" data-align="center">☰</button>
-            <button class="tool-btn" data-align="right">➡</button>
-          </div>
-          <div class="toolbar-row">
-            <label>Text <input type="color" id="text-color-picker" value="#ffffff"></label>
-            <label>BG Color <input type="color" id="bg-color-picker" value="#1a1a2e"></label>
-            <select id="font-size-picker">
-              <option value="16px">16px</option>
-              <option value="24px">24px</option>
-              <option value="32px" selected>32px</option>
-              <option value="48px">48px</option>
-              <option value="64px">64px</option>
-              <option value="96px">96px</option>
-            </select>
-          </div>
-          <div class="toolbar-row">
-            <input type="url" id="bg-image-input" placeholder="Background image URL (e.g., https://example.com/bg.jpg)">
-            <button id="bg-image-btn" style="flex: 0 0 auto;">Apply</button>
-          </div>
+          <select id="block-type" style="min-width: 100px;">
+            <option value="p">Text</option>
+            <option value="h1">H1</option>
+            <option value="h2">H2</option>
+            <option value="h3">H3</option>
+          </select>
+          <button class="tool-btn" data-cmd="bold"><b>B</b></button>
+          <button class="tool-btn" data-cmd="italic"><i>I</i></button>
+          <button class="tool-btn" data-cmd="underline"><u>U</u></button>
+          <button class="tool-btn" data-align="left">⬅</button>
+          <button class="tool-btn" data-align="center">☰</button>
+          <button class="tool-btn" data-align="right">➡</button>
+          <label style="margin-left: 4px;"><input type="color" id="text-color-picker" value="#ffffff" title="Text color"></label>
+          <label><input type="color" id="bg-color-picker" value="#1a1a2e" title="Background color"></label>
+          <select id="font-size-picker" style="min-width: 70px;">
+            <option value="16px">16px</option>
+            <option value="24px">24px</option>
+            <option value="32px" selected>32px</option>
+            <option value="48px">48px</option>
+            <option value="64px">64px</option>
+            <option value="96px">96px</option>
+          </select>
+          <input type="url" id="bg-image-input" placeholder="BG image URL" style="min-width: 200px; max-width: 300px;">
+          <button id="bg-image-btn" style="flex: 0 0 auto; padding: 6px 12px;">Apply</button>
         </div>
 
         <div id="editor-canvas-wrapper">
@@ -1207,39 +1208,31 @@
         </div>
 
         <div id="tpl-content-html" class="tpl-content-area">
-          <div id="tpl-editor-toolbar">
-            <div class="toolbar-row">
-              <select id="tpl-block-type">
-                <option value="p">Body text</option>
-                <option value="h1">H1</option>
-                <option value="h2">H2</option>
-                <option value="h3">H3</option>
-              </select>
-            </div>
-            <div class="toolbar-row">
-              <button class="tool-btn" data-cmd="bold"><b>B</b></button>
-              <button class="tool-btn" data-cmd="italic"><i>I</i></button>
-              <button class="tool-btn" data-cmd="underline"><u>U</u></button>
-              <button class="tool-btn" data-align="left">⬅</button>
-              <button class="tool-btn" data-align="center">☰</button>
-              <button class="tool-btn" data-align="right">➡</button>
-            </div>
-            <div class="toolbar-row">
-              <label>Text <input type="color" value="#ffffff"></label>
-              <label>BG Color <input type="color" id="tpl-bg-color" value="#1a1a2e"></label>
-              <select id="tpl-font-size-picker">
-                <option value="16px">16px</option>
-                <option value="24px">24px</option>
-                <option value="32px" selected>32px</option>
-                <option value="48px">48px</option>
-                <option value="64px">64px</option>
-                <option value="96px">96px</option>
-              </select>
-            </div>
-            <div class="toolbar-row">
-              <input type="url" id="tpl-bg-image-input" placeholder="Background image URL">
-              <button id="tpl-bg-image-btn" style="flex: 0 0 auto;">Apply</button>
-            </div>
+          <div id="tpl-editor-toolbar" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px;">
+            <select id="tpl-block-type" style="min-width: 100px;">
+              <option value="p">Text</option>
+              <option value="h1">H1</option>
+              <option value="h2">H2</option>
+              <option value="h3">H3</option>
+            </select>
+            <button class="tool-btn" data-cmd="bold"><b>B</b></button>
+            <button class="tool-btn" data-cmd="italic"><i>I</i></button>
+            <button class="tool-btn" data-cmd="underline"><u>U</u></button>
+            <button class="tool-btn" data-align="left">⬅</button>
+            <button class="tool-btn" data-align="center">☰</button>
+            <button class="tool-btn" data-align="right">➡</button>
+            <label style="margin-left: 4px;"><input type="color" value="#ffffff" title="Text color" style="width: 32px; height: 32px;"></label>
+            <label><input type="color" id="tpl-bg-color" value="#1a1a2e" title="Background color" style="width: 32px; height: 32px;"></label>
+            <select id="tpl-font-size-picker" style="min-width: 70px;">
+              <option value="16px">16px</option>
+              <option value="24px">24px</option>
+              <option value="32px" selected>32px</option>
+              <option value="48px">48px</option>
+              <option value="64px">64px</option>
+              <option value="96px">96px</option>
+            </select>
+            <input type="url" id="tpl-bg-image-input" placeholder="BG image URL" style="min-width: 180px; max-width: 250px;">
+            <button id="tpl-bg-image-btn" style="flex: 0 0 auto; padding: 6px 12px; background: var(--accent); color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 0.78rem;">Apply</button>
           </div>
 
           <div id="tpl-editor-canvas-wrapper">
