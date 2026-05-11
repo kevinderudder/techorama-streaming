@@ -1081,8 +1081,9 @@
             <option value="64px">64px</option>
             <option value="96px">96px</option>
           </select>
-          <input type="url" id="bg-image-input" placeholder="BG image URL" style="min-width: 200px; max-width: 300px;">
-          <button id="bg-image-btn" style="flex: 0 0 auto; padding: 6px 12px;">Apply</button>
+          <input type="file" id="bg-image-file" accept="image/*" hidden>
+          <button id="bg-image-btn" style="flex: 0 0 auto; padding: 6px 12px; height: 32px; background: var(--panel); color: var(--text); border: 1px solid var(--border);" title="Upload background image">🖼 BG Image</button>
+          <span id="bg-image-label" style="font-size: 0.72rem; color: var(--muted); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
         </div>
 
         <div id="editor-canvas-wrapper">
@@ -1258,8 +1259,9 @@
               <option value="64px">64px</option>
               <option value="96px">96px</option>
             </select>
-            <input type="url" id="tpl-bg-image-input" placeholder="BG image URL" style="min-width: 180px; max-width: 250px;">
-            <button id="tpl-bg-image-btn" style="flex: 0 0 auto; padding: 6px 12px; background: var(--accent); color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 0.78rem;">Apply</button>
+            <input type="file" id="tpl-bg-image-file" accept="image/*" hidden>
+            <button id="tpl-bg-image-btn" style="flex: 0 0 auto; padding: 6px 12px; height: 32px; background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 5px; cursor: pointer; font-size: 0.78rem;" title="Upload background image">🖼 BG Image</button>
+            <span id="tpl-bg-image-label" style="font-size: 0.72rem; color: var(--muted); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
           </div>
 
           <div id="tpl-editor-canvas-wrapper">
@@ -1551,14 +1553,42 @@
     });
 
     document.getElementById('bg-image-btn').addEventListener('click', () => {
-      const imageUrl = document.getElementById('bg-image-input').value.trim();
-      if (imageUrl) {
-        editorBgImage = imageUrl;
-        document.getElementById('editor-canvas-wrapper').style.backgroundImage = `url(${imageUrl})`;
-        document.getElementById('editor-canvas-wrapper').style.backgroundSize = 'cover';
-        document.getElementById('editor-canvas-wrapper').style.backgroundPosition = 'center';
-        updatePreview();
-      }
+      document.getElementById('bg-image-file').click();
+    });
+
+    document.getElementById('bg-image-file').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (!storage) { showToast('Not connected to Firebase', true); return; }
+      const btn = document.getElementById('bg-image-btn');
+      btn.textContent = '⏳ Uploading...';
+      btn.disabled = true;
+      const path = 'signage/backgrounds/' + Date.now() + '_' + file.name;
+      const reader = new FileReader();
+      reader.onload = () => {
+        storage.ref(path).putString(reader.result, 'data_url')
+          .on('state_changed', null,
+            err => {
+              btn.textContent = '🖼 BG Image';
+              btn.disabled = false;
+              showToast('Upload error: ' + err.message, true);
+            },
+            () => {
+              storage.ref(path).getDownloadURL().then(url => {
+                editorBgImage = url;
+                document.getElementById('editor-canvas-wrapper').style.backgroundImage = `url(${url})`;
+                document.getElementById('editor-canvas-wrapper').style.backgroundSize = 'cover';
+                document.getElementById('editor-canvas-wrapper').style.backgroundPosition = 'center';
+                document.getElementById('bg-image-label').textContent = file.name;
+                btn.textContent = '🖼 BG Image';
+                btn.disabled = false;
+                showToast('Background image set!');
+              });
+            }
+          );
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
     });
 
     document.getElementById('font-size-picker').addEventListener('change', e => {
@@ -1997,13 +2027,41 @@
       });
 
       document.getElementById('tpl-bg-image-btn').addEventListener('click', () => {
-        const imageUrl = document.getElementById('tpl-bg-image-input').value.trim();
-        if (imageUrl) {
-          tplBgImage = imageUrl;
-          document.getElementById('tpl-editor-canvas-wrapper').style.backgroundImage = `url(${imageUrl})`;
-          document.getElementById('tpl-editor-canvas-wrapper').style.backgroundSize = 'cover';
-          document.getElementById('tpl-editor-canvas-wrapper').style.backgroundPosition = 'center';
-        }
+        document.getElementById('tpl-bg-image-file').click();
+      });
+
+      document.getElementById('tpl-bg-image-file').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const btn = document.getElementById('tpl-bg-image-btn');
+        btn.textContent = '⏳ Uploading...';
+        btn.disabled = true;
+        const path = 'signage/backgrounds/' + Date.now() + '_' + file.name;
+        const reader = new FileReader();
+        reader.onload = () => {
+          storage.ref(path).putString(reader.result, 'data_url')
+            .on('state_changed', null,
+              err => {
+                btn.textContent = '🖼 BG Image';
+                btn.disabled = false;
+                showToast('Upload error: ' + err.message, true);
+              },
+              () => {
+                storage.ref(path).getDownloadURL().then(url => {
+                  tplBgImage = url;
+                  document.getElementById('tpl-editor-canvas-wrapper').style.backgroundImage = `url(${url})`;
+                  document.getElementById('tpl-editor-canvas-wrapper').style.backgroundSize = 'cover';
+                  document.getElementById('tpl-editor-canvas-wrapper').style.backgroundPosition = 'center';
+                  document.getElementById('tpl-bg-image-label').textContent = file.name;
+                  btn.textContent = '🖼 BG Image';
+                  btn.disabled = false;
+                  showToast('Background image set!');
+                });
+              }
+            );
+        };
+        reader.readAsDataURL(file);
+        e.target.value = '';
       });
 
       document.getElementById('add-template-btn').addEventListener('click', () => openAddTemplateModal());
