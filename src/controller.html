@@ -1009,12 +1009,18 @@
       border-radius: var(--radius);
       padding: 14px 16px;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       gap: 10px;
       margin-bottom: 10px;
-      flex-wrap: wrap;
     }
     .schedule-slot.disabled { opacity: 0.45; }
+
+    .slot-top-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
 
     .slot-time { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
     .slot-time input[type="time"] {
@@ -1034,15 +1040,39 @@
       padding: 6px 8px;
       font-size: 0.82rem;
       height: 34px;
-      min-width: 90px;
+      min-width: 100px;
     }
 
-    .slot-content-input {
-      flex: 1;
-      min-width: 120px;
+    .slot-name-input {
+      min-width: 90px;
+      max-width: 130px;
       padding: 6px 10px;
       font-size: 0.82rem;
       height: 34px;
+    }
+
+    .slot-content-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .slot-content-row select,
+    .slot-content-row input[type="url"] {
+      flex: 1;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      height: 36px;
+    }
+
+    .slot-thumb {
+      width: 64px;
+      height: 36px;
+      object-fit: cover;
+      border-radius: 5px;
+      flex-shrink: 0;
+      background: #0a0c14;
+      border: 1px solid var(--border);
     }
 
     .slot-del-btn {
@@ -1409,6 +1439,34 @@
 
     <!-- SETTINGS PANEL -->
     <div id="panel-settings" class="panel">
+
+      <div class="card">
+        <h2>Fallback Image</h2>
+        <p style="font-size:0.82rem; color:var(--muted); margin-bottom:14px; line-height:1.6;">
+          Shown on the receiver when there is no content yet, or after 15 seconds of lost connection.
+        </p>
+
+        <div id="fallback-preview-row" style="display:none; align-items:center; gap:14px; margin-bottom:14px;">
+          <img id="fallback-preview-img" src="" alt="" style="height:60px; border-radius:6px; object-fit:cover; max-width:140px;">
+          <button id="fallback-clear-btn" style="background:var(--danger); color:#fff; padding:7px 14px; font-size:0.82rem;">Clear</button>
+        </div>
+        <p id="fallback-no-image" style="color:var(--muted); font-size:0.85rem; margin-bottom:14px;">No fallback image set.</p>
+
+        <div style="display:flex; gap:8px; align-items:center;">
+          <select id="fallback-library-select" style="flex:1; padding:8px 10px; font-size:0.85rem;">
+            <option value="">— Pick from library —</option>
+          </select>
+          <button id="fallback-set-btn" style="background:var(--accent); color:#fff; padding:9px 16px; white-space:nowrap;">Set as fallback</button>
+        </div>
+
+        <div style="margin-top:10px;">
+          <div class="url-row">
+            <input id="fallback-url-input" type="url" placeholder="Or paste an image URL" style="flex:1; font-size:0.85rem;">
+            <button id="fallback-url-btn" style="background:var(--panel); border:1px solid var(--border); color:var(--text);">Use URL</button>
+          </div>
+        </div>
+      </div>
+
       <div class="card">
         <h2>Logo Overlay</h2>
 
@@ -1632,13 +1690,13 @@
       const items = loadRecent();
       const recentList = document.getElementById('recent-list');
       const noRecent = document.getElementById('no-recent');
-      recentList.innerHTML = '';
+      // Remove only .recent-item rows — never touch #no-recent so getElementById always finds it
+      recentList.querySelectorAll('.recent-item').forEach(el => el.remove());
       if (items.length === 0) {
-        recentList.appendChild(noRecent);
-        noRecent.style.display = '';
+        if (noRecent) noRecent.style.display = '';
         return;
       }
-      noRecent.style.display = 'none';
+      if (noRecent) noRecent.style.display = 'none';
       items.forEach(item => {
         const div = document.createElement('div');
         div.className = 'recent-item';
@@ -1660,7 +1718,11 @@
       });
     }
 
+    // Called before any manual push to stop an active schedule/slideshow
+    let onManualPush = null;
+
     function push(url, mode) {
+      if (onManualPush) onManualPush();
       if (!db) { showToast('Not connected to Firebase', true); return; }
       db.ref('signage/current').set({ url, mode, updatedAt: Date.now() })
         .then(() => {
@@ -1739,6 +1801,7 @@
     }
 
     function pushImage(url) {
+      if (onManualPush) onManualPush();
       if (!db) { showToast('Not connected to Firebase', true); return; }
       const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{width:100vw;height:100vh;overflow:hidden;background:#000}img{width:100%;height:100%;object-fit:cover}</style></head><body><img src="${url}"></body></html>`;
       db.ref('signage/current').set({ mode: 'html', html, updatedAt: Date.now() })
@@ -1902,6 +1965,7 @@
     });
 
     document.getElementById('editor-push-btn').addEventListener('click', () => {
+      if (onManualPush) onManualPush();
       if (!db) { showToast('Not connected to Firebase', true); return; }
       const html = editorMode === 'html'
         ? document.getElementById('html-source').value
@@ -2066,6 +2130,65 @@
 
       renderLogoSettings();
       renderUploadedLogos();
+
+      // Fallback image settings
+      function renderFallbackSettings(url) {
+        const previewRow = document.getElementById('fallback-preview-row');
+        const previewImg = document.getElementById('fallback-preview-img');
+        const noImage = document.getElementById('fallback-no-image');
+        if (url) {
+          previewImg.src = url;
+          previewRow.style.display = 'flex';
+          noImage.style.display = 'none';
+        } else {
+          previewRow.style.display = 'none';
+          noImage.style.display = '';
+        }
+      }
+
+      function setFallbackImage(url) {
+        db.ref('signage/settings/fallbackImage').set(url || null)
+          .then(() => showToast(url ? 'Fallback image set!' : 'Fallback image cleared'))
+          .catch(err => showToast('Error: ' + err.message, true));
+      }
+
+      function populateFallbackLibrarySelect(items) {
+        const sel = document.getElementById('fallback-library-select');
+        const current = sel.value;
+        sel.innerHTML = '<option value="">— Pick from library —</option>';
+        Object.values(items).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).forEach(item => {
+          const opt = document.createElement('option');
+          opt.value = item.url;
+          opt.textContent = item.name;
+          if (item.url === current) opt.selected = true;
+          sel.appendChild(opt);
+        });
+      }
+
+      document.getElementById('fallback-set-btn').addEventListener('click', () => {
+        const url = document.getElementById('fallback-library-select').value;
+        if (!url) { showToast('Pick an image from the library first', true); return; }
+        setFallbackImage(url);
+      });
+
+      document.getElementById('fallback-url-btn').addEventListener('click', () => {
+        const url = document.getElementById('fallback-url-input').value.trim();
+        if (!url) { showToast('Enter an image URL', true); return; }
+        setFallbackImage(url);
+        document.getElementById('fallback-url-input').value = '';
+      });
+
+      document.getElementById('fallback-clear-btn').addEventListener('click', () => {
+        setFallbackImage(null);
+      });
+
+      db.ref('signage/settings/fallbackImage').on('value', snap => {
+        renderFallbackSettings(snap.val());
+      });
+
+      db.ref('signage/imageLibrary').on('value', snap => {
+        populateFallbackLibrarySelect(snap.val() || {});
+      });
 
       // Templates
       const TEMPLATES_KEY = 'signage_templates_v1';
@@ -2404,6 +2527,7 @@
 
       document.getElementById('push-slideshow-btn').addEventListener('click', () => {
         if (slideshowSelected.length === 0) { showToast('Select at least one image', true); return; }
+        if (onManualPush) onManualPush();
         if (!db) { showToast('Not connected', true); return; }
         const images = slideshowSelected.map(s => s.url);
         db.ref('signage/current').set({ mode: 'slideshow', images, interval: slideshowMs, updatedAt: Date.now() })
@@ -2488,6 +2612,14 @@
         if (schedulePoller) { clearInterval(schedulePoller); schedulePoller = null; }
       }
 
+      // Stop schedule whenever anything is pushed manually
+      onManualPush = () => {
+        if (scheduleActive) {
+          stopSchedulePoller();
+          showToast('Schedule deactivated');
+        }
+      };
+
       function timeToMinutes(hhmm) {
         const [h, m] = hhmm.split(':').map(Number);
         return h * 60 + m;
@@ -2509,6 +2641,8 @@
       }
 
       function pushSlotContent(slot) {
+        if (!slot.content) { showToast('Schedule: "' + slot.name + '" has no content set', true); return; }
+
         if (slot.type === 'image') {
           pushImage(slot.content);
           showToast('Schedule: ' + slot.name);
@@ -2519,19 +2653,40 @@
           db.ref('signage/templates/' + slot.content).once('value').then(snap => {
             const tpl = snap.val();
             if (!tpl) { showToast('Schedule: template not found', true); return; }
-            if (tpl.type === 'html') {
-              db.ref('signage/current').set({ mode: 'html', html: tpl.content, updatedAt: Date.now() })
-                .then(() => showToast('Schedule: ' + slot.name));
-            } else {
-              push(tpl.content, tpl.mode || 'iframe');
-            }
-          });
-        } else if (slot.type === 'slideshow') {
-          try {
-            const parsed = JSON.parse(slot.content);
-            db.ref('signage/current').set({ mode: 'slideshow', images: parsed.images, interval: parsed.interval, updatedAt: Date.now() })
+            db.ref('signage/current').set({ mode: 'html', html: tpl.content, updatedAt: Date.now() })
               .then(() => showToast('Schedule: ' + slot.name));
-          } catch(e) { showToast('Schedule: invalid slideshow data', true); }
+          });
+        }
+      }
+
+      function buildContentPicker(type, content) {
+        if (type === 'image') {
+          const items = Object.values(libraryItems).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          const opts = items.map(item =>
+            `<option value="${escHtml(item.url)}" ${content === item.url ? 'selected' : ''}>${escHtml(item.name)}</option>`
+          ).join('');
+          const selected = items.find(i => i.url === content);
+          const thumbSrc = selected ? escHtml(selected.url) : '';
+          return `
+            <img class="slot-thumb" src="${thumbSrc}" alt="">
+            <select class="slot-content-picker">
+              <option value="">— Select image from library —</option>
+              ${opts}
+            </select>
+          `;
+        } else if (type === 'template') {
+          const tpls = Object.values(snap_templates_cache || {}).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+          const opts = tpls.map(t =>
+            `<option value="${escHtml(t.id)}" ${content === t.id ? 'selected' : ''}>${escHtml(t.name)}</option>`
+          ).join('');
+          return `
+            <select class="slot-content-picker" style="flex:1;">
+              <option value="">— Select HTML template —</option>
+              ${opts}
+            </select>
+          `;
+        } else {
+          return `<input type="url" class="slot-content-picker" value="${escHtml(content)}" placeholder="https://...">`;
         }
       }
 
@@ -2541,56 +2696,84 @@
         list.innerHTML = '';
         const arr = Object.values(slots).sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
         empty.style.display = arr.length === 0 ? '' : 'none';
+
         arr.forEach(slot => {
           const div = document.createElement('div');
           div.className = 'schedule-slot' + (slot.enabled ? '' : ' disabled');
-          const tplOptions = Object.values(snap_templates_cache || {}).map(t =>
-            `<option value="${escHtml(t.id)}" ${slot.type === 'template' && slot.content === t.id ? 'selected' : ''}>${escHtml(t.name)}</option>`
-          ).join('');
+
           div.innerHTML = `
-            <div class="slot-time">
-              <input type="time" class="slot-start" value="${escHtml(slot.startTime)}">
-              <span class="slot-sep">→</span>
-              <input type="time" class="slot-end" value="${escHtml(slot.endTime)}">
+            <div class="slot-top-row">
+              <div class="slot-time">
+                <input type="time" class="slot-start" value="${escHtml(slot.startTime)}">
+                <span class="slot-sep">→</span>
+                <input type="time" class="slot-end" value="${escHtml(slot.endTime)}">
+              </div>
+              <input type="text" class="slot-name-input" value="${escHtml(slot.name)}" placeholder="Slot name">
+              <select class="slot-type-select">
+                <option value="image"    ${slot.type==='image'    ?'selected':''}>🖼 Image</option>
+                <option value="template" ${slot.type==='template' ?'selected':''}>📝 Template</option>
+                <option value="url"      ${slot.type==='url'      ?'selected':''}>🔗 URL</option>
+              </select>
+              <label class="toggle-switch" style="flex-shrink:0; margin-left:auto;">
+                <input type="checkbox" class="slot-enable-toggle" ${slot.enabled ? 'checked' : ''}>
+                <span class="toggle-slider"></span>
+              </label>
+              <button class="slot-del-btn" title="Delete">🗑</button>
             </div>
-            <input type="text" class="slot-content-input slot-name-input" value="${escHtml(slot.name)}" placeholder="Slot name" style="min-width:90px; max-width:130px;">
-            <select class="slot-type-select">
-              <option value="image" ${slot.type==='image'?'selected':''}>Image URL</option>
-              <option value="url" ${slot.type==='url'?'selected':''}>Web URL</option>
-              <option value="template" ${slot.type==='template'?'selected':''}>Template</option>
-              <option value="slideshow" ${slot.type==='slideshow'?'selected':''}>Slideshow</option>
-            </select>
-            <input type="text" class="slot-content-input slot-value-input" value="${escHtml(slot.type === 'slideshow' ? '(slideshow config)' : slot.content)}" placeholder="URL or template ID" style="flex:1;">
-            <label class="toggle-switch" style="flex-shrink:0;">
-              <input type="checkbox" class="slot-enable-toggle" ${slot.enabled ? 'checked' : ''}>
-              <span class="toggle-slider"></span>
-            </label>
-            <button class="slot-del-btn" title="Delete">🗑</button>
+            <div class="slot-content-row">${buildContentPicker(slot.type, slot.content)}</div>
           `;
 
           const save = () => {
-            const updated = {
+            const picker = div.querySelector('.slot-content-picker');
+            db.ref('signage/schedule/' + slot.id).set({
               id: slot.id,
               name: div.querySelector('.slot-name-input').value.trim() || 'Untitled',
               startTime: div.querySelector('.slot-start').value,
               endTime: div.querySelector('.slot-end').value,
               type: div.querySelector('.slot-type-select').value,
-              content: div.querySelector('.slot-value-input').value.trim(),
+              content: picker ? picker.value.trim() : '',
               enabled: div.querySelector('.slot-enable-toggle').checked
-            };
-            db.ref('signage/schedule/' + slot.id).set(updated);
+            });
           };
 
-          div.querySelectorAll('input[type="time"], .slot-name-input, .slot-type-select').forEach(el => el.addEventListener('change', save));
-          div.querySelector('.slot-value-input').addEventListener('blur', save);
+          const wirePicker = () => {
+            const picker = div.querySelector('.slot-content-picker');
+            if (!picker) return;
+            if (picker.tagName === 'SELECT') {
+              picker.addEventListener('change', () => {
+                // Update thumbnail when image is selected
+                const thumb = div.querySelector('.slot-thumb');
+                if (thumb) thumb.src = picker.value;
+                save();
+              });
+            } else {
+              picker.addEventListener('blur', save);
+              picker.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
+            }
+          };
+
+          wirePicker();
+
+          div.querySelector('.slot-type-select').addEventListener('change', () => {
+            const newType = div.querySelector('.slot-type-select').value;
+            div.querySelector('.slot-content-row').innerHTML = buildContentPicker(newType, '');
+            wirePicker();
+            save();
+          });
+
+          div.querySelectorAll('input[type="time"], .slot-name-input').forEach(el =>
+            el.addEventListener('change', save));
+
           div.querySelector('.slot-enable-toggle').addEventListener('change', e => {
             div.classList.toggle('disabled', !e.target.checked);
             save();
           });
+
           div.querySelector('.slot-del-btn').addEventListener('click', () => {
             if (!confirm('Delete this slot?')) return;
             db.ref('signage/schedule/' + slot.id).remove();
           });
+
           list.appendChild(div);
         });
       }

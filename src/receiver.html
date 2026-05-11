@@ -49,6 +49,41 @@
     }
     #status-dot.connected { background: #0c0; }
 
+    /* Slideshow layer — double-buffered, sits above iframe, below overlays */
+    #slideshow-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 8;
+      background: #000;
+      display: none;
+    }
+    #slideshow-layer.active { display: block; }
+    #slideshow-layer img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 0.8s ease;
+    }
+    #ss-img-a { opacity: 1; }
+    #ss-img-b { opacity: 0; }
+
+    /* Fallback image — shown when no content or connection lost */
+    #fallback-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      background: #000;
+      display: none;
+    }
+    #fallback-screen img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #fallback-screen.visible { display: block; }
+
     /* Setup warning shown when Firebase is not yet configured */
     #setup-warning {
       position: fixed;
@@ -91,6 +126,15 @@
   </style>
 </head>
 <body>
+
+  <!-- Slideshow layer — double-buffered crossfade, no iframe reload -->
+  <div id="slideshow-layer">
+    <img id="ss-img-a" src="" alt="">
+    <img id="ss-img-b" src="" alt="">
+  </div>
+
+  <!-- Fallback image — shown when no content is set or connection is lost -->
+  <div id="fallback-screen"><img id="fallback-img" src="" alt=""></div>
 
   <!-- Shown when the controller sets mode to "blank" -->
   <div id="blank-screen"></div>
@@ -139,10 +183,25 @@
     // ─────────────────────────────────────────────────────────────────────────
 
     const isConfigured = !firebaseConfig.apiKey.startsWith("PASTE");
-    const warningEl   = document.getElementById('setup-warning');
-    const blankEl     = document.getElementById('blank-screen');
-    const frameEl     = document.getElementById('frame');
-    const dotEl       = document.getElementById('status-dot');
+    const warningEl    = document.getElementById('setup-warning');
+    const blankEl      = document.getElementById('blank-screen');
+    const frameEl      = document.getElementById('frame');
+    const dotEl        = document.getElementById('status-dot');
+    const fallbackEl   = document.getElementById('fallback-screen');
+    const fallbackImg  = document.getElementById('fallback-img');
+
+    let fallbackUrl = null;
+    let hasReceivedContent = false;
+    let disconnectTimer = null;
+
+    function showFallback() {
+      if (!fallbackUrl) return;
+      fallbackEl.classList.add('visible');
+    }
+
+    function hideFallback() {
+      fallbackEl.classList.remove('visible');
+    }
 
     if (!isConfigured) {
       // Leave the setup warning visible, do nothing else.
@@ -152,15 +211,60 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
 
-      // Connection indicator
+      // Connection indicator + fallback on disconnect
       db.ref('.info/connected').on('value', snap => {
-        dotEl.classList.toggle('connected', !!snap.val());
+        const connected = !!snap.val();
+        dotEl.classList.toggle('connected', connected);
+        if (connected) {
+          clearTimeout(disconnectTimer);
+          disconnectTimer = null;
+          // Only hide fallback if we've received real content since page load
+          if (hasReceivedContent) hideFallback();
+        } else {
+          // Show fallback after 15 seconds of being disconnected
+          disconnectTimer = setTimeout(showFallback, 15000);
+        }
       });
 
       let slideshowTimer = null;
+      const ssLayer = document.getElementById('slideshow-layer');
+      const ssImgA  = document.getElementById('ss-img-a');
+      const ssImgB  = document.getElementById('ss-img-b');
+      let ssSlot = 'a';  // which img is currently visible
 
       function clearSlideshow() {
         if (slideshowTimer) { clearInterval(slideshowTimer); slideshowTimer = null; }
+        ssLayer.classList.remove('active');
+        ssImgA.src = '';
+        ssImgB.src = '';
+        ssSlot = 'a';
+      }
+
+      function preloadImage(url) {
+        return new Promise(resolve => {
+          const img = new Image();
+          img.onload = img.onerror = () => resolve();
+          img.src = url;
+        });
+      }
+
+      function showSlide(url) {
+        if (ssSlot === 'a') {
+          // B will become visible, preload it then crossfade
+          ssImgB.src = url;
+          preloadImage(url).then(() => {
+            ssImgA.style.opacity = '0';
+            ssImgB.style.opacity = '1';
+            ssSlot = 'b';
+          });
+        } else {
+          ssImgA.src = url;
+          preloadImage(url).then(() => {
+            ssImgB.style.opacity = '0';
+            ssImgA.style.opacity = '1';
+            ssSlot = 'a';
+          });
+        }
       }
 
       function imageHtml(url) {
@@ -170,7 +274,13 @@
       // Listen for display changes
       db.ref('signage/current').on('value', snap => {
         const data = snap.val();
-        if (!data) return;
+        if (!data) {
+          showFallback();
+          return;
+        }
+
+        hasReceivedContent = true;
+        hideFallback();
 
         const { url, mode } = data;
         clearSlideshow();
@@ -183,10 +293,27 @@
           blankEl.classList.add('hidden');
           const images = data.images || [];
           if (images.length === 0) return;
-          let idx = 0;
-          const show = () => { frameEl.srcdoc = imageHtml(images[idx % images.length]); idx++; };
-          show();
-          slideshowTimer = setInterval(show, data.interval || 30000);
+
+          // Preload all images before starting
+          Promise.all(images.map(preloadImage)).then(() => {
+            ssLayer.classList.add('active');
+            frameEl.src = 'about:blank';
+
+            let idx = 0;
+            // Show first image immediately (no crossfade needed for very first)
+            ssImgA.src = images[0];
+            ssImgA.style.opacity = '1';
+            ssImgB.style.opacity = '0';
+            ssSlot = 'a';
+            idx = 1;
+
+            if (images.length > 1) {
+              slideshowTimer = setInterval(() => {
+                showSlide(images[idx % images.length]);
+                idx++;
+              }, data.interval || 30000);
+            }
+          });
 
         } else if (mode === 'blank' || !url) {
           blankEl.classList.remove('hidden');
@@ -198,6 +325,19 @@
         } else {
           blankEl.classList.add('hidden');
           if (frameEl.src !== url) frameEl.src = url;
+        }
+      });
+
+      // Fallback image listener
+      db.ref('signage/settings/fallbackImage').on('value', snap => {
+        const url = snap.val();
+        if (url) {
+          fallbackUrl = url;
+          fallbackImg.src = url;
+        } else {
+          fallbackUrl = null;
+          fallbackImg.src = '';
+          hideFallback();
         }
       });
 
