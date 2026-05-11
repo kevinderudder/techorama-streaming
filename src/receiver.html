@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signage Receiver</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #000;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    #blank-screen {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #blank-screen.hidden { display: none; }
+
+    #frame {
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      display: block;
+    }
+
+    /* Small status dot in the corner — visible only to crew, not audience */
+    #status-dot {
+      position: fixed;
+      bottom: 12px;
+      right: 12px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #c00;
+      opacity: 0.6;
+      z-index: 100;
+      transition: background 0.4s;
+    }
+    #status-dot.connected { background: #0c0; }
+
+    /* Setup warning shown when Firebase is not yet configured */
+    #setup-warning {
+      position: fixed;
+      inset: 0;
+      background: #111;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 200;
+      font-size: 1.1rem;
+      text-align: center;
+      padding: 32px;
+    }
+    #setup-warning h1 { font-size: 2rem; color: #f0a500; }
+    #setup-warning code {
+      background: #222;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+    #setup-warning.hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Shown when the controller sets mode to "blank" -->
+  <div id="blank-screen"></div>
+
+  <!-- Main content frame -->
+  <iframe
+    id="frame"
+    allowfullscreen
+    allow="autoplay; fullscreen; picture-in-picture"
+    src="about:blank"
+  ></iframe>
+
+  <!-- Firebase connection indicator (tiny, bottom-right) -->
+  <div id="status-dot" title="Firebase connection"></div>
+
+  <!-- Shown if Firebase config is still the placeholder -->
+  <div id="setup-warning">
+    <h1>⚙ Setup needed</h1>
+    <p>Open <code>receiver.html</code> in a text editor and replace the<br>
+       <code>firebaseConfig</code> placeholder with your Firebase project details.</p>
+    <p>See <code>controller.html</code> for full setup instructions.</p>
+  </div>
+
+  <!-- Firebase SDK (hosted by Google, no bandwidth cost) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <script>
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 1 — Replace this block with your Firebase project config.
+    //          Get it from: Firebase Console → Project Settings → Your apps → SDK setup
+    // ─────────────────────────────────────────────────────────────────────────
+  const firebaseConfig = {
+    apiKey: "AIzaSyCFD9jf5dzh_-mlFiHXvgSl5QZle_QEKt8",
+    authDomain: "techorama-stream.firebaseapp.com",
+    databaseURL: "https://techorama-stream-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "techorama-stream",
+    storageBucket: "techorama-stream.firebasestorage.app",
+    messagingSenderId: "482767979960",
+    appId: "1:482767979960:web:ed592092560f57a0853b4d",
+    measurementId: "G-ZNMTEEV8X9"
+  };
+    // ─────────────────────────────────────────────────────────────────────────
+
+    const isConfigured = !firebaseConfig.apiKey.startsWith("PASTE");
+    const warningEl   = document.getElementById('setup-warning');
+    const blankEl     = document.getElementById('blank-screen');
+    const frameEl     = document.getElementById('frame');
+    const dotEl       = document.getElementById('status-dot');
+
+    if (!isConfigured) {
+      // Leave the setup warning visible, do nothing else.
+    } else {
+      warningEl.classList.add('hidden');
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      // Connection indicator
+      db.ref('.info/connected').on('value', snap => {
+        dotEl.classList.toggle('connected', !!snap.val());
+      });
+
+      // Listen for display changes
+      db.ref('signage/current').on('value', snap => {
+        const data = snap.val();
+        if (!data) return;
+
+        const { url, mode } = data;
+
+        if (mode === 'blank' || !url) {
+          // Show black screen
+          blankEl.classList.remove('hidden');
+          frameEl.src = 'about:blank';
+
+        } else if (mode === 'redirect') {
+          // Navigate the whole browser to the URL
+          window.location.href = url;
+
+        } else {
+          // Default: iframe mode
+          blankEl.classList.add('hidden');
+          if (frameEl.src !== url) {
+            frameEl.src = url;
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

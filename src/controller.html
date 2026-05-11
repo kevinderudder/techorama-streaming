@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signage Controller</title>
+  <style>
+    :root {
+      --bg:       #0f1117;
+      --panel:    #1c1f2e;
+      --border:   #2d3150;
+      --accent:   #5b6af0;
+      --accent-h: #7b87ff;
+      --danger:   #e05252;
+      --ok:       #3dba6f;
+      --text:     #e2e4f0;
+      --muted:    #7a7e99;
+      --radius:   10px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    /* ── Header ────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    header h1 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    header h1 span { color: var(--accent); }
+
+    #connection-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 14px;
+    }
+
+    #conn-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--danger);
+      transition: background 0.3s;
+    }
+    #conn-dot.live { background: var(--ok); }
+
+    /* ── Setup banner ──────────────────────────────── */
+    #setup-banner {
+      background: #2a1f00;
+      border: 1px solid #f0a500;
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      margin-bottom: 24px;
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+    #setup-banner h2 { color: #f0a500; margin-bottom: 8px; font-size: 1rem; }
+    #setup-banner code {
+      background: #1a1300;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+    #setup-banner ol { padding-left: 20px; }
+    #setup-banner li { margin-bottom: 4px; }
+    #setup-banner.hidden { display: none; }
+
+    /* ── Live status bar ───────────────────────────── */
+    #live-status {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #live-status strong { color: var(--text); word-break: break-all; }
+
+    /* ── Main push card ────────────────────────────── */
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    /* URL input row */
+    .url-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    #url-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 1rem;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #url-input:focus { border-color: var(--accent); }
+    #url-input::placeholder { color: var(--muted); }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      padding: 11px 22px;
+      transition: background 0.2s, opacity 0.2s;
+    }
+    button:disabled { opacity: 0.4; cursor: default; }
+
+    #push-btn {
+      background: var(--accent);
+      color: #fff;
+      white-space: nowrap;
+    }
+    #push-btn:hover:not(:disabled) { background: var(--accent-h); }
+
+    /* Mode selector */
+    .mode-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      background: var(--bg);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      border-radius: 7px;
+      transition: all 0.15s;
+    }
+    .mode-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .mode-btn:hover:not(.active) { border-color: var(--accent); color: var(--text); }
+
+    /* Mode hint */
+    #mode-hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 8px;
+      min-height: 1.2em;
+    }
+
+    /* Blank screen button */
+    #blank-btn {
+      width: 100%;
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      margin-top: 14px;
+      padding: 10px;
+      font-size: 0.88rem;
+    }
+    #blank-btn:hover:not(:disabled) { background: rgba(224,82,82,0.1); }
+
+    /* ── Recent URLs ───────────────────────────────── */
+    #recent-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .recent-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      font-size: 0.85rem;
+      word-break: break-all;
+    }
+    .recent-item:hover { border-color: var(--accent); }
+    .recent-item .re-url { flex: 1; color: var(--text); }
+    .recent-item .re-mode { color: var(--muted); font-size: 0.75rem; flex-shrink: 0; }
+    .recent-item .re-del {
+      color: var(--muted);
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .recent-item .re-del:hover { color: var(--danger); background: rgba(224,82,82,0.1); }
+    #no-recent { color: var(--muted); font-size: 0.85rem; }
+
+    /* ── Local files section ───────────────────────── */
+    #local-url { color: var(--accent); font-weight: 600; word-break: break-all; }
+    #local-instructions { font-size: 0.84rem; line-height: 1.75; color: var(--muted); }
+    #local-instructions code {
+      background: var(--bg);
+      padding: 2px 7px;
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 0.82rem;
+    }
+    #local-instructions strong { color: var(--text); }
+
+    /* ── Toast ─────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--ok);
+      color: #fff;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 10px 22px;
+      border-radius: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      transition: transform 0.3s ease;
+      pointer-events: none;
+      z-index: 999;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.error { background: var(--danger); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Conference <span>Signage</span> Control</h1>
+    <div id="connection-badge">
+      <div id="conn-dot"></div>
+      <span id="conn-label">Connecting…</span>
+    </div>
+  </header>
+
+  <!-- ── Setup instructions (shown until Firebase is configured) ── -->
+  <div id="setup-banner">
+    <h2>⚙ One-time setup required</h2>
+    <ol>
+      <li>Go to <strong>console.firebase.google.com</strong> → Create a new project (free Spark plan).</li>
+      <li>In the project: <strong>Build → Realtime Database → Create database</strong> → choose "Start in test mode".</li>
+      <li>Go to <strong>Project Settings → Your apps → Web app</strong> → register an app → copy the <code>firebaseConfig</code> object.</li>
+      <li>Open both <code>receiver.html</code> and <code>controller.html</code> in a text editor and paste your config into the <code>firebaseConfig</code> block near the top of each file.</li>
+      <li>Host both files on <strong>GitHub Pages</strong> (free): create a repo, push the files, enable Pages under repo Settings → Pages.</li>
+      <li>Open <code>receiver.html</code> on each TV screen (use kiosk mode: <code>chrome --kiosk https://yourname.github.io/signage/receiver.html</code>).</li>
+    </ol>
+  </div>
+
+  <!-- ── Currently on screens ── -->
+  <div id="live-status">
+    <span>📺 Currently on screens:</span>
+    <strong id="live-url">—</strong>
+    <span id="live-mode" style="color:var(--muted); font-size:0.78rem;"></span>
+  </div>
+
+  <!-- ── Push a URL ── -->
+  <div class="card">
+    <h2>Push to all screens</h2>
+
+    <div class="url-row">
+      <input
+        id="url-input"
+        type="url"
+        placeholder="https://techorama.be/schedule  or  http://192.168.1.42:8765/slide.png"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button id="push-btn">▶ Push</button>
+    </div>
+
+    <div class="mode-row">
+      <button class="mode-btn active" data-mode="iframe">Iframe (default)</button>
+      <button class="mode-btn" data-mode="redirect">Full redirect</button>
+    </div>
+    <div id="mode-hint">The content is shown inside a full-screen frame on the TV. Most sites work; a few block iframes — use "Full redirect" for those.</div>
+
+    <button id="blank-btn">⬛ Blank all screens</button>
+  </div>
+
+  <!-- ── Recent URLs ── -->
+  <div class="card">
+    <h2>Recently pushed</h2>
+    <div id="recent-list"><span id="no-recent">Nothing pushed yet this session.</span></div>
+  </div>
+
+  <!-- ── Local file server ── -->
+  <div class="card">
+    <h2>Local files (images, videos, HTML slides)</h2>
+    <div id="local-instructions">
+      Run <code>serve-local.py</code> on this laptop to serve files over the venue WiFi.<br>
+      <strong>Step 1:</strong> Open a terminal and run: <code>python3 serve-local.py</code><br>
+      <strong>Step 2:</strong> The script prints your local IP, e.g. <code>http://192.168.1.42:8765/</code><br>
+      <strong>Step 3:</strong> Put your files (PNG, MP4, HTML, …) in the same folder as the script.<br>
+      <strong>Step 4:</strong> Paste the URL into the field above, e.g. <code>http://192.168.1.42:8765/opening-slide.html</code><br>
+      <br>
+      <em>The TV screens and this laptop must be on the same venue WiFi for local URLs to work.</em>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast">Pushed!</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <script>
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 1 — Replace this block with your Firebase project config.
+    //          Get it from: Firebase Console → Project Settings → Your apps → SDK setup
+    // ─────────────────────────────────────────────────────────────────────────
+  const firebaseConfig = {
+    apiKey: "AIzaSyCFD9jf5dzh_-mlFiHXvgSl5QZle_QEKt8",
+    authDomain: "techorama-stream.firebaseapp.com",
+    databaseURL: "https://techorama-stream-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "techorama-stream",
+    storageBucket: "techorama-stream.firebasestorage.app",
+    messagingSenderId: "482767979960",
+    appId: "1:482767979960:web:ed592092560f57a0853b4d",
+    measurementId: "G-ZNMTEEV8X9"
+  };
+    // ─────────────────────────────────────────────────────────────────────────
+
+    const isConfigured = !firebaseConfig.apiKey.startsWith("PASTE");
+
+    // ── Elements ──
+    const urlInput    = document.getElementById('url-input');
+    const pushBtn     = document.getElementById('push-btn');
+    const blankBtn    = document.getElementById('blank-btn');
+    const liveUrlEl   = document.getElementById('live-url');
+    const liveModeEl  = document.getElementById('live-mode');
+    const recentList  = document.getElementById('recent-list');
+    const noRecent    = document.getElementById('no-recent');
+    const connDot     = document.getElementById('conn-dot');
+    const connLabel   = document.getElementById('conn-label');
+    const setupBanner = document.getElementById('setup-banner');
+    const toast       = document.getElementById('toast');
+
+    let currentMode = 'iframe';
+    let db = null;
+
+    // ── Mode selector ──
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentMode = btn.dataset.mode;
+        updateModeHint();
+      });
+    });
+
+    const modeHints = {
+      iframe:   "The content is shown inside a full-screen frame on the TV. Most sites work; a few block iframes — use "Full redirect" for those.",
+      redirect: "The TV browser navigates directly to the URL. Cleanest view, but the receiver page is gone until you push a new URL (the page will reload automatically after 30 s)."
+    };
+    function updateModeHint() {
+      document.getElementById('mode-hint').textContent = modeHints[currentMode] || '';
+    }
+
+    // ── Toast helper ──
+    let toastTimer;
+    function showToast(msg, isError = false) {
+      toast.textContent = msg;
+      toast.classList.toggle('error', isError);
+      toast.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    // ── Recent URLs (localStorage) ──
+    const RECENT_KEY = 'signage_recent_v1';
+
+    function loadRecent() {
+      try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); }
+      catch { return []; }
+    }
+
+    function saveRecent(items) {
+      localStorage.setItem(RECENT_KEY, JSON.stringify(items));
+    }
+
+    function addRecent(url, mode) {
+      let items = loadRecent().filter(i => i.url !== url);
+      items.unshift({ url, mode });
+      if (items.length > 12) items = items.slice(0, 12);
+      saveRecent(items);
+      renderRecent();
+    }
+
+    function renderRecent() {
+      const items = loadRecent();
+      recentList.innerHTML = '';
+      if (items.length === 0) {
+        recentList.appendChild(noRecent);
+        noRecent.style.display = '';
+        return;
+      }
+      items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'recent-item';
+        div.innerHTML = `
+          <span class="re-url">${escHtml(item.url)}</span>
+          <span class="re-mode">${escHtml(item.mode)}</span>
+          <span class="re-del" title="Remove from list">✕</span>
+        `;
+        div.querySelector('.re-url').addEventListener('click', () => {
+          urlInput.value = item.url;
+          // Switch to saved mode
+          document.querySelectorAll('.mode-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.mode === item.mode);
+          });
+          currentMode = item.mode;
+          updateModeHint();
+          urlInput.focus();
+        });
+        div.querySelector('.re-del').addEventListener('click', e => {
+          e.stopPropagation();
+          const updated = loadRecent().filter(i => i.url !== item.url);
+          saveRecent(updated);
+          renderRecent();
+        });
+        recentList.appendChild(div);
+      });
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ── Push ──
+    function push(url, mode) {
+      if (!db) { showToast('Not connected to Firebase', true); return; }
+      if (!url && mode !== 'blank') { showToast('Enter a URL first', true); return; }
+      db.ref('signage/current').set({ url, mode, updatedAt: Date.now() })
+        .then(() => {
+          showToast(mode === 'blank' ? 'Screens blanked' : 'Pushed to screens!');
+          if (url) addRecent(url, mode);
+        })
+        .catch(err => showToast('Error: ' + err.message, true));
+    }
+
+    pushBtn.addEventListener('click', () => {
+      let url = urlInput.value.trim();
+      if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+      push(url, currentMode);
+    });
+
+    urlInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') pushBtn.click();
+    });
+
+    blankBtn.addEventListener('click', () => push('', 'blank'));
+
+    // ── Firebase init ──
+    if (!isConfigured) {
+      connLabel.textContent = 'Not configured';
+      pushBtn.disabled = true;
+      blankBtn.disabled = true;
+    } else {
+      setupBanner.classList.add('hidden');
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+
+      db.ref('.info/connected').on('value', snap => {
+        const live = !!snap.val();
+        connDot.classList.toggle('live', live);
+        connLabel.textContent = live ? 'Connected' : 'Reconnecting…';
+        pushBtn.disabled  = !live;
+        blankBtn.disabled = !live;
+      });
+
+      db.ref('signage/current').on('value', snap => {
+        const data = snap.val();
+        if (!data) { liveUrlEl.textContent = '—'; liveModeEl.textContent = ''; return; }
+        if (data.mode === 'blank') {
+          liveUrlEl.textContent = '(blank screen)';
+          liveModeEl.textContent = '';
+        } else {
+          liveUrlEl.textContent = data.url || '—';
+          liveModeEl.textContent = data.mode ? `[${data.mode}]` : '';
+        }
+      });
+    }
+
+    // ── Init ──
+    renderRecent();
+  </script>
+</body>
+</html>
