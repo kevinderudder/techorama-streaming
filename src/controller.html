@@ -24,44 +24,141 @@
       background: var(--bg);
       color: var(--text);
       font-family: 'Segoe UI', system-ui, sans-serif;
+      display: flex;
       min-height: 100vh;
-      padding: 24px;
+      padding: 0;
+      margin: 0;
     }
 
-    header {
+    /* === SIDEBAR === */
+    #sidebar {
+      width: 220px;
+      min-height: 100vh;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    #sidebar-header {
+      padding: 22px 20px 18px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      margin-bottom: 28px;
-    }
-
-    header h1 {
-      font-size: 1.35rem;
-      font-weight: 600;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      font-size: 1.1rem;
+      font-weight: 700;
       letter-spacing: 0.02em;
     }
 
-    header h1 span { color: var(--accent); }
+    #sidebar-title { color: var(--accent); }
+    #sidebar-logo { font-size: 1.4rem; }
+
+    #sidebar-nav {
+      list-style: none;
+      padding: 12px 8px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .nav-btn:hover:not(.active) {
+      background: rgba(91,106,240,0.1);
+      color: var(--text);
+    }
+
+    .nav-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .nav-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .nav-label { flex: 1; }
+
+    #sidebar-footer {
+      padding: 14px 12px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #blank-btn {
+      width: 100%;
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      padding: 10px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    #blank-btn:hover:not(:disabled) { background: rgba(224,82,82,0.12); }
 
     #connection-badge {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       color: var(--muted);
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 5px 14px;
+      padding: 4px 6px;
     }
 
     #conn-dot {
-      width: 8px; height: 8px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: var(--danger);
       transition: background 0.3s;
     }
     #conn-dot.live { background: var(--ok); }
+
+    /* === MAIN CONTENT === */
+    #main-content {
+      flex: 1;
+      min-width: 0;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    #live-status {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #live-status strong { color: var(--text); word-break: break-all; }
 
     #setup-banner {
       background: #2a1f00;
@@ -83,58 +180,23 @@
     #setup-banner li { margin-bottom: 4px; }
     #setup-banner.hidden { display: none; }
 
-    #live-status {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 18px;
-      margin-bottom: 20px;
-      font-size: 0.85rem;
-      color: var(--muted);
+    /* === PANELS === */
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .panel-header {
       display: flex;
       align-items: center;
-      gap: 10px;
-    }
-    #live-status strong { color: var(--text); word-break: break-all; }
-
-    /* Tab navigation */
-    #tab-bar {
-      display: flex;
-      gap: 4px;
-      margin-bottom: 20px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 4px;
+      justify-content: space-between;
+      margin-bottom: 22px;
     }
 
-    .tab-btn {
-      flex: 1;
-      background: transparent;
-      color: var(--muted);
-      border: none;
-      border-radius: 7px;
-      padding: 9px 16px;
-      font-size: 0.85rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.15s;
+    .panel-title {
+      font-size: 1.3rem;
+      font-weight: 700;
     }
 
-    .tab-btn.active {
-      background: var(--accent);
-      color: #fff;
-    }
-
-    .tab-btn:hover:not(.active) {
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-
-    /* Cards */
+    /* === CARDS === */
     .card {
       background: var(--panel);
       border: 1px solid var(--border);
@@ -156,8 +218,7 @@
       gap: 10px;
     }
 
-    #url-input {
-      flex: 1;
+    input[type="url"], input[type="text"], textarea, select {
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -166,9 +227,16 @@
       padding: 11px 14px;
       outline: none;
       transition: border-color 0.2s;
+      font-family: inherit;
     }
-    #url-input:focus { border-color: var(--accent); }
-    #url-input::placeholder { color: var(--muted); }
+
+    input[type="url"]:focus, input[type="text"]:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    input[type="url"]::placeholder, input[type="text"]::placeholder {
+      color: var(--muted);
+    }
 
     button {
       cursor: pointer;
@@ -178,14 +246,18 @@
       font-weight: 600;
       padding: 11px 22px;
       transition: background 0.2s, opacity 0.2s;
+      font-family: inherit;
     }
     button:disabled { opacity: 0.4; cursor: default; }
 
-    #push-btn {
+    .btn-primary {
       background: var(--accent);
       color: #fff;
-      white-space: nowrap;
     }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-h); }
+
+    #url-input { flex: 1; }
+    #push-btn { background: var(--accent); color: #fff; white-space: nowrap; }
     #push-btn:hover:not(:disabled) { background: var(--accent-h); }
 
     .mode-row {
@@ -219,17 +291,6 @@
       min-height: 1.2em;
     }
 
-    #blank-btn {
-      width: 100%;
-      background: transparent;
-      color: var(--danger);
-      border: 1px solid var(--danger);
-      margin-top: 14px;
-      padding: 10px;
-      font-size: 0.88rem;
-    }
-    #blank-btn:hover:not(:disabled) { background: rgba(224,82,82,0.1); }
-
     #recent-list {
       display: flex;
       flex-direction: column;
@@ -261,7 +322,7 @@
     .recent-item .re-del:hover { color: var(--danger); background: rgba(224,82,82,0.1); }
     #no-recent { color: var(--muted); font-size: 0.85rem; }
 
-    /* Image push */
+    /* === IMAGE PUSH === */
     .img-mode-row { display: flex; gap: 8px; margin-bottom: 12px; }
     .img-mode-btn { flex: 1; }
 
@@ -297,62 +358,63 @@
 
     #img-url-zone { display: none; }
 
-    /* HTML Editor */
+    /* === HTML EDITOR === */
     #editor-mode-toggle { margin-bottom: 14px; }
 
     #editor-toolbar {
       display: none;
       gap: 12px;
       margin-bottom: 14px;
-      flex-wrap: wrap;
     }
-    #editor-toolbar.show { display: flex; }
+    #editor-toolbar.show { display: flex; flex-direction: column; }
 
     .toolbar-row {
       display: flex;
       gap: 8px;
-      flex-wrap: wrap;
+      align-items: center;
     }
 
-    select, #text-color-picker, #bg-color-picker, #font-size-picker {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-radius: 6px;
-      padding: 6px 10px;
+    .toolbar-row select, .toolbar-row input[type="color"] {
+      padding: 7px 10px;
       font-size: 0.82rem;
-      cursor: pointer;
     }
 
-    select:focus, #text-color-picker:focus, #bg-color-picker:focus, #font-size-picker:focus {
-      outline: none;
-      border-color: var(--accent);
+    .toolbar-row label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
     }
 
     .tool-btn {
       background: var(--bg);
       color: var(--muted);
       border: 1px solid var(--border);
-      padding: 6px 12px;
+      padding: 7px 11px;
       font-size: 0.82rem;
+      flex: 0 0 auto;
       border-radius: 6px;
+      transition: all 0.15s;
     }
-    .tool-btn:hover { border-color: var(--accent); color: var(--text); }
+    .tool-btn:hover { color: var(--text); border-color: var(--accent); }
 
     #editor-canvas-wrapper {
       background: #1a1a2e;
-      padding: 40px;
+      border: 1px solid var(--border);
       border-radius: var(--radius);
+      padding: 40px;
       margin-bottom: 14px;
     }
 
     #editor-canvas {
-      min-height: 400px;
+      min-height: 200px;
+      outline: none;
       color: #fff;
       font-family: 'Segoe UI', system-ui, sans-serif;
       font-size: 32px;
       text-align: center;
-      outline: none;
+      word-break: break-word;
     }
 
     #editor-html-panel { display: none; }
@@ -360,76 +422,249 @@
 
     #html-source {
       width: 100%;
-      height: 300px;
+      min-height: 300px;
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: var(--radius);
       color: var(--text);
-      padding: 12px;
-      font-family: monospace;
-      font-size: 0.85rem;
-    }
-
-    #editor-preview-panel {
-      margin-top: 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9rem;
+      padding: 14px;
+      margin-bottom: 14px;
     }
 
     #editor-preview {
       width: 100%;
       height: 300px;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: var(--radius);
+      margin-bottom: 14px;
     }
 
     #preview-fullscreen-btn {
-      margin-top: 10px;
       background: var(--accent);
       color: #fff;
     }
     #preview-fullscreen-btn:hover { background: var(--accent-h); }
 
-    #preview-modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      gap: 12px;
-    }
-    #preview-modal.hidden { display: none; }
-
-    #preview-modal-close {
-      color: #fff;
-      background: transparent;
-      border: 1px solid #fff;
-    }
-
-    #preview-modal-frame {
-      width: 90vw;
-      height: 80vh;
-      border: none;
-    }
-
     #editor-push-btn {
       width: 100%;
       background: var(--accent);
       color: #fff;
-      padding: 14px;
-      font-size: 1rem;
       margin-top: 14px;
     }
     #editor-push-btn:hover:not(:disabled) { background: var(--accent-h); }
 
-    #last-html-summary {
-      margin-top: 12px;
-      font-size: 0.8rem;
-      color: var(--muted);
+    /* === TEMPLATES === */
+    #templates-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
     }
 
-    /* Settings tab (logo) */
+    @media (max-width: 1100px) { #templates-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 700px)  { #templates-grid { grid-template-columns: 1fr; } }
+
+    .tpl-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.15s;
+    }
+
+    .tpl-card:hover { border-color: var(--accent); }
+
+    .tpl-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px 0;
+    }
+
+    .tpl-type-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+
+    .tpl-type-html  { background: rgba(91,106,240,0.2); color: var(--accent-h); }
+    .tpl-type-image { background: rgba(61,186,111,0.2); color: var(--ok); }
+    .tpl-type-video { background: rgba(240,165,0,0.2);  color: #f0a500; }
+    .tpl-type-url   { background: rgba(122,126,153,0.2); color: var(--muted); }
+
+    .tpl-actions { display: flex; gap: 4px; }
+
+    .tpl-edit-btn, .tpl-del-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 4px 6px;
+      border-radius: 5px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s;
+    }
+    .tpl-edit-btn:hover { color: var(--accent); background: rgba(91,106,240,0.1); }
+    .tpl-del-btn:hover  { color: var(--danger); background: rgba(224,82,82,0.1); }
+
+    .tpl-preview {
+      height: 130px;
+      background: #0a0c14;
+      overflow: hidden;
+      margin: 10px 12px 0;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tpl-preview iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      pointer-events: none;
+    }
+
+    .tpl-preview img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .tpl-preview .tpl-url-preview {
+      color: var(--muted);
+      font-size: 0.78rem;
+      padding: 12px;
+      word-break: break-all;
+      text-align: center;
+    }
+
+    .tpl-name {
+      padding: 10px 12px 4px;
+      font-weight: 600;
+      font-size: 0.92rem;
+    }
+
+    .tpl-push-btn {
+      margin: 8px 12px 12px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 9px 14px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .tpl-push-btn:hover { background: var(--accent-h); }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      padding: 60px 20px;
+      font-size: 0.9rem;
+    }
+
+    #add-template-btn {
+      background: var(--accent);
+      color: #fff;
+      white-space: nowrap;
+    }
+    #add-template-btn:hover { background: var(--accent-h); }
+
+    /* === MODAL === */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.hidden { display: none; }
+
+    .modal-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 680px;
+      max-height: 90vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-header h2 { font-size: 1rem; font-weight: 700; }
+    #modal-close-btn { background: transparent; border: none; color: var(--muted); padding: 4px; font-size: 1.2rem; }
+    #modal-close-btn:hover { color: var(--text); }
+
+    .modal-body { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+
+    .modal-footer {
+      padding: 14px 22px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .field-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .tpl-content-area { display: flex; flex-direction: column; gap: 10px; }
+    .tpl-content-area.hidden { display: none; }
+
+    #tpl-editor-canvas-wrapper {
+      background: #1a1a2e;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 30px;
+      margin-bottom: 10px;
+    }
+
+    #tpl-editor-canvas {
+      min-height: 150px;
+      outline: none;
+      color: #fff;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 24px;
+      text-align: center;
+      word-break: break-word;
+    }
+
+    #tpl-editor-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    /* === LOGO SETTINGS === */
     .setting-row {
       display: flex;
       align-items: center;
@@ -437,130 +672,7 @@
       margin-bottom: 14px;
     }
 
-    #logo-current-row {
-      display: none;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    #logo-preview-img {
-      max-height: 60px;
-      max-width: 200px;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-    }
-
-    #logo-clear-btn {
-      color: var(--danger);
-      background: transparent;
-      border: 1px solid var(--danger);
-      padding: 6px 14px;
-      font-size: 0.82rem;
-    }
-    #logo-clear-btn:hover { background: rgba(224,82,82,0.1); }
-
-    #logo-position-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 14px;
-    }
-
-    .pos-btn, .size-btn {
-      background: var(--bg);
-      color: var(--muted);
-      border: 1px solid var(--border);
-      font-size: 0.82rem;
-      font-weight: 500;
-      border-radius: 7px;
-      padding: 8px 10px;
-      transition: all 0.15s;
-      cursor: pointer;
-    }
-    .pos-btn.active, .size-btn.active {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
-    }
-    .pos-btn:hover:not(.active), .size-btn:hover:not(.active) {
-      border-color: var(--accent);
-      color: var(--text);
-    }
-
-    #logo-drop-zone {
-      border: 2px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-      text-align: center;
-      cursor: pointer;
-      color: var(--muted);
-      transition: border-color 0.2s, background 0.2s;
-      margin-top: 16px;
-    }
-    #logo-drop-zone.drag-over {
-      border-color: var(--accent);
-      background: rgba(91,106,240,0.08);
-    }
-
-    #uploaded-logos-list {
-      margin-top: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .logo-list-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      padding: 8px 12px;
-      font-size: 0.82rem;
-    }
-
-    .logo-list-item img {
-      height: 32px;
-      border-radius: 3px;
-    }
-
-    .li-name {
-      flex: 1;
-      color: var(--muted);
-      word-break: break-all;
-      font-size: 0.8rem;
-    }
-
-    .li-use {
-      padding: 4px 10px;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      font-size: 0.8rem;
-      cursor: pointer;
-    }
-    .li-use:hover { background: var(--accent-h); }
-
-    .li-del {
-      padding: 4px 10px;
-      color: var(--danger);
-      background: transparent;
-      border: 1px solid var(--danger);
-      border-radius: 5px;
-      font-size: 0.8rem;
-      cursor: pointer;
-    }
-    .li-del:hover { background: rgba(224,82,82,0.1); }
-
-    /* Toggle switch */
-    .logo-toggle-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .logo-toggle-row { display: flex; align-items: center; }
 
     .toggle-switch {
       position: relative;
@@ -577,318 +689,556 @@
 
     .toggle-slider {
       position: absolute;
-      inset: 0;
-      background: var(--border);
-      border-radius: 24px;
       cursor: pointer;
-      transition: background 0.2s;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--border);
+      transition: 0.3s;
+      border-radius: 24px;
     }
 
-    .toggle-slider::before {
-      content: '';
+    .toggle-slider:before {
       position: absolute;
+      content: "";
       height: 18px;
       width: 18px;
       left: 3px;
       bottom: 3px;
-      background: #fff;
+      background-color: var(--text);
+      transition: 0.3s;
       border-radius: 50%;
-      transition: transform 0.2s;
     }
 
-    .toggle-switch input:checked + .toggle-slider {
-      background: var(--accent);
+    input:checked + .toggle-slider {
+      background-color: var(--ok);
     }
 
-    .toggle-switch input:checked + .toggle-slider::before {
+    input:checked + .toggle-slider:before {
       transform: translateX(20px);
     }
 
-    /* Help tab */
-    .faq dt {
-      font-weight: 600;
-      color: var(--text);
-      margin-top: 12px;
+    #logo-preview-img {
+      max-width: 200px;
+      max-height: 100px;
+      border-radius: 6px;
+      margin: 10px 0;
     }
-    .faq dd {
-      color: var(--muted);
-      font-size: 0.85rem;
-      line-height: 1.65;
-      margin-left: 0;
-      margin-top: 4px;
-    }
-    .faq dt:first-child { margin-top: 0; }
 
-    /* Toast */
-    #toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(80px);
+    #logo-current-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    #logo-clear-btn {
+      background: var(--danger);
+      color: #fff;
+      padding: 8px 16px;
+      font-size: 0.82rem;
+    }
+    #logo-clear-btn:hover { background: #d93a3a; }
+
+    .pos-btn, .size-btn {
+      flex: 1;
+      background: var(--bg);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      border-radius: 7px;
+      transition: all 0.15s;
+    }
+    .pos-btn.active, .size-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .pos-btn:hover:not(.active), .size-btn:hover:not(.active) {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    #logo-position-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    #logo-drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      text-align: center;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-top: 14px;
+      margin-bottom: 14px;
+    }
+    #logo-drop-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(91,106,240,0.08);
+    }
+
+    .logo-list-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+
+    .logo-list-item .li-preview {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      border-radius: 5px;
+      background: #0a0c14;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .logo-list-item .li-preview img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .logo-list-item .li-name {
+      flex: 1;
+      font-size: 0.85rem;
+      color: var(--text);
+    }
+
+    .logo-list-item .li-use {
       background: var(--ok);
       color: #fff;
-      font-size: 0.88rem;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      border: none;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .logo-list-item .li-use:hover { opacity: 0.8; }
+
+    .logo-list-item .li-del {
+      color: var(--muted);
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+    .logo-list-item .li-del:hover { color: var(--danger); background: rgba(224,82,82,0.1); }
+
+    /* === HELP & FAQ === */
+    .faq dt { font-weight: 600; color: var(--text); margin-top: 12px; }
+    .faq dd { color: var(--muted); font-size: 0.85rem; line-height: 1.65; margin-left: 0; margin-top: 4px; }
+
+    /* === TOAST === */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(200px);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px 22px;
+      border-radius: var(--radius);
       font-weight: 600;
-      padding: 10px 22px;
-      border-radius: 30px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-      transition: transform 0.3s ease;
-      pointer-events: none;
-      z-index: 999;
+      font-size: 0.9rem;
+      transition: transform 0.3s;
+      z-index: 3000;
     }
     #toast.show { transform: translateX(-50%) translateY(0); }
     #toast.error { background: var(--danger); }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 768px) {
+      #sidebar { width: 60px; }
+      #sidebar-title { display: none; }
+      .nav-label { display: none; }
+      .nav-btn { justify-content: center; padding: 10px; }
+      #blank-btn { padding: 10px; font-size: 0; }
+      #blank-btn::before { content: "⬛"; font-size: 1.1rem; }
+      #sidebar-header { justify-content: center; padding: 16px 8px; }
+    }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Conference <span>Signage</span> Control</h1>
-    <div id="connection-badge">
-      <div id="conn-dot"></div>
-      <span id="conn-label">Connecting…</span>
+  <!-- LEFT SIDEBAR -->
+  <nav id="sidebar">
+    <div id="sidebar-header">
+      <span id="sidebar-logo">📺</span>
+      <span id="sidebar-title">Signage</span>
     </div>
-  </header>
 
-  <div id="setup-banner">
-    <h2>⚙ One-time setup required</h2>
-    <ol>
-      <li>Go to <strong>console.firebase.google.com</strong> → Create a new project (free Spark plan).</li>
-      <li>In the project: <strong>Build → Realtime Database → Create database</strong> → choose "Start in test mode".</li>
-      <li>Go to <strong>Project Settings → Your apps → Web app</strong> → register an app → copy the <code>firebaseConfig</code> object.</li>
-      <li>Open both <code>receiver.html</code> and <code>controller.html</code> in a text editor and paste your config into the <code>firebaseConfig</code> block near the top of each file.</li>
-      <li>Host both files on <strong>GitHub Pages</strong> (free): create a repo, push the files, enable Pages under repo Settings → Pages.</li>
-      <li>Open <code>receiver.html</code> on each TV screen (use kiosk mode: <code>chrome --kiosk https://yourname.github.io/signage/receiver.html</code>).</li>
-    </ol>
-  </div>
+    <ul id="sidebar-nav">
+      <li><button class="nav-btn active" data-panel="templates">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">Templates</span>
+      </button></li>
+      <li><button class="nav-btn" data-panel="push-url">
+        <span class="nav-icon">🔗</span>
+        <span class="nav-label">Push URL</span>
+      </button></li>
+      <li><button class="nav-btn" data-panel="push-image">
+        <span class="nav-icon">🖼</span>
+        <span class="nav-label">Push Image</span>
+      </button></li>
+      <li><button class="nav-btn" data-panel="editor">
+        <span class="nav-icon">📝</span>
+        <span class="nav-label">HTML Editor</span>
+      </button></li>
+      <li><button class="nav-btn" data-panel="settings">
+        <span class="nav-icon">⚙</span>
+        <span class="nav-label">Settings</span>
+      </button></li>
+      <li><button class="nav-btn" data-panel="help">
+        <span class="nav-icon">❓</span>
+        <span class="nav-label">Help</span>
+      </button></li>
+    </ul>
 
-  <div id="live-status">
-    <span>📺 Currently on screens:</span>
-    <strong id="live-url">—</strong>
-    <span id="live-mode" style="color:var(--muted); font-size:0.78rem;"></span>
-  </div>
-
-  <!-- Tab navigation -->
-  <nav id="tab-bar">
-    <button class="tab-btn active" data-tab="push">Push</button>
-    <button class="tab-btn" data-tab="editor">HTML Editor</button>
-    <button class="tab-btn" data-tab="settings">Settings</button>
-    <button class="tab-btn" data-tab="help">Help</button>
+    <div id="sidebar-footer">
+      <button id="blank-btn">⬛ Blank Screens</button>
+      <div id="connection-badge">
+        <div id="conn-dot"></div>
+        <span id="conn-label">Connecting…</span>
+      </div>
+    </div>
   </nav>
 
-  <!-- PUSH TAB -->
-  <div id="tab-push" class="tab-panel active">
-    <!-- Push URL -->
-    <div class="card">
-      <h2>Push URL</h2>
-      <div class="url-row">
-        <input id="url-input" type="url" placeholder="https://techorama.be/schedule  or  http://192.168.1.42:8765/slide.png" autocomplete="off" spellcheck="false">
-        <button id="push-btn">▶ Push</button>
-      </div>
-      <div class="mode-row">
-        <button class="mode-btn active" data-mode="iframe">Iframe (default)</button>
-        <button class="mode-btn" data-mode="redirect">Full redirect</button>
-      </div>
-      <div id="mode-hint">The content is shown inside a full-screen frame on the TV. Most sites work; a few block iframes — use "Full redirect" for those.</div>
+  <!-- MAIN CONTENT -->
+  <div id="main-content">
+    <div id="live-status">
+      <span>📺 Currently on screens:</span>
+      <strong id="live-url">—</strong>
+      <span id="live-mode" style="color:var(--muted); font-size:0.78rem;"></span>
     </div>
 
-    <!-- Push Image -->
-    <div class="card">
-      <h2>Push Image</h2>
-      <div class="img-mode-row">
-        <button class="mode-btn img-mode-btn active" data-imgmode="upload">Upload file</button>
-        <button class="mode-btn img-mode-btn" data-imgmode="url">Image URL</button>
-      </div>
-      <div id="img-upload-zone">
-        <input type="file" id="img-file-input" accept="image/*" hidden>
-        <div id="img-drop-zone">Drop image here or click to browse</div>
-        <div id="img-progress-bar">
-          <div id="img-progress-fill"></div>
-        </div>
-      </div>
-      <div id="img-url-zone">
-        <div class="url-row">
-          <input id="img-url-input" type="url" placeholder="https://example.com/image.png">
-          <button id="img-url-push-btn">▶ Push</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Push HTML shortcut -->
-    <div class="card">
-      <h2>Push HTML Slide</h2>
-      <button id="open-editor-btn" style="width:100%; background: var(--accent); color:#fff;">✏ Open HTML Editor</button>
-      <div id="last-html-summary" class="hidden">Last pushed: <span id="last-html-label">—</span></div>
-    </div>
-
-    <!-- Recent URLs -->
-    <div class="card">
-      <h2>Recently pushed</h2>
-      <div id="recent-list"><span id="no-recent">Nothing pushed yet this session.</span></div>
-    </div>
-
-    <!-- Blank all screens -->
-    <button id="blank-btn">⬛ Blank all screens</button>
-  </div>
-
-  <!-- HTML EDITOR TAB -->
-  <div id="tab-editor" class="tab-panel">
-    <div class="card" id="editor-mode-card">
-      <h2>Mode</h2>
-      <div id="editor-mode-toggle" class="mode-row">
-        <button class="mode-btn active" data-editormode="visual">Visual</button>
-        <button class="mode-btn" data-editormode="html">HTML</button>
-      </div>
-    </div>
-
-    <div class="card" id="editor-toolbar-card">
-      <div id="editor-toolbar" class="show">
-        <div class="toolbar-row">
-          <select id="block-type">
-            <option value="p">Body text</option>
-            <option value="h1">H1</option>
-            <option value="h2">H2</option>
-            <option value="h3">H3</option>
-          </select>
-        </div>
-        <div class="toolbar-row">
-          <button class="tool-btn" data-cmd="bold"><b>B</b></button>
-          <button class="tool-btn" data-cmd="italic"><i>I</i></button>
-          <button class="tool-btn" data-cmd="underline"><u>U</u></button>
-          <button class="tool-btn" data-align="left">⬅</button>
-          <button class="tool-btn" data-align="center">☰</button>
-          <button class="tool-btn" data-align="right">➡</button>
-        </div>
-        <div class="toolbar-row">
-          <label>Text <input type="color" id="text-color-picker" value="#ffffff"></label>
-          <label>BG <input type="color" id="bg-color-picker" value="#1a1a2e"></label>
-          <select id="font-size-picker">
-            <option value="16px">16px</option>
-            <option value="24px">24px</option>
-            <option value="32px" selected>32px</option>
-            <option value="48px">48px</option>
-            <option value="64px">64px</option>
-            <option value="96px">96px</option>
-          </select>
-        </div>
-      </div>
-
-      <div id="editor-canvas-wrapper">
-        <div id="editor-canvas" contenteditable="true">Click here to start typing...</div>
-      </div>
-
-      <div id="editor-html-panel">
-        <textarea id="html-source"></textarea>
-      </div>
-    </div>
-
-    <div class="card" id="editor-preview-card">
-      <h2>Preview</h2>
-      <iframe id="editor-preview" sandbox="allow-scripts"></iframe>
-      <button id="preview-fullscreen-btn">⛶ Full screen preview</button>
-    </div>
-
-    <button id="editor-push-btn">▶ Push to screens</button>
-  </div>
-
-  <!-- SETTINGS TAB -->
-  <div id="tab-settings" class="tab-panel">
-    <div class="card">
-      <h2>Logo Overlay</h2>
-
-      <div class="setting-row">
-        <span>Show logo on screens</span>
-        <div class="logo-toggle-row">
-          <label class="toggle-switch">
-            <input type="checkbox" id="logo-visible-toggle" checked>
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-      </div>
-
-      <div id="logo-current-row">
-        <img id="logo-preview-img" src="" alt="Current logo">
-        <button id="logo-clear-btn">Clear</button>
-      </div>
-      <p id="logo-no-logo" style="color:var(--muted); font-size:0.85rem;">No logo configured.</p>
-
-      <div style="margin-top:14px;">
-        <label style="display:block; font-size:0.78rem; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:8px;">Position</label>
-        <div id="logo-position-grid">
-          <button class="pos-btn active" data-pos="top-left">↖ Top left</button>
-          <button class="pos-btn" data-pos="top-right">↗ Top right</button>
-          <button class="pos-btn" data-pos="bottom-left">↙ Bottom left</button>
-          <button class="pos-btn" data-pos="bottom-right">↘ Bottom right</button>
-        </div>
-      </div>
-
-      <div style="margin-top:14px;">
-        <label style="display:block; font-size:0.78rem; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:8px;">Size</label>
-        <div class="mode-row">
-          <button class="size-btn" data-size="small">Small</button>
-          <button class="size-btn active" data-size="medium">Medium</button>
-          <button class="size-btn" data-size="large">Large</button>
-        </div>
-      </div>
-
-      <div id="logo-drop-zone">Drop logo file here or click to upload<input type="file" id="logo-file-input" accept="image/*" hidden></div>
-
-      <div id="uploaded-logos-list"></div>
-    </div>
-  </div>
-
-  <!-- HELP TAB -->
-  <div id="tab-help" class="tab-panel">
-    <div class="card">
-      <h2>One-time Setup</h2>
-      <ol style="padding-left:20px; font-size:0.9rem; line-height:1.7;">
+    <div id="setup-banner">
+      <h2>⚙ One-time setup required</h2>
+      <ol>
         <li>Go to <strong>console.firebase.google.com</strong> → Create a new project (free Spark plan).</li>
         <li>In the project: <strong>Build → Realtime Database → Create database</strong> → choose "Start in test mode".</li>
         <li>Go to <strong>Project Settings → Your apps → Web app</strong> → register an app → copy the <code>firebaseConfig</code> object.</li>
         <li>Open both <code>receiver.html</code> and <code>controller.html</code> in a text editor and paste your config into the <code>firebaseConfig</code> block near the top of each file.</li>
-        <li>Host both files on <strong>GitHub Pages</strong>: create a repo, push the files, enable Pages under repo Settings → Pages.</li>
+        <li>Host both files on <strong>GitHub Pages</strong> (free): create a repo, push the files, enable Pages under repo Settings → Pages.</li>
         <li>Open <code>receiver.html</code> on each TV screen (use kiosk mode: <code>chrome --kiosk https://yourname.github.io/signage/receiver.html</code>).</li>
       </ol>
     </div>
 
-    <div class="card">
-      <h2>Local Files (Images, Videos, HTML Slides)</h2>
-      <div style="font-size:0.84rem; line-height:1.75; color:var(--muted);">
-        Run <code>serve-local.py</code> on this laptop to serve files over the venue WiFi.<br>
-        <strong>Step 1:</strong> Open a terminal and run: <code>python3 serve-local.py</code><br>
-        <strong>Step 2:</strong> The script prints your local IP, e.g. <code>http://192.168.1.42:8765/</code><br>
-        <strong>Step 3:</strong> Put your files (PNG, MP4, HTML, …) in the same folder as the script.<br>
-        <strong>Step 4:</strong> Paste the URL into the Push field above, e.g. <code>http://192.168.1.42:8765/opening-slide.html</code><br>
-        <br>
-        <em>The TV screens and this laptop must be on the same venue WiFi for local URLs to work.</em>
+    <!-- TEMPLATES PANEL -->
+    <div id="panel-templates" class="panel active">
+      <div class="panel-header">
+        <h1 class="panel-title">Templates</h1>
+        <button id="add-template-btn" class="btn-primary">+ Add Template</button>
+      </div>
+
+      <div id="templates-empty" class="empty-state">
+        <p>No templates yet. Create your first one with "+ Add Template".</p>
+      </div>
+
+      <div id="templates-grid"></div>
+    </div>
+
+    <!-- PUSH URL PANEL -->
+    <div id="panel-push-url" class="panel">
+      <div class="card">
+        <h2>Push URL</h2>
+        <div class="url-row">
+          <input id="url-input" type="url" placeholder="https://techorama.be/schedule or http://192.168.1.42:8765/slide.png" autocomplete="off" spellcheck="false">
+          <button id="push-btn">▶ Push</button>
+        </div>
+        <div class="mode-row">
+          <button class="mode-btn active" data-mode="iframe">Iframe (default)</button>
+          <button class="mode-btn" data-mode="redirect">Full redirect</button>
+        </div>
+        <div id="mode-hint">The content is shown inside a full-screen frame on the TV. Most sites work; a few block iframes — use "Full redirect" for those.</div>
+      </div>
+
+      <div class="card">
+        <h2>Recently pushed</h2>
+        <div id="recent-list"><span id="no-recent">Nothing pushed yet this session.</span></div>
       </div>
     </div>
 
-    <div class="card">
-      <h2>Troubleshooting & FAQ</h2>
-      <dl class="faq">
-        <dt>"Screen shows 404"</dt>
-        <dd>The file (receiver.html, display-image.html, etc.) isn't published to GitHub Pages yet. Push the files and wait ~60 seconds for Pages to rebuild.</dd>
+    <!-- PUSH IMAGE PANEL -->
+    <div id="panel-push-image" class="panel">
+      <div class="card">
+        <h2>Push Image</h2>
+        <div class="img-mode-row">
+          <button class="mode-btn img-mode-btn active" data-imgmode="upload">Upload file</button>
+          <button class="mode-btn img-mode-btn" data-imgmode="url">Image URL</button>
+        </div>
+        <div id="img-upload-zone">
+          <input type="file" id="img-file-input" accept="image/*" hidden>
+          <div id="img-drop-zone">Drop image here or click to browse</div>
+          <div id="img-progress-bar">
+            <div id="img-progress-fill"></div>
+          </div>
+        </div>
+        <div id="img-url-zone">
+          <div class="url-row">
+            <input id="img-url-input" type="url" placeholder="https://example.com/image.png">
+            <button id="img-url-push-btn">▶ Push</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        <dt>"Connecting…" stays forever</dt>
-        <dd>Your Firebase config isn't set. Open both HTML files and replace the <code>firebaseConfig</code> placeholder block with your project's config from Firebase Console → Project Settings.</dd>
+    <!-- HTML EDITOR PANEL -->
+    <div id="panel-editor" class="panel">
+      <div class="card" id="editor-mode-card">
+        <h2>Mode</h2>
+        <div id="editor-mode-toggle" class="mode-row">
+          <button class="mode-btn active" data-editormode="visual">Visual</button>
+          <button class="mode-btn" data-editormode="html">HTML</button>
+        </div>
+      </div>
 
-        <dt>"Refused to display in a frame" / site doesn't load</dt>
-        <dd>The target site blocks iframes via <code>X-Frame-Options</code>. Switch to <strong>Full redirect</strong> mode, or use <strong>Push HTML</strong> to create a slide instead.</dd>
+      <div class="card" id="editor-toolbar-card">
+        <div id="editor-toolbar" class="show">
+          <div class="toolbar-row">
+            <select id="block-type">
+              <option value="p">Body text</option>
+              <option value="h1">H1</option>
+              <option value="h2">H2</option>
+              <option value="h3">H3</option>
+            </select>
+          </div>
+          <div class="toolbar-row">
+            <button class="tool-btn" data-cmd="bold"><b>B</b></button>
+            <button class="tool-btn" data-cmd="italic"><i>I</i></button>
+            <button class="tool-btn" data-cmd="underline"><u>U</u></button>
+            <button class="tool-btn" data-align="left">⬅</button>
+            <button class="tool-btn" data-align="center">☰</button>
+            <button class="tool-btn" data-align="right">➡</button>
+          </div>
+          <div class="toolbar-row">
+            <label>Text <input type="color" id="text-color-picker" value="#ffffff"></label>
+            <label>BG <input type="color" id="bg-color-picker" value="#1a1a2e"></label>
+            <select id="font-size-picker">
+              <option value="16px">16px</option>
+              <option value="24px">24px</option>
+              <option value="32px" selected>32px</option>
+              <option value="48px">48px</option>
+              <option value="64px">64px</option>
+              <option value="96px">96px</option>
+            </select>
+          </div>
+        </div>
 
-        <dt>"Error 27" / "Permission denied"</dt>
-        <dd>Your Firebase Realtime Database rules haven't been published, or they're in locked mode. Go to Firebase Console → Realtime Database → Rules and publish rules that allow read/write.</dd>
-      </dl>
+        <div id="editor-canvas-wrapper">
+          <div id="editor-canvas" contenteditable="true">Click here to start typing...</div>
+        </div>
+
+        <div id="editor-html-panel">
+          <textarea id="html-source"></textarea>
+        </div>
+      </div>
+
+      <div class="card" id="editor-preview-card">
+        <h2>Preview</h2>
+        <iframe id="editor-preview" sandbox="allow-scripts"></iframe>
+        <button id="preview-fullscreen-btn">⛶ Full screen preview</button>
+      </div>
+
+      <button id="editor-push-btn">▶ Push to screens</button>
+    </div>
+
+    <!-- SETTINGS PANEL -->
+    <div id="panel-settings" class="panel">
+      <div class="card">
+        <h2>Logo Overlay</h2>
+
+        <div class="setting-row">
+          <span>Show logo on screens</span>
+          <div class="logo-toggle-row">
+            <label class="toggle-switch">
+              <input type="checkbox" id="logo-visible-toggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div id="logo-current-row">
+          <img id="logo-preview-img" src="" alt="Current logo">
+          <button id="logo-clear-btn">Clear</button>
+        </div>
+        <p id="logo-no-logo" style="color:var(--muted); font-size:0.85rem;">No logo configured.</p>
+
+        <div style="margin-top:14px;">
+          <label style="display:block; font-size:0.78rem; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:8px;">Position</label>
+          <div id="logo-position-grid">
+            <button class="pos-btn active" data-pos="top-left">↖ Top left</button>
+            <button class="pos-btn" data-pos="top-right">↗ Top right</button>
+            <button class="pos-btn" data-pos="bottom-left">↙ Bottom left</button>
+            <button class="pos-btn" data-pos="bottom-right">↘ Bottom right</button>
+          </div>
+        </div>
+
+        <div style="margin-top:14px;">
+          <label style="display:block; font-size:0.78rem; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:8px;">Size</label>
+          <div class="mode-row">
+            <button class="size-btn" data-size="small">Small</button>
+            <button class="size-btn active" data-size="medium">Medium</button>
+            <button class="size-btn" data-size="large">Large</button>
+          </div>
+        </div>
+
+        <div id="logo-drop-zone">Drop logo file here or click to upload<input type="file" id="logo-file-input" accept="image/*" hidden></div>
+
+        <div id="uploaded-logos-list"></div>
+      </div>
+    </div>
+
+    <!-- HELP PANEL -->
+    <div id="panel-help" class="panel">
+      <div class="card">
+        <h2>One-time Setup</h2>
+        <ol style="padding-left:20px; font-size:0.9rem; line-height:1.7;">
+          <li>Go to <strong>console.firebase.google.com</strong> → Create a new project (free Spark plan).</li>
+          <li>In the project: <strong>Build → Realtime Database → Create database</strong> → choose "Start in test mode".</li>
+          <li>Go to <strong>Project Settings → Your apps → Web app</strong> → register an app → copy the <code>firebaseConfig</code> object.</li>
+          <li>Open both <code>receiver.html</code> and <code>controller.html</code> in a text editor and paste your config into the <code>firebaseConfig</code> block near the top of each file.</li>
+          <li>Host both files on <strong>GitHub Pages</strong>: create a repo, push the files, enable Pages under repo Settings → Pages.</li>
+          <li>Open <code>receiver.html</code> on each TV screen (use kiosk mode: <code>chrome --kiosk https://yourname.github.io/signage/receiver.html</code>).</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <h2>Local Files (Images, Videos, HTML Slides)</h2>
+        <div style="font-size:0.84rem; line-height:1.75; color:var(--muted);">
+          Run <code>serve-local.py</code> on this laptop to serve files over the venue WiFi.<br>
+          <strong>Step 1:</strong> Open a terminal and run: <code>python3 serve-local.py</code><br>
+          <strong>Step 2:</strong> The script prints your local IP, e.g. <code>http://192.168.1.42:8765/</code><br>
+          <strong>Step 3:</strong> Put your files (PNG, MP4, HTML, …) in the same folder as the script.<br>
+          <strong>Step 4:</strong> Paste the URL into the Push field above, e.g. <code>http://192.168.1.42:8765/opening-slide.html</code><br>
+          <br>
+          <em>The TV screens and this laptop must be on the same venue WiFi for local URLs to work.</em>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Troubleshooting & FAQ</h2>
+        <dl class="faq">
+          <dt>"Screen shows 404"</dt>
+          <dd>The file (receiver.html, display-image.html, etc.) isn't published to GitHub Pages yet. Push the files and wait ~60 seconds for Pages to rebuild.</dd>
+
+          <dt>"Connecting…" stays forever</dt>
+          <dd>Your Firebase config isn't set. Open both HTML files and replace the <code>firebaseConfig</code> placeholder block with your project's config from Firebase Console → Project Settings.</dd>
+
+          <dt>"Refused to display in a frame" / site doesn't load</dt>
+          <dd>The target site blocks iframes via <code>X-Frame-Options</code>. Switch to <strong>Full redirect</strong> mode, or use <strong>Push HTML</strong> to create a slide instead.</dd>
+
+          <dt>"Error 27" / "Permission denied"</dt>
+          <dd>Your Firebase Realtime Database rules haven't been published, or they're in locked mode. Go to Firebase Console → Realtime Database → Rules and publish rules that allow read/write.</dd>
+        </dl>
+      </div>
     </div>
   </div>
 
-  <!-- Preview modal -->
+  <!-- PREVIEW MODAL -->
   <div id="preview-modal" class="hidden">
     <button id="preview-modal-close">✕ Close</button>
     <iframe id="preview-modal-frame" sandbox="allow-scripts"></iframe>
   </div>
 
-  <!-- Toast notification -->
+  <!-- TEMPLATE MODAL -->
+  <div id="template-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 id="modal-title">Add Template</h2>
+        <button id="modal-close-btn">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div>
+          <label class="field-label">Name</label>
+          <input id="tpl-name-input" type="text" placeholder="Opening Slide">
+        </div>
+
+        <div>
+          <label class="field-label">Type</label>
+          <div class="mode-row" id="tpl-type-row">
+            <button class="mode-btn active" data-tpltype="html">HTML</button>
+            <button class="mode-btn" data-tpltype="image">Image</button>
+            <button class="mode-btn" data-tpltype="video">Video</button>
+            <button class="mode-btn" data-tpltype="url">URL</button>
+          </div>
+        </div>
+
+        <div id="tpl-content-html" class="tpl-content-area">
+          <div id="tpl-editor-toolbar">
+            <div class="toolbar-row">
+              <select id="tpl-block-type">
+                <option value="p">Body text</option>
+                <option value="h1">H1</option>
+                <option value="h2">H2</option>
+                <option value="h3">H3</option>
+              </select>
+            </div>
+            <div class="toolbar-row">
+              <button class="tool-btn" data-cmd="bold"><b>B</b></button>
+              <button class="tool-btn" data-cmd="italic"><i>I</i></button>
+              <button class="tool-btn" data-cmd="underline"><u>U</u></button>
+              <button class="tool-btn" data-align="left">⬅</button>
+              <button class="tool-btn" data-align="center">☰</button>
+              <button class="tool-btn" data-align="right">➡</button>
+            </div>
+            <div class="toolbar-row">
+              <label>Text <input type="color" value="#ffffff"></label>
+              <label>BG <input type="color" id="tpl-bg-color" value="#1a1a2e"></label>
+              <select id="tpl-font-size-picker">
+                <option value="16px">16px</option>
+                <option value="24px">24px</option>
+                <option value="32px" selected>32px</option>
+                <option value="48px">48px</option>
+                <option value="64px">64px</option>
+                <option value="96px">96px</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="tpl-editor-canvas-wrapper">
+            <div id="tpl-editor-canvas" contenteditable="true">Click to type...</div>
+          </div>
+        </div>
+
+        <div id="tpl-content-url" class="tpl-content-area hidden">
+          <label class="field-label" id="tpl-url-label">URL</label>
+          <input id="tpl-url-input" type="url" placeholder="https://...">
+          <div class="mode-row" id="tpl-mode-row" style="margin-top:10px;">
+            <button class="mode-btn active" data-mode="iframe">Iframe</button>
+            <button class="mode-btn" data-mode="redirect">Redirect</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="modal-cancel-btn">Cancel</button>
+        <button id="modal-save-btn" class="btn-primary">Save Template</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
   <div id="toast">Pushed!</div>
 
   <!-- Firebase SDK -->
@@ -897,61 +1247,41 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCFD9jf5dzh_-mlFiHXvgSl5QZle_QEKt8",
-      authDomain: "techorama-stream.firebaseapp.com",
-      databaseURL: "https://techorama-stream-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "techorama-stream",
-      storageBucket: "techorama-stream.firebasestorage.app",
-      messagingSenderId: "482767979960",
-      appId: "1:482767979960:web:ed592092560f57a0853b4d",
-      measurementId: "G-ZNMTEEV8X9"
-    };
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 1 — Replace this block with your Firebase project config.
+    //          Get it from: Firebase Console → Project Settings → Your apps → SDK setup
+    // ─────────────────────────────────────────────────────────────────────────
+  const firebaseConfig = {
+    apiKey: "AIzaSyCFD9jf5dzh_-mlFiHXvgSl5QZle_QEKt8",
+    authDomain: "techorama-stream.firebaseapp.com",
+    databaseURL: "https://techorama-stream-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "techorama-stream",
+    storageBucket: "techorama-stream.firebasestorage.app",
+    messagingSenderId: "482767979960",
+    appId: "1:482767979960:web:ed592092560f57a0853b4d",
+    measurementId: "G-ZNMTEEV8X9"
+  };
+    // ─────────────────────────────────────────────────────────────────────────
 
     const isConfigured = !firebaseConfig.apiKey.startsWith("PASTE");
-
-    // Elements
-    const urlInput = document.getElementById('url-input');
-    const pushBtn = document.getElementById('push-btn');
-    const blankBtn = document.getElementById('blank-btn');
-    const liveUrlEl = document.getElementById('live-url');
-    const liveModeEl = document.getElementById('live-mode');
-    const recentList = document.getElementById('recent-list');
-    const noRecent = document.getElementById('no-recent');
-    const connDot = document.getElementById('conn-dot');
-    const connLabel = document.getElementById('conn-label');
-    const setupBanner = document.getElementById('setup-banner');
-    const toast = document.getElementById('toast');
-
-    let currentMode = 'iframe';
-    let editorMode = 'visual';
-    let editorBgColor = '#1a1a2e';
+    const warningEl = document.getElementById('setup-banner');
     let db = null;
     let storage = null;
-    let logoSettings = { url: null, position: 'bottom-right', size: 'medium', visible: true };
 
-    // ── Tab system ──
-    function switchTab(name) {
-      document.querySelectorAll('.tab-btn').forEach(b =>
-        b.classList.toggle('active', b.dataset.tab === name));
-      document.querySelectorAll('.tab-panel').forEach(p =>
-        p.classList.toggle('active', p.id === 'tab-' + name));
+    function switchPanel(name) {
+      document.querySelectorAll('.nav-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.panel === name));
+      document.querySelectorAll('.panel').forEach(p =>
+        p.classList.toggle('active', p.id === 'panel-' + name));
     }
 
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchPanel(btn.dataset.panel));
     });
 
-    // ── URL Push (existing logic) ──
-    document.querySelectorAll('.mode-btn[data-mode]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.mode-btn[data-mode]').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentMode = btn.dataset.mode;
-        updateModeHint();
-      });
-    });
-
+    const pushBtn = document.getElementById('push-btn');
+    const urlInput = document.getElementById('url-input');
+    let currentMode = 'iframe';
     const modeHints = {
       iframe: "The content is shown inside a full-screen frame on the TV. Most sites work; a few block iframes — use \"Full redirect\" for those.",
       redirect: "The TV browser navigates directly to the URL. Cleanest view, but the receiver page is gone until you push a new URL."
@@ -961,9 +1291,18 @@
       document.getElementById('mode-hint').textContent = modeHints[currentMode] || '';
     }
 
-    // ── Toast ──
+    document.querySelectorAll('[data-mode]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentMode = btn.dataset.mode;
+        document.querySelectorAll('[data-mode]').forEach(b =>
+          b.classList.toggle('active', b.dataset.mode === currentMode));
+        updateModeHint();
+      });
+    });
+
     let toastTimer;
     function showToast(msg, isError = false) {
+      const toast = document.getElementById('toast');
       toast.textContent = msg;
       toast.classList.toggle('error', isError);
       toast.classList.add('show');
@@ -971,7 +1310,6 @@
       toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
     }
 
-    // ── Recent URLs ──
     const RECENT_KEY = 'signage_recent_v1';
 
     function loadRecent() {
@@ -993,135 +1331,120 @@
 
     function renderRecent() {
       const items = loadRecent();
+      const recentList = document.getElementById('recent-list');
+      const noRecent = document.getElementById('no-recent');
       recentList.innerHTML = '';
       if (items.length === 0) {
         recentList.appendChild(noRecent);
         noRecent.style.display = '';
         return;
       }
+      noRecent.style.display = 'none';
       items.forEach(item => {
         const div = document.createElement('div');
         div.className = 'recent-item';
-        div.innerHTML = `
-          <span class="re-url">${escHtml(item.url)}</span>
-          <span class="re-mode">${escHtml(item.mode)}</span>
-          <span class="re-del" title="Remove from list">✕</span>
-        `;
+        div.innerHTML = `<span class="re-url">${escHtml(item.url)}</span><span class="re-mode">[${item.mode}]</span><button class="re-del">×</button>`;
         div.querySelector('.re-url').addEventListener('click', () => {
           urlInput.value = item.url;
-          document.querySelectorAll('.mode-btn[data-mode]').forEach(b => {
-            b.classList.toggle('active', b.dataset.mode === item.mode);
-          });
           currentMode = item.mode;
+          document.querySelectorAll('[data-mode]').forEach(b =>
+            b.classList.toggle('active', b.dataset.mode === currentMode));
           updateModeHint();
-          urlInput.focus();
         });
         div.querySelector('.re-del').addEventListener('click', e => {
-          e.stopPropagation();
-          const updated = loadRecent().filter(i => i.url !== item.url);
-          saveRecent(updated);
+          e.preventDefault();
+          let newItems = loadRecent().filter(i => i.url !== item.url);
+          saveRecent(newItems);
           renderRecent();
         });
         recentList.appendChild(div);
       });
     }
 
-    function escHtml(str) {
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
-
-    // ── Push ──
     function push(url, mode) {
       if (!db) { showToast('Not connected to Firebase', true); return; }
-      if (!url && mode !== 'blank') { showToast('Enter a URL first', true); return; }
       db.ref('signage/current').set({ url, mode, updatedAt: Date.now() })
         .then(() => {
-          showToast(mode === 'blank' ? 'Screens blanked' : 'Pushed to screens!');
-          if (url) addRecent(url, mode);
+          showToast('Pushed!');
+          if (url !== '') addRecent(url, mode);
+          document.getElementById('live-url').textContent = url || '(blank)';
+          document.getElementById('live-mode').textContent = url ? `[${mode}]` : '';
         })
         .catch(err => showToast('Error: ' + err.message, true));
     }
 
-    pushBtn.addEventListener('click', () => {
-      let url = urlInput.value.trim();
-      if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
-      push(url, currentMode);
-    });
-
+    pushBtn.addEventListener('click', () => push(urlInput.value, currentMode));
     urlInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') pushBtn.click();
+      if (e.key === 'Enter') push(urlInput.value, currentMode);
     });
 
-    blankBtn.addEventListener('click', () => push('', 'blank'));
+    document.getElementById('blank-btn').addEventListener('click', () => push('', 'blank'));
 
-    // ── Image Push ──
-    document.querySelectorAll('[data-imgmode]').forEach(btn => {
+    // Image push
+    const imgFileInput = document.getElementById('img-file-input');
+    const imgDropZone = document.getElementById('img-drop-zone');
+
+    document.querySelectorAll('.img-mode-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const mode = btn.dataset.imgmode;
-        document.querySelectorAll('[data-imgmode]').forEach(b =>
+        document.querySelectorAll('.img-mode-btn').forEach(b =>
           b.classList.toggle('active', b.dataset.imgmode === mode));
         document.getElementById('img-upload-zone').style.display = mode === 'upload' ? '' : 'none';
         document.getElementById('img-url-zone').style.display = mode === 'url' ? '' : 'none';
       });
     });
 
-    const dropZone = document.getElementById('img-drop-zone');
-    const imgFileInput = document.getElementById('img-file-input');
     dropZone.addEventListener('click', () => imgFileInput.click());
-    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-    dropZone.addEventListener('drop', e => {
+    imgDropZone.addEventListener('dragover', e => { e.preventDefault(); imgDropZone.classList.add('drag-over'); });
+    imgDropZone.addEventListener('dragleave', () => imgDropZone.classList.remove('drag-over'));
+    imgDropZone.addEventListener('drop', e => {
       e.preventDefault();
-      dropZone.classList.remove('drag-over');
+      imgDropZone.classList.remove('drag-over');
       if (e.dataTransfer.files[0]) uploadImage(e.dataTransfer.files[0]);
     });
     imgFileInput.addEventListener('change', () => { if (imgFileInput.files[0]) uploadImage(imgFileInput.files[0]); });
+
+    function uploadImage(file) {
+      if (!storage) { showToast('Not connected to Firebase', true); return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result;
+        const path = 'signage/images/' + Date.now() + '_' + file.name;
+        storage.ref(path).putString(base64, 'data_url')
+          .on('state_changed',
+            snap => {
+              const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
+              document.getElementById('img-progress-bar').style.display = '';
+              document.getElementById('img-progress-fill').style.width = pct + '%';
+            },
+            err => showToast('Upload error: ' + err.message, true),
+            () => {
+              storage.ref(path).getDownloadURL().then(url => {
+                document.getElementById('img-progress-bar').style.display = 'none';
+                push(buildDisplayImageUrl(url), 'iframe');
+              });
+            }
+          );
+      };
+      reader.readAsDataURL(file);
+    }
 
     function buildDisplayImageUrl(imageUrl) {
       const base = window.location.href.replace(/[^/]*$/, '');
       return base + 'display-image.html?url=' + encodeURIComponent(imageUrl);
     }
 
-    function uploadImage(file) {
-      if (!storage) { showToast('Not connected', true); return; }
-      const path = `signage/images/${Date.now()}_${file.name}`;
-      const ref = storage.ref(path);
-      const task = ref.put(file);
-      const progressBar = document.getElementById('img-progress-bar');
-      const progressFill = document.getElementById('img-progress-fill');
-      progressBar.style.display = '';
-
-      task.on('state_changed',
-        snap => {
-          progressFill.style.width = (snap.bytesTransferred / snap.totalBytes * 100) + '%';
-        },
-        err => { showToast('Upload error: ' + err.message, true); progressBar.style.display = 'none'; },
-        () => {
-          task.snapshot.ref.getDownloadURL().then(downloadURL => {
-            progressBar.style.display = 'none';
-            progressFill.style.width = '0%';
-            const displayUrl = buildDisplayImageUrl(downloadURL);
-            push(displayUrl, 'iframe');
-            imgFileInput.value = '';
-          });
-        }
-      );
-    }
-
     document.getElementById('img-url-push-btn').addEventListener('click', () => {
       const url = document.getElementById('img-url-input').value.trim();
-      if (!url) { showToast('Enter an image URL', true); return; }
-      push(buildDisplayImageUrl(url), 'iframe');
+      if (url) push(buildDisplayImageUrl(url), 'iframe');
     });
 
-    // ── HTML Editor ──
+    // HTML Editor
+    let editorMode = 'visual';
+    let editorBgColor = '#1a1a2e';
+
     document.querySelectorAll('[data-editormode]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const mode = btn.dataset.editormode;
-        document.querySelectorAll('[data-editormode]').forEach(b =>
-          b.classList.toggle('active', b.dataset.editormode === mode));
-        switchEditorMode(mode);
-      });
+      btn.addEventListener('click', () => switchEditorMode(btn.dataset.editormode));
     });
 
     function switchEditorMode(mode) {
@@ -1159,27 +1482,24 @@
       document.execCommand('formatBlock', false, e.target.value);
     });
 
-    document.getElementById('text-color-picker').addEventListener('input', e => {
+    document.getElementById('text-color-picker').addEventListener('change', e => {
       document.execCommand('foreColor', false, e.target.value);
     });
 
-    document.getElementById('bg-color-picker').addEventListener('input', e => {
+    document.getElementById('bg-color-picker').addEventListener('change', e => {
       editorBgColor = e.target.value;
       document.getElementById('editor-canvas-wrapper').style.background = editorBgColor;
       updatePreview();
     });
 
     document.getElementById('font-size-picker').addEventListener('change', e => {
+      const size = e.target.value;
       document.execCommand('fontSize', false, '7');
       document.querySelectorAll('#editor-canvas font[size="7"]').forEach(el => {
         el.removeAttribute('size');
-        el.style.fontSize = e.target.value;
+        el.style.fontSize = size;
       });
-      updatePreview();
     });
-
-    document.getElementById('editor-canvas').addEventListener('input', updatePreview);
-    document.getElementById('html-source').addEventListener('input', updatePreview);
 
     function generateHtmlDocument() {
       const content = document.getElementById('editor-canvas').innerHTML;
@@ -1213,18 +1533,23 @@
       preview.srcdoc = html;
     }
 
+    document.getElementById('editor-canvas').addEventListener('input', updatePreview);
+    document.getElementById('html-source').addEventListener('input', updatePreview);
+
     document.getElementById('preview-fullscreen-btn').addEventListener('click', () => {
       const modal = document.getElementById('preview-modal');
       const frame = document.getElementById('preview-modal-frame');
-      frame.srcdoc = document.getElementById('editor-preview').srcdoc;
+      if (editorMode === 'html') {
+        frame.srcdoc = document.getElementById('html-source').value;
+      } else {
+        frame.srcdoc = generateHtmlDocument();
+      }
       modal.classList.remove('hidden');
     });
 
     document.getElementById('preview-modal-close').addEventListener('click', () => {
       document.getElementById('preview-modal').classList.add('hidden');
     });
-
-    document.getElementById('open-editor-btn').addEventListener('click', () => switchTab('editor'));
 
     document.getElementById('editor-push-btn').addEventListener('click', () => {
       if (!db) { showToast('Not connected to Firebase', true); return; }
@@ -1234,13 +1559,20 @@
       db.ref('signage/current').set({ mode: 'html', html, updatedAt: Date.now() })
         .then(() => {
           showToast('HTML slide pushed!');
-          document.getElementById('last-html-label').textContent = new Date().toLocaleTimeString();
-          document.getElementById('last-html-summary').classList.remove('hidden');
+          document.getElementById('live-url').textContent = '(HTML slide)';
+          document.getElementById('live-mode').textContent = '[html]';
         })
         .catch(err => showToast('Error: ' + err.message, true));
     });
 
-    // ── Settings (Logo) ──
+    function escHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // Logo settings
+    let logoSettings = { url: null, position: 'bottom-right', size: 'medium', visible: true };
+
     function saveLogoSettings() {
       if (!db) return;
       db.ref('signage/settings/logo').set(logoSettings);
@@ -1252,6 +1584,7 @@
       document.getElementById('logo-current-row').style.display = hasLogo ? 'flex' : 'none';
       document.getElementById('logo-no-logo').style.display = hasLogo ? 'none' : '';
       if (hasLogo) document.getElementById('logo-preview-img').src = logoSettings.url;
+
       document.querySelectorAll('.pos-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.pos === logoSettings.position));
       document.querySelectorAll('.size-btn').forEach(b =>
@@ -1285,8 +1618,59 @@
       renderLogoSettings();
     });
 
+    function uploadLogo(file) {
+      if (!storage) { showToast('Not connected to Firebase', true); return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result;
+        const path = 'signage/logos/' + Date.now() + '_' + file.name;
+        storage.ref(path).putString(base64, 'data_url')
+          .on('state_changed', null, err => showToast('Upload error: ' + err.message, true),
+            () => {
+              storage.ref(path).getDownloadURL().then(url => {
+                logoSettings.url = url;
+                saveLogoSettings();
+              });
+            }
+          );
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function renderUploadedLogos() {
+      const list = document.getElementById('uploaded-logos-list');
+      if (!storage) { list.innerHTML = ''; return; }
+      storage.ref('signage/logos').listAll().then(res => {
+        list.innerHTML = '<h3 style="font-size:0.9rem; margin-top:20px; margin-bottom:10px; color:var(--muted);">Uploaded logos</h3>';
+        res.items.forEach(ref => {
+          ref.getMetadata().then(meta => {
+            ref.getDownloadURL().then(url => {
+              const div = document.createElement('div');
+              div.className = 'logo-list-item';
+              div.innerHTML = `
+                <div class="li-preview"><img src="${url}" alt=""></div>
+                <span class="li-name">${escHtml(ref.name)}</span>
+                <button class="li-use">Use</button>
+                <button class="li-del">🗑</button>
+              `;
+              div.querySelector('.li-use').addEventListener('click', () => {
+                logoSettings.url = url;
+                saveLogoSettings();
+                renderLogoSettings();
+              });
+              div.querySelector('.li-del').addEventListener('click', () => {
+                ref.delete().then(() => renderUploadedLogos());
+              });
+              list.appendChild(div);
+            });
+          });
+        });
+      });
+    }
+
     const logoDropZone = document.getElementById('logo-drop-zone');
     const logoFileInput = document.getElementById('logo-file-input');
+
     logoDropZone.addEventListener('click', () => logoFileInput.click());
     logoDropZone.addEventListener('dragover', e => { e.preventDefault(); logoDropZone.classList.add('drag-over'); });
     logoDropZone.addEventListener('dragleave', () => logoDropZone.classList.remove('drag-over'));
@@ -1297,83 +1681,30 @@
     });
     logoFileInput.addEventListener('change', () => { if (logoFileInput.files[0]) uploadLogo(logoFileInput.files[0]); });
 
-    function uploadLogo(file) {
-      if (!storage) { showToast('Not connected', true); return; }
-      const path = `signage/logos/${Date.now()}_${file.name}`;
-      storage.ref(path).put(file).then(snap => snap.ref.getDownloadURL()).then(url => {
-        logoSettings.url = url;
-        saveLogoSettings();
-        renderUploadedLogos();
-        showToast('Logo uploaded!');
-      }).catch(err => showToast('Upload error: ' + err.message, true));
-    }
-
-    function renderUploadedLogos() {
-      if (!storage) return;
-      const container = document.getElementById('uploaded-logos-list');
-      storage.ref('signage/logos').listAll().then(result => {
-        container.innerHTML = '';
-        if (result.items.length === 0) return;
-        result.items.forEach(itemRef => {
-          itemRef.getDownloadURL().then(url => {
-            const row = document.createElement('div');
-            row.className = 'logo-list-item';
-            row.innerHTML = `
-              <img src="${escHtml(url)}" alt="">
-              <span class="li-name">${escHtml(itemRef.name)}</span>
-              <button class="li-use">Use</button>
-              <button class="li-del">Del</button>
-            `;
-            row.querySelector('.li-use').addEventListener('click', () => {
-              logoSettings.url = url;
-              saveLogoSettings();
-              renderLogoSettings();
-            });
-            row.querySelector('.li-del').addEventListener('click', () => {
-              storage.ref(itemRef.fullPath).delete().then(() => {
-                if (logoSettings.url === url) { logoSettings.url = null; saveLogoSettings(); }
-                renderUploadedLogos();
-              }).catch(err => showToast('Delete error: ' + err.message, true));
-            });
-            container.appendChild(row);
-          });
-        });
-      });
-    }
-
-    // ── Firebase Init ──
-    if (!isConfigured) {
-      connLabel.textContent = 'Not configured';
-      pushBtn.disabled = true;
-      blankBtn.disabled = true;
-    } else {
-      setupBanner.classList.add('hidden');
+    if (isConfigured) {
+      warningEl.classList.add('hidden');
       firebase.initializeApp(firebaseConfig);
       db = firebase.database();
       storage = firebase.storage();
 
       db.ref('.info/connected').on('value', snap => {
-        const live = !!snap.val();
-        connDot.classList.toggle('live', live);
-        connLabel.textContent = live ? 'Connected' : 'Reconnecting…';
-        pushBtn.disabled = !live;
-        blankBtn.disabled = !live;
-        document.getElementById('editor-push-btn').disabled = !live;
+        const connDot = document.getElementById('conn-dot');
+        const connLabel = document.getElementById('conn-label');
+        const connected = !!snap.val();
+        connDot.classList.toggle('live', connected);
+        connLabel.textContent = connected ? 'Connected' : 'Connecting…';
+        pushBtn.disabled = !connected;
+        document.getElementById('push-btn').disabled = !connected;
+        document.getElementById('img-url-push-btn').disabled = !connected;
+        document.getElementById('editor-push-btn').disabled = !connected;
+        document.getElementById('blank-btn').disabled = !connected;
       });
 
       db.ref('signage/current').on('value', snap => {
         const data = snap.val();
-        if (!data) { liveUrlEl.textContent = '—'; liveModeEl.textContent = ''; return; }
-        if (data.mode === 'blank') {
-          liveUrlEl.textContent = '(blank screen)';
-          liveModeEl.textContent = '';
-        } else if (data.mode === 'html') {
-          liveUrlEl.textContent = '(HTML slide)';
-          liveModeEl.textContent = '[html]';
-        } else {
-          liveUrlEl.textContent = data.url || '—';
-          liveModeEl.textContent = data.mode ? `[${data.mode}]` : '';
-        }
+        if (!data) return;
+        document.getElementById('live-url').textContent = data.mode === 'html' ? '(HTML slide)' : (data.url || '(blank)');
+        document.getElementById('live-mode').textContent = data.url || data.mode === 'html' ? `[${data.mode}]` : '';
       });
 
       db.ref('signage/settings/logo').on('value', snap => {
@@ -1383,7 +1714,225 @@
         }
       });
 
+      renderLogoSettings();
       renderUploadedLogos();
+
+      // Templates
+      const TEMPLATES_KEY = 'signage_templates_v1';
+      let editingTemplateId = null;
+      let tplType = 'html';
+      let tplMode = 'iframe';
+      let tplBgColor = '#1a1a2e';
+
+      function loadTemplatesLocal() {
+        try { return JSON.parse(localStorage.getItem(TEMPLATES_KEY) || '{}'); }
+        catch { return {}; }
+      }
+
+      function saveTemplate(tpl) {
+        tpl.updatedAt = Date.now();
+        if (!tpl.id) tpl.id = 'local_' + Date.now();
+        if (!tpl.createdAt) tpl.createdAt = tpl.updatedAt;
+        const ref = db.ref('signage/templates/' + tpl.id);
+        ref.set(tpl).catch(err => {
+          showToast('Error saving template: ' + err.message, true);
+        });
+      }
+
+      function deleteTemplate(id) {
+        db.ref('signage/templates/' + id).remove();
+      }
+
+      function renderTemplates(items) {
+        const grid = document.getElementById('templates-grid');
+        const empty = document.getElementById('templates-empty');
+        grid.innerHTML = '';
+
+        const sorted = [...items].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+
+        if (sorted.length === 0) {
+          empty.style.display = '';
+          return;
+        }
+        empty.style.display = 'none';
+
+        sorted.forEach(tpl => {
+          const card = document.createElement('div');
+          card.className = 'tpl-card';
+          card.dataset.id = tpl.id;
+
+          let previewHtml = '';
+          if (tpl.type === 'html') {
+            previewHtml = `<iframe srcdoc="${escHtml(tpl.content)}" sandbox="allow-scripts"></iframe>`;
+          } else if (tpl.type === 'image') {
+            previewHtml = `<img src="${escHtml(tpl.content)}" alt="${escHtml(tpl.name)}">`;
+          } else {
+            previewHtml = `<div class="tpl-url-preview">${tpl.type.toUpperCase()}<br>${escHtml(tpl.content)}</div>`;
+          }
+
+          card.innerHTML = `
+            <div class="tpl-header">
+              <span class="tpl-type-badge tpl-type-${tpl.type}">${tpl.type}</span>
+              <div class="tpl-actions">
+                <button class="tpl-edit-btn" title="Edit">✏</button>
+                <button class="tpl-del-btn" title="Delete">🗑</button>
+              </div>
+            </div>
+            <div class="tpl-preview">${previewHtml}</div>
+            <div class="tpl-name">${escHtml(tpl.name)}</div>
+            <button class="tpl-push-btn">▶ Push</button>
+          `;
+
+          card.querySelector('.tpl-push-btn').addEventListener('click', () => pushTemplate(tpl));
+          card.querySelector('.tpl-edit-btn').addEventListener('click', () => openAddTemplateModal(tpl));
+          card.querySelector('.tpl-del-btn').addEventListener('click', () => {
+            if (!confirm(`Delete template "${tpl.name}"?`)) return;
+            deleteTemplate(tpl.id).then(() => showToast('Template deleted')).catch(err => showToast('Error: ' + err.message, true));
+          });
+
+          grid.appendChild(card);
+        });
+      }
+
+      function pushTemplate(tpl) {
+        if (tpl.type === 'html') {
+          if (!db) { showToast('Not connected', true); return; }
+          db.ref('signage/current').set({ mode: 'html', html: tpl.content, updatedAt: Date.now() })
+            .then(() => showToast('Template pushed!'))
+            .catch(err => showToast('Error: ' + err.message, true));
+        } else {
+          push(tpl.content, tpl.mode || 'iframe');
+        }
+      }
+
+      function openAddTemplateModal(existingTpl = null) {
+        editingTemplateId = existingTpl ? existingTpl.id : null;
+        document.getElementById('modal-title').textContent = existingTpl ? 'Edit Template' : 'Add Template';
+        document.getElementById('tpl-name-input').value = existingTpl ? existingTpl.name : '';
+        setTplType(existingTpl ? existingTpl.type : 'html');
+
+        if (existingTpl) {
+          if (existingTpl.type === 'html') {
+            document.getElementById('tpl-editor-canvas').innerHTML = existingTpl.content.match(/<div class="content">([\s\S]*?)<\/div>/)[1] || '';
+            tplBgColor = existingTpl.content.match(/background:([^;]+);/)[1] || '#1a1a2e';
+            document.getElementById('tpl-bg-color').value = tplBgColor;
+            document.getElementById('tpl-editor-canvas-wrapper').style.background = tplBgColor;
+          } else {
+            document.getElementById('tpl-url-input').value = existingTpl.content;
+            setTplModalMode(existingTpl.mode || 'iframe');
+          }
+        } else {
+          document.getElementById('tpl-editor-canvas').innerHTML = 'Click to type...';
+          document.getElementById('tpl-url-input').value = '';
+          setTplModalMode('iframe');
+        }
+
+        document.getElementById('template-modal').classList.remove('hidden');
+      }
+
+      function setTplType(type) {
+        tplType = type;
+        document.querySelectorAll('[data-tpltype]').forEach(b =>
+          b.classList.toggle('active', b.dataset.tpltype === type));
+        document.getElementById('tpl-content-html').classList.toggle('hidden', type !== 'html');
+        document.getElementById('tpl-content-url').classList.toggle('hidden', type === 'html');
+
+        const labelMap = { image: 'Image URL', video: 'Video URL', url: 'Page URL' };
+        document.getElementById('tpl-url-label').textContent = labelMap[type] || 'URL';
+        document.getElementById('tpl-mode-row').style.display = (type === 'url') ? 'flex' : 'none';
+      }
+
+      function setTplModalMode(mode) {
+        tplMode = mode;
+        document.querySelectorAll('#tpl-mode-row [data-mode]').forEach(b =>
+          b.classList.toggle('active', b.dataset.mode === mode));
+      }
+
+      document.querySelectorAll('[data-tpltype]').forEach(btn => {
+        btn.addEventListener('click', () => setTplType(btn.dataset.tpltype));
+      });
+
+      document.querySelectorAll('#tpl-mode-row [data-mode]').forEach(btn => {
+        btn.addEventListener('click', () => setTplModalMode(btn.dataset.mode));
+      });
+
+      function generateTplHtml() {
+        const content = document.getElementById('tpl-editor-canvas').innerHTML;
+        const bg = tplBgColor;
+        return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { width:100vw; height:100vh; overflow:hidden; background:${bg};
+           display:flex; align-items:center; justify-content:center; }
+    .content { padding:60px; text-align:center; width:100%;
+                font-family:'Segoe UI',system-ui,sans-serif; }
+  </style>
+</head>
+<body>
+  <div class="content">${content}</div>
+</body>
+</html>`;
+      }
+
+      document.getElementById('modal-save-btn').addEventListener('click', () => {
+        const name = document.getElementById('tpl-name-input').value.trim();
+        if (!name) { showToast('Enter a template name', true); return; }
+
+        let content;
+        if (tplType === 'html') {
+          content = generateTplHtml();
+        } else {
+          content = document.getElementById('tpl-url-input').value.trim();
+          if (!content) { showToast('Enter a URL', true); return; }
+        }
+
+        const tpl = {
+          id: editingTemplateId || null,
+          name,
+          type: tplType,
+          content,
+          mode: tplType !== 'html' ? tplMode : undefined,
+          createdAt: editingTemplateId ? undefined : Date.now(),
+          updatedAt: Date.now()
+        };
+
+        const existing = editingTemplateId ? db.ref('signage/templates/' + editingTemplateId) : null;
+        (editingTemplateId
+          ? existing.once('value').then(snap => {
+              const cur = snap.val() || {};
+              tpl.createdAt = cur.createdAt || Date.now();
+              return db.ref('signage/templates/' + editingTemplateId).set(tpl);
+            })
+          : db.ref('signage/templates').push().then(ref => {
+              tpl.id = ref.key;
+              return ref.set(tpl);
+            })
+        )
+          .then(() => {
+            showToast(editingTemplateId ? 'Template updated!' : 'Template saved!');
+            document.getElementById('template-modal').classList.add('hidden');
+          })
+          .catch(err => showToast('Error: ' + err.message, true));
+      });
+
+      document.getElementById('modal-cancel-btn').addEventListener('click', () => {
+        document.getElementById('template-modal').classList.add('hidden');
+      });
+
+      document.getElementById('modal-close-btn').addEventListener('click', () => {
+        document.getElementById('template-modal').classList.add('hidden');
+      });
+
+      document.getElementById('add-template-btn').addEventListener('click', () => openAddTemplateModal());
+
+      db.ref('signage/templates').on('value', snap => {
+        renderTemplates(Object.values(snap.val() || {}));
+      });
+    } else {
+      renderRecent();
     }
 
     renderRecent();
