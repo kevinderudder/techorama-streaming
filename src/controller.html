@@ -165,7 +165,7 @@
       border: 1px solid #f0a500;
       border-radius: var(--radius);
       padding: 18px 22px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       font-size: 0.9rem;
       line-height: 1.7;
     }
@@ -591,6 +591,7 @@
       padding: 20px;
     }
     .modal-overlay.hidden { display: none; }
+    #preview-modal.hidden { display: none; }
 
     .modal-box {
       background: var(--panel);
@@ -931,18 +932,6 @@
       <span id="live-mode" style="color:var(--muted); font-size:0.78rem;"></span>
     </div>
 
-    <div id="setup-banner">
-      <h2>⚙ One-time setup required</h2>
-      <ol>
-        <li>Go to <strong>console.firebase.google.com</strong> → Create a new project (free Spark plan).</li>
-        <li>In the project: <strong>Build → Realtime Database → Create database</strong> → choose "Start in test mode".</li>
-        <li>Go to <strong>Project Settings → Your apps → Web app</strong> → register an app → copy the <code>firebaseConfig</code> object.</li>
-        <li>Open both <code>receiver.html</code> and <code>controller.html</code> in a text editor and paste your config into the <code>firebaseConfig</code> block near the top of each file.</li>
-        <li>Host both files on <strong>GitHub Pages</strong> (free): create a repo, push the files, enable Pages under repo Settings → Pages.</li>
-        <li>Open <code>receiver.html</code> on each TV screen (use kiosk mode: <code>chrome --kiosk https://yourname.github.io/signage/receiver.html</code>).</li>
-      </ol>
-    </div>
-
     <!-- TEMPLATES PANEL -->
     <div id="panel-templates" class="panel active">
       <div class="panel-header">
@@ -1110,6 +1099,18 @@
 
     <!-- HELP PANEL -->
     <div id="panel-help" class="panel">
+      <div id="setup-banner">
+        <h2>⚙ One-time setup required</h2>
+        <ol>
+          <li>Go to <strong>console.firebase.google.com</strong> → Create a new project (free Spark plan).</li>
+          <li>In the project: <strong>Build → Realtime Database → Create database</strong> → choose "Start in test mode".</li>
+          <li>Go to <strong>Project Settings → Your apps → Web app</strong> → register an app → copy the <code>firebaseConfig</code> object.</li>
+          <li>Open both <code>receiver.html</code> and <code>controller.html</code> in a text editor and paste your config into the <code>firebaseConfig</code> block near the top of each file.</li>
+          <li>Host both files on <strong>GitHub Pages</strong> (free): create a repo, push the files, enable Pages under repo Settings → Pages.</li>
+          <li>Open <code>receiver.html</code> on each TV screen (use kiosk mode: <code>chrome --kiosk https://yourname.github.io/signage/receiver.html</code>).</li>
+        </ol>
+      </div>
+
       <div class="card">
         <h2>One-time Setup</h2>
         <ol style="padding-left:20px; font-size:0.9rem; line-height:1.7;">
