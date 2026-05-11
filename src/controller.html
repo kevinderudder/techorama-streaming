@@ -1403,7 +1403,7 @@
       });
     });
 
-    dropZone.addEventListener('click', () => imgFileInput.click());
+    imgDropZone.addEventListener('click', () => imgFileInput.click());
     imgDropZone.addEventListener('dragover', e => { e.preventDefault(); imgDropZone.classList.add('drag-over'); });
     imgDropZone.addEventListener('dragleave', () => imgDropZone.classList.remove('drag-over'));
     imgDropZone.addEventListener('drop', e => {
