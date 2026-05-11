@@ -164,15 +164,15 @@
 
         const { url, mode } = data;
 
-        if (mode === 'blank' || !url) {
-          // Show black screen
-          blankEl.classList.remove('hidden');
-          frameEl.src = 'about:blank';
-
-        } else if (mode === 'html') {
+        if (mode === 'html') {
           // Display inline HTML via srcdoc
           blankEl.classList.add('hidden');
           if (frameEl.srcdoc !== data.html) frameEl.srcdoc = data.html;
+
+        } else if (mode === 'blank' || !url) {
+          // Show black screen
+          blankEl.classList.remove('hidden');
+          frameEl.src = 'about:blank';
 
         } else if (mode === 'redirect') {
           // Navigate the whole browser to the URL
