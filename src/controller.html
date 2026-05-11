@@ -901,6 +901,214 @@
     }
     .logo-list-item .li-del:hover { color: var(--danger); background: rgba(224,82,82,0.1); }
 
+    #lib-drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      text-align: center;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-top: 4px;
+    }
+    #lib-drop-zone.drag-over { border-color: var(--accent); background: rgba(91,106,240,0.08); }
+    #lib-drop-zone.uploading { opacity: 0.6; cursor: not-allowed; }
+    #lib-progress-bar { height: 6px; background: var(--border); border-radius: 3px; margin-top: 10px; overflow: hidden; display: none; }
+    #lib-progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.2s; }
+
+    /* === IMAGE LIBRARY === */
+    .library-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .lib-item {
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #0a0c14;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .lib-item:hover { border-color: var(--accent); }
+
+    .lib-item img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+    }
+
+    .lib-item-name {
+      padding: 6px 8px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .lib-item-actions {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .lib-item:hover .lib-item-actions { opacity: 1; }
+
+    .lib-push-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 7px 18px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 110px;
+    }
+    .lib-push-btn:hover { background: var(--accent-h); }
+
+    .lib-del-btn {
+      background: transparent;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 7px;
+      padding: 5px 14px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      width: 110px;
+    }
+    .lib-del-btn:hover { background: var(--danger); border-color: var(--danger); }
+
+    .lib-checkbox {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      accent-color: var(--accent);
+      display: none;
+    }
+    .lib-item.selectable .lib-checkbox { display: block; }
+    .lib-item.selectable .lib-item-actions { display: none; }
+
+    /* === SCHEDULE === */
+    .schedule-slot {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .schedule-slot.disabled { opacity: 0.45; }
+
+    .slot-time { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .slot-time input[type="time"] {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.88rem;
+      padding: 6px 8px;
+      width: 90px;
+      outline: none;
+    }
+    .slot-time input[type="time"]:focus { border-color: var(--accent); }
+    .slot-sep { color: var(--muted); font-size: 0.78rem; }
+
+    .slot-type-select {
+      padding: 6px 8px;
+      font-size: 0.82rem;
+      height: 34px;
+      min-width: 90px;
+    }
+
+    .slot-content-input {
+      flex: 1;
+      min-width: 120px;
+      padding: 6px 10px;
+      font-size: 0.82rem;
+      height: 34px;
+    }
+
+    .slot-del-btn {
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      padding: 4px 8px;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .slot-del-btn:hover { color: var(--danger); background: rgba(224,82,82,0.1); }
+
+    #schedule-active-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      color: var(--ok);
+      padding: 4px 10px;
+      border: 1px solid var(--ok);
+      border-radius: 20px;
+    }
+    #schedule-active-badge.off { color: var(--muted); border-color: var(--border); }
+    #schedule-active-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--ok);
+    }
+    #schedule-active-badge.off #schedule-active-dot { background: var(--muted); }
+
+    /* === SLIDESHOW === */
+    .interval-btn {
+      flex: 1;
+      background: var(--bg);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 8px 4px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      border-radius: 7px;
+      transition: all 0.15s;
+    }
+    .interval-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .interval-btn:hover:not(.active) { border-color: var(--accent); color: var(--text); }
+
+    #slideshow-picker { margin-top: 14px; }
+
+    .ss-preset {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      font-size: 0.88rem;
+    }
+    .ss-preset-name { flex: 1; }
+    .ss-preset-load { background: var(--accent); color: #fff; padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; border: none; cursor: pointer; }
+    .ss-preset-load:hover { background: var(--accent-h); }
+    .ss-preset-del { background: transparent; color: var(--muted); border: none; padding: 4px 6px; border-radius: 5px; cursor: pointer; font-size: 0.88rem; }
+    .ss-preset-del:hover { color: var(--danger); background: rgba(224,82,82,0.1); }
+
     /* === HELP & FAQ === */
     .faq dt { font-weight: 600; color: var(--text); margin-top: 12px; }
     .faq dd { color: var(--muted); font-size: 0.85rem; line-height: 1.65; margin-left: 0; margin-top: 4px; }
@@ -954,9 +1162,17 @@
         <span class="nav-icon">🔗</span>
         <span class="nav-label">Push URL</span>
       </button></li>
-      <li><button class="nav-btn" data-panel="push-image">
+      <li><button class="nav-btn" data-panel="library">
         <span class="nav-icon">🖼</span>
-        <span class="nav-label">Push Image</span>
+        <span class="nav-label">Library</span>
+      </button></li>
+      <li><button class="nav-btn" data-panel="slideshow">
+        <span class="nav-icon">🎞</span>
+        <span class="nav-label">Slideshow</span>
+      </button></li>
+      <li><button class="nav-btn" data-panel="schedule">
+        <span class="nav-icon">📅</span>
+        <span class="nav-label">Schedule</span>
       </button></li>
       <li><button class="nav-btn" data-panel="editor">
         <span class="nav-icon">📝</span>
@@ -1023,8 +1239,8 @@
       </div>
     </div>
 
-    <!-- PUSH IMAGE PANEL -->
-    <div id="panel-push-image" class="panel">
+    <!-- PUSH IMAGE PANEL (hidden — functionality moved to Library panel) -->
+    <div id="panel-push-image" style="display:none !important;">
       <div class="card">
         <h2>Push Image</h2>
         <div class="img-mode-row">
@@ -1045,6 +1261,100 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- IMAGE LIBRARY PANEL -->
+    <div id="panel-library" class="panel">
+      <div class="panel-header">
+        <h1 class="panel-title">Image Library</h1>
+      </div>
+      <div class="card">
+        <h2>Upload images</h2>
+        <div class="img-mode-row">
+          <button class="mode-btn lib-src-btn active" data-libsrc="upload">Upload file</button>
+          <button class="mode-btn lib-src-btn" data-libsrc="url">Image URL</button>
+        </div>
+        <div id="lib-upload-zone">
+          <input type="file" id="lib-file-input" accept="image/*" multiple hidden>
+          <div id="lib-drop-zone">Drop images here or click to browse</div>
+          <div id="lib-progress-bar"><div id="lib-progress-fill"></div></div>
+        </div>
+        <div id="lib-url-zone" style="display:none;">
+          <div class="url-row" style="margin-top:10px;">
+            <input id="lib-url-input" type="url" placeholder="https://example.com/image.jpg" style="flex:1;">
+            <button id="lib-url-add-btn">Add</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Your images</h2>
+        <div id="library-empty" class="empty-state" style="padding:30px 0;">No images yet. Upload some above.</div>
+        <div id="library-grid" class="library-grid"></div>
+      </div>
+    </div>
+
+    <!-- SLIDESHOW PANEL -->
+    <div id="panel-slideshow" class="panel">
+      <div class="panel-header">
+        <h1 class="panel-title">Slideshow</h1>
+      </div>
+
+      <div class="card">
+        <h2>Interval</h2>
+        <div style="display:flex; gap:8px;">
+          <button class="interval-btn" data-ms="15000">15s</button>
+          <button class="interval-btn active" data-ms="30000">30s</button>
+          <button class="interval-btn" data-ms="60000">1 min</button>
+          <button class="interval-btn" data-ms="120000">2 min</button>
+          <button class="interval-btn" data-ms="300000">5 min</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Select images <span id="ss-count" style="color:var(--muted); font-weight:400; font-size:0.8rem;">(0 selected)</span></h2>
+        <div id="slideshow-picker" class="library-grid"></div>
+        <div id="ss-empty" class="empty-state" style="padding:20px 0; display:none;">No images in library. Go to Library to upload some.</div>
+        <div style="margin-top:14px; display:flex; gap:8px; align-items:center;">
+          <input id="ss-url-input" type="url" placeholder="Or paste an image URL directly" style="flex:1; font-size:0.85rem;">
+          <button id="ss-url-add-btn" style="white-space:nowrap; padding:9px 16px; background:var(--panel); border:1px solid var(--border); color:var(--text);">+ Add URL</button>
+        </div>
+      </div>
+
+      <div class="card" id="ss-selected-card" style="display:none;">
+        <h2>Selected images</h2>
+        <div id="ss-selected-list"></div>
+      </div>
+
+      <div style="display:flex; gap:10px; margin-top:4px;">
+        <button id="push-slideshow-btn" style="flex:2; background:var(--accent); color:#fff;">▶ Push Slideshow</button>
+        <button id="save-ss-preset-btn" style="flex:1; background:var(--panel); border:1px solid var(--border); color:var(--text);">💾 Save preset</button>
+      </div>
+
+      <div class="card" style="margin-top:20px;" id="ss-presets-card">
+        <h2>Saved presets</h2>
+        <div id="ss-presets-empty" class="empty-state" style="padding:20px 0;">No saved presets.</div>
+        <div id="ss-presets-list"></div>
+      </div>
+    </div>
+
+    <!-- SCHEDULE PANEL -->
+    <div id="panel-schedule" class="panel">
+      <div class="panel-header">
+        <h1 class="panel-title">Schedule</h1>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div id="schedule-active-badge" class="off">
+            <div id="schedule-active-dot"></div>
+            <span id="schedule-active-label">Inactive</span>
+          </div>
+          <button id="toggle-schedule-btn" class="btn-primary" style="padding:8px 16px; font-size:0.82rem;">Activate</button>
+          <button id="add-slot-btn" style="background:var(--panel); border:1px solid var(--border); color:var(--text); padding:8px 16px; font-size:0.82rem;">+ Add Slot</button>
+        </div>
+      </div>
+
+      <div id="schedule-empty" class="empty-state">
+        <p>No time slots yet. Click <strong>+ Add Slot</strong> to build a schedule.</p>
+      </div>
+      <div id="schedule-list"></div>
     </div>
 
     <!-- HTML EDITOR PANEL -->
@@ -1420,8 +1730,7 @@
                 imgDropZone.classList.remove('uploading');
                 imgDropZone.innerHTML = 'Drop image here or click to browse';
                 document.getElementById('img-progress-bar').style.display = 'none';
-                showToast('Image uploaded and pushed!');
-                push(buildDisplayImageUrl(url), 'iframe');
+                pushImage(url);
               });
             }
           );
@@ -1429,14 +1738,21 @@
       reader.readAsDataURL(file);
     }
 
-    function buildDisplayImageUrl(imageUrl) {
-      const base = window.location.href.replace(/[^/]*$/, '');
-      return base + 'display-image.html?url=' + encodeURIComponent(imageUrl);
+    function pushImage(url) {
+      if (!db) { showToast('Not connected to Firebase', true); return; }
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{width:100vw;height:100vh;overflow:hidden;background:#000}img{width:100%;height:100%;object-fit:cover}</style></head><body><img src="${url}"></body></html>`;
+      db.ref('signage/current').set({ mode: 'html', html, updatedAt: Date.now() })
+        .then(() => {
+          showToast('Image pushed!');
+          document.getElementById('live-url').textContent = url;
+          document.getElementById('live-mode').textContent = '[image]';
+        })
+        .catch(err => showToast('Error: ' + err.message, true));
     }
 
     document.getElementById('img-url-push-btn').addEventListener('click', () => {
       const url = document.getElementById('img-url-input').value.trim();
-      if (url) push(buildDisplayImageUrl(url), 'iframe');
+      if (url) pushImage(url);
     });
 
     // HTML Editor
@@ -1851,6 +2167,8 @@
           db.ref('signage/current').set({ mode: 'html', html: tpl.content, updatedAt: Date.now() })
             .then(() => showToast('Template pushed!'))
             .catch(err => showToast('Error: ' + err.message, true));
+        } else if (tpl.type === 'image') {
+          pushImage(tpl.content);
         } else {
           push(tpl.content, tpl.mode || 'iframe');
         }
@@ -1886,8 +2204,423 @@
         if (e.key === 'Escape') closeSaveTplModal();
       });
 
+      // ─── IMAGE LIBRARY ────────────────────────────────────────────────────────
+
+      let libraryItems = {};  // id → item, shared with slideshow picker
+
+      function uploadImageToLibrary(file) {
+        if (!storage) { showToast('Not connected to Firebase', true); return; }
+        const dropZone = document.getElementById('lib-drop-zone');
+        const progressBar = document.getElementById('lib-progress-bar');
+        const progressFill = document.getElementById('lib-progress-fill');
+        dropZone.innerHTML = '<span class="upload-spinner"></span>Uploading...';
+        dropZone.classList.add('uploading');
+        progressBar.style.display = '';
+
+        const path = 'signage/images/' + Date.now() + '_' + file.name;
+        const reader = new FileReader();
+        reader.onload = () => {
+          storage.ref(path).putString(reader.result, 'data_url')
+            .on('state_changed',
+              snap => {
+                const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
+                progressFill.style.width = pct + '%';
+                dropZone.innerHTML = `<span class="upload-spinner"></span>Uploading... ${pct}%`;
+              },
+              err => {
+                dropZone.classList.remove('uploading');
+                dropZone.innerHTML = 'Drop images here or click to browse';
+                progressBar.style.display = 'none';
+                showToast('Upload error: ' + err.message, true);
+              },
+              () => {
+                storage.ref(path).getDownloadURL().then(url => {
+                  dropZone.classList.remove('uploading');
+                  dropZone.innerHTML = 'Drop images here or click to browse';
+                  progressBar.style.display = 'none';
+                  progressFill.style.width = '0%';
+                  db.ref('signage/imageLibrary').push().then(ref => {
+                    ref.set({ id: ref.key, name: file.name, url, storagePath: path, createdAt: Date.now() });
+                  });
+                  showToast('Image added to library!');
+                });
+              }
+            );
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function addUrlToLibrary(url) {
+        const name = url.split('/').pop().split('?')[0] || 'image';
+        db.ref('signage/imageLibrary').push().then(ref => {
+          ref.set({ id: ref.key, name, url, storagePath: null, createdAt: Date.now() });
+        });
+        showToast('Image added to library!');
+      }
+
+      function deleteLibraryImage(id, storagePath) {
+        db.ref('signage/imageLibrary/' + id).remove();
+        if (storagePath) storage.ref(storagePath).delete().catch(() => {});
+        showToast('Image removed');
+      }
+
+      function renderLibraryGrid(items) {
+        const grid = document.getElementById('library-grid');
+        const empty = document.getElementById('library-empty');
+        grid.innerHTML = '';
+        const arr = Object.values(items).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        empty.style.display = arr.length === 0 ? '' : 'none';
+        arr.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'lib-item';
+          div.innerHTML = `
+            <img src="${escHtml(item.url)}" alt="${escHtml(item.name)}" loading="lazy">
+            <div class="lib-item-name">${escHtml(item.name)}</div>
+            <div class="lib-item-actions">
+              <button class="lib-push-btn">▶ Push</button>
+              <button class="lib-del-btn">🗑 Remove</button>
+            </div>
+          `;
+          div.querySelector('.lib-push-btn').addEventListener('click', () => pushImage(item.url));
+          div.querySelector('.lib-del-btn').addEventListener('click', () => {
+            if (!confirm('Remove "' + item.name + '" from library?')) return;
+            deleteLibraryImage(item.id, item.storagePath);
+          });
+          grid.appendChild(div);
+        });
+        renderSlideshowPicker(items);
+      }
+
+      // Library upload wiring
+      const libFileInput = document.getElementById('lib-file-input');
+      const libDropZone = document.getElementById('lib-drop-zone');
+      libDropZone.addEventListener('click', () => libFileInput.click());
+      libDropZone.addEventListener('dragover', e => { e.preventDefault(); libDropZone.classList.add('drag-over'); });
+      libDropZone.addEventListener('dragleave', () => libDropZone.classList.remove('drag-over'));
+      libDropZone.addEventListener('drop', e => {
+        e.preventDefault(); libDropZone.classList.remove('drag-over');
+        [...e.dataTransfer.files].forEach(f => uploadImageToLibrary(f));
+      });
+      libFileInput.addEventListener('change', () => {
+        [...libFileInput.files].forEach(f => uploadImageToLibrary(f));
+        libFileInput.value = '';
+      });
+
+      document.querySelectorAll('.lib-src-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const src = btn.dataset.libsrc;
+          document.querySelectorAll('.lib-src-btn').forEach(b => b.classList.toggle('active', b.dataset.libsrc === src));
+          document.getElementById('lib-upload-zone').style.display = src === 'upload' ? '' : 'none';
+          document.getElementById('lib-url-zone').style.display = src === 'url' ? '' : 'none';
+        });
+      });
+
+      document.getElementById('lib-url-add-btn').addEventListener('click', () => {
+        const url = document.getElementById('lib-url-input').value.trim();
+        if (!url) return;
+        addUrlToLibrary(url);
+        document.getElementById('lib-url-input').value = '';
+      });
+
+      db.ref('signage/imageLibrary').on('value', snap => {
+        libraryItems = snap.val() || {};
+        renderLibraryGrid(libraryItems);
+      });
+
+      // ─── SLIDESHOW ────────────────────────────────────────────────────────────
+
+      let slideshowMs = 30000;
+      let slideshowSelected = [];  // array of {url, name}
+
+      document.querySelectorAll('.interval-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          slideshowMs = parseInt(btn.dataset.ms, 10);
+          document.querySelectorAll('.interval-btn').forEach(b => b.classList.toggle('active', b === btn));
+        });
+      });
+
+      function renderSlideshowPicker(items) {
+        const picker = document.getElementById('slideshow-picker');
+        const empty = document.getElementById('ss-empty');
+        picker.innerHTML = '';
+        const arr = Object.values(items).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        empty.style.display = arr.length === 0 ? '' : 'none';
+        picker.style.display = arr.length === 0 ? 'none' : '';
+        arr.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'lib-item selectable';
+          const checked = slideshowSelected.some(s => s.url === item.url);
+          div.innerHTML = `
+            <input type="checkbox" class="lib-checkbox" ${checked ? 'checked' : ''}>
+            <img src="${escHtml(item.url)}" alt="${escHtml(item.name)}" loading="lazy">
+            <div class="lib-item-name">${escHtml(item.name)}</div>
+          `;
+          const cb = div.querySelector('.lib-checkbox');
+          cb.addEventListener('change', () => {
+            if (cb.checked) {
+              if (!slideshowSelected.some(s => s.url === item.url))
+                slideshowSelected.push({ url: item.url, name: item.name });
+            } else {
+              slideshowSelected = slideshowSelected.filter(s => s.url !== item.url);
+            }
+            updateSlideshowSelected();
+          });
+          picker.appendChild(div);
+        });
+      }
+
+      function updateSlideshowSelected() {
+        const count = document.getElementById('ss-count');
+        const card = document.getElementById('ss-selected-card');
+        const list = document.getElementById('ss-selected-list');
+        count.textContent = `(${slideshowSelected.length} selected)`;
+        card.style.display = slideshowSelected.length === 0 ? 'none' : '';
+        list.innerHTML = '';
+        slideshowSelected.forEach((item, i) => {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--border); font-size:0.85rem;';
+          row.innerHTML = `<img src="${escHtml(item.url)}" style="width:48px; height:27px; object-fit:cover; border-radius:4px; flex-shrink:0;">
+            <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escHtml(item.name)}</span>
+            <button data-i="${i}" style="background:transparent; border:none; color:var(--muted); cursor:pointer; font-size:1rem; padding:2px 6px;">×</button>`;
+          row.querySelector('button').addEventListener('click', () => {
+            slideshowSelected.splice(i, 1);
+            renderSlideshowPicker(libraryItems);
+            updateSlideshowSelected();
+          });
+          list.appendChild(row);
+        });
+      }
+
+      document.getElementById('ss-url-add-btn').addEventListener('click', () => {
+        const url = document.getElementById('ss-url-input').value.trim();
+        if (!url) return;
+        if (!slideshowSelected.some(s => s.url === url)) {
+          const name = url.split('/').pop().split('?')[0] || url;
+          slideshowSelected.push({ url, name });
+          updateSlideshowSelected();
+        }
+        document.getElementById('ss-url-input').value = '';
+      });
+
+      document.getElementById('push-slideshow-btn').addEventListener('click', () => {
+        if (slideshowSelected.length === 0) { showToast('Select at least one image', true); return; }
+        if (!db) { showToast('Not connected', true); return; }
+        const images = slideshowSelected.map(s => s.url);
+        db.ref('signage/current').set({ mode: 'slideshow', images, interval: slideshowMs, updatedAt: Date.now() })
+          .then(() => {
+            showToast('Slideshow pushed!');
+            document.getElementById('live-url').textContent = `(Slideshow — ${images.length} images, ${slideshowMs/1000}s)`;
+            document.getElementById('live-mode').textContent = '[slideshow]';
+          })
+          .catch(err => showToast('Error: ' + err.message, true));
+      });
+
+      function renderSlideshowPresets(presets) {
+        const list = document.getElementById('ss-presets-list');
+        const empty = document.getElementById('ss-presets-empty');
+        list.innerHTML = '';
+        const arr = Object.values(presets).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        empty.style.display = arr.length === 0 ? '' : 'none';
+        arr.forEach(preset => {
+          const row = document.createElement('div');
+          row.className = 'ss-preset';
+          row.innerHTML = `
+            <span class="ss-preset-name">${escHtml(preset.name)} <span style="color:var(--muted); font-size:0.75rem;">(${preset.images.length} images, ${preset.interval/1000}s)</span></span>
+            <button class="ss-preset-load">Load</button>
+            <button class="ss-preset-del">🗑</button>
+          `;
+          row.querySelector('.ss-preset-load').addEventListener('click', () => {
+            slideshowSelected = preset.images.map(url => ({ url, name: url.split('/').pop().split('?')[0] || url }));
+            slideshowMs = preset.interval;
+            document.querySelectorAll('.interval-btn').forEach(b =>
+              b.classList.toggle('active', parseInt(b.dataset.ms, 10) === slideshowMs));
+            renderSlideshowPicker(libraryItems);
+            updateSlideshowSelected();
+            showToast('Preset loaded');
+          });
+          row.querySelector('.ss-preset-del').addEventListener('click', () => {
+            if (!confirm('Delete preset "' + preset.name + '"?')) return;
+            db.ref('signage/slideshowPresets/' + preset.id).remove();
+          });
+          list.appendChild(row);
+        });
+      }
+
+      document.getElementById('save-ss-preset-btn').addEventListener('click', () => {
+        if (slideshowSelected.length === 0) { showToast('Select images first', true); return; }
+        const name = prompt('Preset name:');
+        if (!name) return;
+        db.ref('signage/slideshowPresets').push().then(ref => {
+          ref.set({ id: ref.key, name, images: slideshowSelected.map(s => s.url), interval: slideshowMs, createdAt: Date.now() });
+          showToast('Preset saved!');
+        });
+      });
+
+      db.ref('signage/slideshowPresets').on('value', snap => {
+        renderSlideshowPresets(snap.val() || {});
+      });
+
+      // ─── SCHEDULE ─────────────────────────────────────────────────────────────
+
+      let scheduleSlots = {};
+      let scheduleActive = false;
+      let schedulePoller = null;
+      let lastPushedSlotId = null;
+
+      function startSchedulePoller() {
+        scheduleActive = true;
+        lastPushedSlotId = null;
+        document.getElementById('schedule-active-badge').classList.remove('off');
+        document.getElementById('schedule-active-label').textContent = 'Active';
+        document.getElementById('toggle-schedule-btn').textContent = 'Deactivate';
+        document.getElementById('toggle-schedule-btn').style.background = 'var(--danger)';
+        if (schedulePoller) clearInterval(schedulePoller);
+        checkScheduleNow();
+        schedulePoller = setInterval(checkScheduleNow, 30000);
+      }
+
+      function stopSchedulePoller() {
+        scheduleActive = false;
+        document.getElementById('schedule-active-badge').classList.add('off');
+        document.getElementById('schedule-active-label').textContent = 'Inactive';
+        document.getElementById('toggle-schedule-btn').textContent = 'Activate';
+        document.getElementById('toggle-schedule-btn').style.background = '';
+        if (schedulePoller) { clearInterval(schedulePoller); schedulePoller = null; }
+      }
+
+      function timeToMinutes(hhmm) {
+        const [h, m] = hhmm.split(':').map(Number);
+        return h * 60 + m;
+      }
+
+      function checkScheduleNow() {
+        const now = new Date();
+        const currentMin = now.getHours() * 60 + now.getMinutes();
+        const slots = Object.values(scheduleSlots).filter(s => s.enabled);
+        const active = slots.find(s => {
+          const start = timeToMinutes(s.startTime);
+          const end = timeToMinutes(s.endTime);
+          return currentMin >= start && currentMin < end;
+        });
+        if (active && active.id !== lastPushedSlotId) {
+          lastPushedSlotId = active.id;
+          pushSlotContent(active);
+        }
+      }
+
+      function pushSlotContent(slot) {
+        if (slot.type === 'image') {
+          pushImage(slot.content);
+          showToast('Schedule: ' + slot.name);
+        } else if (slot.type === 'url') {
+          push(slot.content, 'iframe');
+          showToast('Schedule: ' + slot.name);
+        } else if (slot.type === 'template') {
+          db.ref('signage/templates/' + slot.content).once('value').then(snap => {
+            const tpl = snap.val();
+            if (!tpl) { showToast('Schedule: template not found', true); return; }
+            if (tpl.type === 'html') {
+              db.ref('signage/current').set({ mode: 'html', html: tpl.content, updatedAt: Date.now() })
+                .then(() => showToast('Schedule: ' + slot.name));
+            } else {
+              push(tpl.content, tpl.mode || 'iframe');
+            }
+          });
+        } else if (slot.type === 'slideshow') {
+          try {
+            const parsed = JSON.parse(slot.content);
+            db.ref('signage/current').set({ mode: 'slideshow', images: parsed.images, interval: parsed.interval, updatedAt: Date.now() })
+              .then(() => showToast('Schedule: ' + slot.name));
+          } catch(e) { showToast('Schedule: invalid slideshow data', true); }
+        }
+      }
+
+      function renderScheduleList(slots) {
+        const list = document.getElementById('schedule-list');
+        const empty = document.getElementById('schedule-empty');
+        list.innerHTML = '';
+        const arr = Object.values(slots).sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+        empty.style.display = arr.length === 0 ? '' : 'none';
+        arr.forEach(slot => {
+          const div = document.createElement('div');
+          div.className = 'schedule-slot' + (slot.enabled ? '' : ' disabled');
+          const tplOptions = Object.values(snap_templates_cache || {}).map(t =>
+            `<option value="${escHtml(t.id)}" ${slot.type === 'template' && slot.content === t.id ? 'selected' : ''}>${escHtml(t.name)}</option>`
+          ).join('');
+          div.innerHTML = `
+            <div class="slot-time">
+              <input type="time" class="slot-start" value="${escHtml(slot.startTime)}">
+              <span class="slot-sep">→</span>
+              <input type="time" class="slot-end" value="${escHtml(slot.endTime)}">
+            </div>
+            <input type="text" class="slot-content-input slot-name-input" value="${escHtml(slot.name)}" placeholder="Slot name" style="min-width:90px; max-width:130px;">
+            <select class="slot-type-select">
+              <option value="image" ${slot.type==='image'?'selected':''}>Image URL</option>
+              <option value="url" ${slot.type==='url'?'selected':''}>Web URL</option>
+              <option value="template" ${slot.type==='template'?'selected':''}>Template</option>
+              <option value="slideshow" ${slot.type==='slideshow'?'selected':''}>Slideshow</option>
+            </select>
+            <input type="text" class="slot-content-input slot-value-input" value="${escHtml(slot.type === 'slideshow' ? '(slideshow config)' : slot.content)}" placeholder="URL or template ID" style="flex:1;">
+            <label class="toggle-switch" style="flex-shrink:0;">
+              <input type="checkbox" class="slot-enable-toggle" ${slot.enabled ? 'checked' : ''}>
+              <span class="toggle-slider"></span>
+            </label>
+            <button class="slot-del-btn" title="Delete">🗑</button>
+          `;
+
+          const save = () => {
+            const updated = {
+              id: slot.id,
+              name: div.querySelector('.slot-name-input').value.trim() || 'Untitled',
+              startTime: div.querySelector('.slot-start').value,
+              endTime: div.querySelector('.slot-end').value,
+              type: div.querySelector('.slot-type-select').value,
+              content: div.querySelector('.slot-value-input').value.trim(),
+              enabled: div.querySelector('.slot-enable-toggle').checked
+            };
+            db.ref('signage/schedule/' + slot.id).set(updated);
+          };
+
+          div.querySelectorAll('input[type="time"], .slot-name-input, .slot-type-select').forEach(el => el.addEventListener('change', save));
+          div.querySelector('.slot-value-input').addEventListener('blur', save);
+          div.querySelector('.slot-enable-toggle').addEventListener('change', e => {
+            div.classList.toggle('disabled', !e.target.checked);
+            save();
+          });
+          div.querySelector('.slot-del-btn').addEventListener('click', () => {
+            if (!confirm('Delete this slot?')) return;
+            db.ref('signage/schedule/' + slot.id).remove();
+          });
+          list.appendChild(div);
+        });
+      }
+
+      let snap_templates_cache = {};
+
+      document.getElementById('add-slot-btn').addEventListener('click', () => {
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const start = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+        const endH = now.getHours() < 23 ? now.getHours() + 1 : 23;
+        const end = `${pad(endH)}:${pad(now.getMinutes())}`;
+        db.ref('signage/schedule').push().then(ref => {
+          ref.set({ id: ref.key, name: 'New slot', startTime: start, endTime: end, type: 'url', content: '', enabled: false });
+        });
+      });
+
+      document.getElementById('toggle-schedule-btn').addEventListener('click', () => {
+        if (scheduleActive) stopSchedulePoller(); else startSchedulePoller();
+      });
+
+      db.ref('signage/schedule').on('value', snap => {
+        scheduleSlots = snap.val() || {};
+        renderScheduleList(scheduleSlots);
+      });
+
       db.ref('signage/templates').on('value', snap => {
-        renderTemplates(Object.values(snap.val() || {}));
+        snap_templates_cache = snap.val() || {};
+        renderTemplates(Object.values(snap_templates_cache));
+        renderScheduleList(scheduleSlots);
       });
     } else {
       renderRecent();
