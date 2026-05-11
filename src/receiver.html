@@ -258,9 +258,12 @@
 
       const videoEl = document.getElementById('video-player');
       function clearVideo() {
-        videoEl.classList.remove('active');
-        videoEl.pause();
-        videoEl.src = '';
+        try {
+          videoEl.classList.remove('active');
+          videoEl.pause();
+          videoEl.removeAttribute('src');
+          videoEl.load();
+        } catch(e) {}
       }
 
       function preloadImage(url) {
