@@ -934,11 +934,24 @@
     }
     .lib-item:hover { border-color: var(--accent); }
 
-    .lib-item img {
+    .lib-item img,
+    .lib-item video {
       width: 100%;
       aspect-ratio: 16/9;
       object-fit: cover;
       display: block;
+    }
+
+    .lib-item-video-badge {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      pointer-events: none;
     }
 
     .lib-item-name {
@@ -1305,8 +1318,8 @@
           <button class="mode-btn lib-src-btn" data-libsrc="url">Image URL</button>
         </div>
         <div id="lib-upload-zone">
-          <input type="file" id="lib-file-input" accept="image/*" multiple hidden>
-          <div id="lib-drop-zone">Drop images here or click to browse</div>
+          <input type="file" id="lib-file-input" accept="image/*,video/*" multiple hidden>
+          <div id="lib-drop-zone">Drop images or videos here or click to browse</div>
           <div id="lib-progress-bar"><div id="lib-progress-fill"></div></div>
         </div>
         <div id="lib-url-zone" style="display:none;">
@@ -1809,6 +1822,18 @@
           showToast('Image pushed!');
           document.getElementById('live-url').textContent = url;
           document.getElementById('live-mode').textContent = '[image]';
+        })
+        .catch(err => showToast('Error: ' + err.message, true));
+    }
+
+    function pushVideo(url) {
+      if (onManualPush) onManualPush();
+      if (!db) { showToast('Not connected to Firebase', true); return; }
+      db.ref('signage/current').set({ url, mode: 'video', updatedAt: Date.now() })
+        .then(() => {
+          showToast('Video pushed!');
+          document.getElementById('live-url').textContent = url;
+          document.getElementById('live-mode').textContent = '[video]';
         })
         .catch(err => showToast('Error: ' + err.message, true));
     }
@@ -2340,7 +2365,9 @@
         dropZone.classList.add('uploading');
         progressBar.style.display = '';
 
+        const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
         const path = 'signage/images/' + Date.now() + '_' + file.name;
+        const label = mediaType === 'video' ? 'Video' : 'Image';
         const reader = new FileReader();
         reader.onload = () => {
           storage.ref(path).putString(reader.result, 'data_url')
@@ -2352,20 +2379,20 @@
               },
               err => {
                 dropZone.classList.remove('uploading');
-                dropZone.innerHTML = 'Drop images here or click to browse';
+                dropZone.innerHTML = 'Drop images or videos here or click to browse';
                 progressBar.style.display = 'none';
                 showToast('Upload error: ' + err.message, true);
               },
               () => {
                 storage.ref(path).getDownloadURL().then(url => {
                   dropZone.classList.remove('uploading');
-                  dropZone.innerHTML = 'Drop images here or click to browse';
+                  dropZone.innerHTML = 'Drop images or videos here or click to browse';
                   progressBar.style.display = 'none';
                   progressFill.style.width = '0%';
                   db.ref('signage/imageLibrary').push().then(ref => {
-                    ref.set({ id: ref.key, name: file.name, url, storagePath: path, createdAt: Date.now() });
+                    ref.set({ id: ref.key, name: file.name, url, storagePath: path, mediaType, createdAt: Date.now() });
                   });
-                  showToast('Image added to library!');
+                  showToast(label + ' added to library!');
                 });
               }
             );
@@ -2374,11 +2401,13 @@
       }
 
       function addUrlToLibrary(url) {
-        const name = url.split('/').pop().split('?')[0] || 'image';
+        const ext = url.split('?')[0].split('.').pop().toLowerCase();
+        const mediaType = ['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(ext) ? 'video' : 'image';
+        const name = url.split('/').pop().split('?')[0] || mediaType;
         db.ref('signage/imageLibrary').push().then(ref => {
-          ref.set({ id: ref.key, name, url, storagePath: null, createdAt: Date.now() });
+          ref.set({ id: ref.key, name, url, storagePath: null, mediaType, createdAt: Date.now() });
         });
-        showToast('Image added to library!');
+        showToast((mediaType === 'video' ? 'Video' : 'Image') + ' added to library!');
       }
 
       function deleteLibraryImage(id, storagePath) {
@@ -2394,17 +2423,21 @@
         const arr = Object.values(items).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         empty.style.display = arr.length === 0 ? '' : 'none';
         arr.forEach(item => {
+          const isVideo = item.mediaType === 'video';
           const div = document.createElement('div');
           div.className = 'lib-item';
           div.innerHTML = `
-            <img src="${escHtml(item.url)}" alt="${escHtml(item.name)}" loading="lazy">
+            ${isVideo
+              ? `<video src="${escHtml(item.url)}" preload="metadata" muted></video><span class="lib-item-video-badge">VIDEO</span>`
+              : `<img src="${escHtml(item.url)}" alt="${escHtml(item.name)}" loading="lazy">`
+            }
             <div class="lib-item-name">${escHtml(item.name)}</div>
             <div class="lib-item-actions">
               <button class="lib-push-btn">▶ Push</button>
               <button class="lib-del-btn">🗑 Remove</button>
             </div>
           `;
-          div.querySelector('.lib-push-btn').addEventListener('click', () => pushImage(item.url));
+          div.querySelector('.lib-push-btn').addEventListener('click', () => isVideo ? pushVideo(item.url) : pushImage(item.url));
           div.querySelector('.lib-del-btn').addEventListener('click', () => {
             if (!confirm('Remove "' + item.name + '" from library?')) return;
             deleteLibraryImage(item.id, item.storagePath);
@@ -2581,8 +2614,11 @@
         });
       });
 
+      let snap_presets_cache = {};
       db.ref('signage/slideshowPresets').on('value', snap => {
-        renderSlideshowPresets(snap.val() || {});
+        snap_presets_cache = snap.val() || {};
+        renderSlideshowPresets(snap_presets_cache);
+        renderScheduleList(scheduleSlots);
       });
 
       // ─── SCHEDULE ─────────────────────────────────────────────────────────────
@@ -2647,6 +2683,15 @@
         if (slot.type === 'image') {
           pushImage(slot.content);
           showToast('Schedule: ' + slot.name);
+        } else if (slot.type === 'video') {
+          pushVideo(slot.content);
+          showToast('Schedule: ' + slot.name);
+        } else if (slot.type === 'slideshow') {
+          const preset = snap_presets_cache[slot.content];
+          if (!preset) { showToast('Schedule: slideshow preset not found', true); return; }
+          if (onManualPush) onManualPush();
+          db.ref('signage/current').set({ mode: 'slideshow', images: preset.images, interval: preset.interval, updatedAt: Date.now() })
+            .then(() => showToast('Schedule: ' + slot.name));
         } else if (slot.type === 'url') {
           push(slot.content, 'iframe');
           showToast('Schedule: ' + slot.name);
@@ -2662,7 +2707,7 @@
 
       function buildContentPicker(type, content) {
         if (type === 'image') {
-          const items = Object.values(libraryItems).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          const items = Object.values(libraryItems).filter(i => i.mediaType !== 'video').sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
           const opts = items.map(item =>
             `<option value="${escHtml(item.url)}" ${content === item.url ? 'selected' : ''}>${escHtml(item.name)}</option>`
           ).join('');
@@ -2672,6 +2717,28 @@
             <img class="slot-thumb" src="${thumbSrc}" alt="">
             <select class="slot-content-picker">
               <option value="">— Select image from library —</option>
+              ${opts}
+            </select>
+          `;
+        } else if (type === 'video') {
+          const items = Object.values(libraryItems).filter(i => i.mediaType === 'video').sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          const opts = items.map(item =>
+            `<option value="${escHtml(item.url)}" ${content === item.url ? 'selected' : ''}>${escHtml(item.name)}</option>`
+          ).join('');
+          return `
+            <select class="slot-content-picker" style="flex:1;">
+              <option value="">— Select video from library —</option>
+              ${opts}
+            </select>
+          `;
+        } else if (type === 'slideshow') {
+          const presets = Object.values(snap_presets_cache || {}).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+          const opts = presets.map(p =>
+            `<option value="${escHtml(p.id)}" ${content === p.id ? 'selected' : ''}>${escHtml(p.name)} (${p.images.length} imgs, ${p.interval/1000}s)</option>`
+          ).join('');
+          return `
+            <select class="slot-content-picker" style="flex:1;">
+              <option value="">— Select slideshow preset —</option>
               ${opts}
             </select>
           `;
@@ -2711,9 +2778,11 @@
               </div>
               <input type="text" class="slot-name-input" value="${escHtml(slot.name)}" placeholder="Slot name">
               <select class="slot-type-select">
-                <option value="image"    ${slot.type==='image'    ?'selected':''}>🖼 Image</option>
-                <option value="template" ${slot.type==='template' ?'selected':''}>📝 Template</option>
-                <option value="url"      ${slot.type==='url'      ?'selected':''}>🔗 URL</option>
+                <option value="image"     ${slot.type==='image'     ?'selected':''}>🖼 Image</option>
+                <option value="video"     ${slot.type==='video'     ?'selected':''}>🎬 Video</option>
+                <option value="slideshow" ${slot.type==='slideshow' ?'selected':''}>▶ Slideshow</option>
+                <option value="template"  ${slot.type==='template'  ?'selected':''}>📝 Template</option>
+                <option value="url"       ${slot.type==='url'       ?'selected':''}>🔗 URL</option>
               </select>
               <label class="toggle-switch" style="flex-shrink:0; margin-left:auto;">
                 <input type="checkbox" class="slot-enable-toggle" ${slot.enabled ? 'checked' : ''}>
@@ -2782,13 +2851,22 @@
       let snap_templates_cache = {};
 
       document.getElementById('add-slot-btn').addEventListener('click', () => {
-        const now = new Date();
         const pad = n => String(n).padStart(2, '0');
-        const start = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
-        const endH = now.getHours() < 23 ? now.getHours() + 1 : 23;
-        const end = `${pad(endH)}:${pad(now.getMinutes())}`;
+        const minsToHhmm = m => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+
+        // Start after the latest end time; fall back to current time
+        const existing = Object.values(scheduleSlots);
+        let startMins;
+        if (existing.length > 0) {
+          startMins = Math.max(...existing.map(s => timeToMinutes(s.endTime)));
+        } else {
+          const now = new Date();
+          startMins = now.getHours() * 60 + now.getMinutes();
+        }
+        const endMins = Math.min(startMins + 60, 23 * 60 + 59);
+
         db.ref('signage/schedule').push().then(ref => {
-          ref.set({ id: ref.key, name: 'New slot', startTime: start, endTime: end, type: 'url', content: '', enabled: false });
+          ref.set({ id: ref.key, name: 'New slot', startTime: minsToHhmm(startMins), endTime: minsToHhmm(endMins), type: 'url', content: '', enabled: false });
         });
       });
 

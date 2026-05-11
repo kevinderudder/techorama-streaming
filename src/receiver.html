@@ -109,6 +109,19 @@
     }
     #setup-warning.hidden { display: none; }
 
+    /* Video layer */
+    #video-player {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+      z-index: 9;
+      display: none;
+    }
+    #video-player.active { display: block; }
+
     /* Logo overlay */
     #logo-overlay {
       position: fixed;
@@ -141,6 +154,9 @@
 
   <!-- Logo overlay — controlled via Firebase settings -->
   <img id="logo-overlay" src="" alt="">
+
+  <!-- Video player layer -->
+  <video id="video-player" autoplay loop muted playsinline></video>
 
   <!-- Main content frame -->
   <iframe
@@ -240,6 +256,13 @@
         ssSlot = 'a';
       }
 
+      const videoEl = document.getElementById('video-player');
+      function clearVideo() {
+        videoEl.classList.remove('active');
+        videoEl.pause();
+        videoEl.src = '';
+      }
+
       function preloadImage(url) {
         return new Promise(resolve => {
           const img = new Image();
@@ -284,6 +307,7 @@
 
         const { url, mode } = data;
         clearSlideshow();
+        clearVideo();
 
         if (mode === 'html') {
           blankEl.classList.add('hidden');
@@ -314,6 +338,13 @@
               }, data.interval || 30000);
             }
           });
+
+        } else if (mode === 'video') {
+          blankEl.classList.add('hidden');
+          frameEl.src = 'about:blank';
+          if (videoEl.src !== url) videoEl.src = url;
+          videoEl.classList.add('active');
+          videoEl.play();
 
         } else if (mode === 'blank' || !url) {
           blankEl.classList.remove('hidden');
