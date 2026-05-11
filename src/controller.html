@@ -618,6 +618,36 @@
     }
     .modal-overlay.hidden { display: none; }
     #preview-modal.hidden { display: none; }
+    #preview-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    #preview-modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      z-index: 10;
+    }
+    #preview-modal-close:hover { background: var(--danger); border-color: var(--danger); }
+    #preview-modal-frame {
+      width: 90vw;
+      height: 85vh;
+      border: none;
+      border-radius: var(--radius);
+    }
 
     .modal-box {
       background: var(--panel);
@@ -1064,13 +1094,10 @@
         </div>
       </div>
 
-      <div class="card" id="editor-preview-card">
-        <h2>Preview</h2>
-        <iframe id="editor-preview" sandbox="allow-scripts"></iframe>
-        <button id="preview-fullscreen-btn">⛶ Full screen preview</button>
+      <div style="display: flex; gap: 12px; margin-top: 4px;">
+        <button id="preview-fullscreen-btn" style="flex: 1; background: var(--panel); color: var(--text); border: 1px solid var(--border);">👁 Preview</button>
+        <button id="editor-push-btn" style="flex: 2;">▶ Push to screens</button>
       </div>
-
-      <button id="editor-push-btn">▶ Push to screens</button>
     </div>
 
     <!-- SETTINGS PANEL -->
@@ -1565,29 +1592,17 @@
 </html>`;
     }
 
-    function updatePreview() {
-      const preview = document.getElementById('editor-preview');
-      let html;
-      if (editorMode === 'html') {
-        html = document.getElementById('html-source').value;
-      } else {
-        html = generateHtmlDocument();
-      }
-      preview.srcdoc = html;
+    function currentHtml() {
+      return editorMode === 'html'
+        ? document.getElementById('html-source').value
+        : generateHtmlDocument();
     }
 
-    document.getElementById('editor-canvas').addEventListener('input', updatePreview);
-    document.getElementById('html-source').addEventListener('input', updatePreview);
+    function updatePreview() {}
 
     document.getElementById('preview-fullscreen-btn').addEventListener('click', () => {
-      const modal = document.getElementById('preview-modal');
-      const frame = document.getElementById('preview-modal-frame');
-      if (editorMode === 'html') {
-        frame.srcdoc = document.getElementById('html-source').value;
-      } else {
-        frame.srcdoc = generateHtmlDocument();
-      }
-      modal.classList.remove('hidden');
+      document.getElementById('preview-modal-frame').srcdoc = currentHtml();
+      document.getElementById('preview-modal').classList.remove('hidden');
     });
 
     document.getElementById('preview-modal-close').addEventListener('click', () => {
