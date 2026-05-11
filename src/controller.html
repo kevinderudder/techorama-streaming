@@ -2448,6 +2448,7 @@
       db.ref('signage/imageLibrary').on('value', snap => {
         libraryItems = snap.val() || {};
         renderLibraryGrid(libraryItems);
+        renderScheduleList(scheduleSlots);
       });
 
       // ─── SLIDESHOW ────────────────────────────────────────────────────────────
