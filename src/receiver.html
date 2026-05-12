@@ -251,8 +251,10 @@
       function clearSlideshow() {
         if (slideshowTimer) { clearInterval(slideshowTimer); slideshowTimer = null; }
         ssLayer.classList.remove('active');
-        ssImgA.src = '';
-        ssImgB.src = '';
+        ssImgA.removeAttribute('src');
+        ssImgB.removeAttribute('src');
+        ssImgA.style.opacity = '1';
+        ssImgB.style.opacity = '0';
         ssSlot = 'a';
       }
 
@@ -262,7 +264,6 @@
           videoEl.classList.remove('active');
           videoEl.pause();
           videoEl.removeAttribute('src');
-          videoEl.load();
         } catch(e) {}
       }
 
@@ -299,6 +300,7 @@
 
       // Listen for display changes
       db.ref('signage/current').on('value', snap => {
+        try {
         const data = snap.val();
         if (!data) {
           showFallback();
@@ -318,7 +320,9 @@
 
         } else if (mode === 'slideshow') {
           blankEl.classList.add('hidden');
-          const images = data.images || [];
+          // Firebase may return array or numeric-keyed object — normalise to array
+          const raw = data.images;
+          const images = Array.isArray(raw) ? raw : Object.values(raw || {});
           if (images.length === 0) return;
 
           // Preload all images before starting
@@ -360,6 +364,7 @@
           blankEl.classList.add('hidden');
           if (frameEl.src !== url) frameEl.src = url;
         }
+        } catch(e) { console.error('Receiver error:', e); }
       });
 
       // Fallback image listener
