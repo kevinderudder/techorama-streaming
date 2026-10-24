@@ -1221,6 +1221,10 @@
         <span class="nav-icon">📝</span>
         <span class="nav-label">HTML Editor</span>
       </button></li>
+      <li><button class="nav-btn" data-panel="screens">
+        <span class="nav-icon">🖥</span>
+        <span class="nav-label">Screens</span>
+      </button></li>
       <li><button class="nav-btn" data-panel="settings">
         <span class="nav-icon">⚙</span>
         <span class="nav-label">Settings</span>
@@ -1243,9 +1247,14 @@
   <!-- MAIN CONTENT -->
   <div id="main-content">
     <div id="live-status">
-      <span>📺 Currently on screens:</span>
+      <span id="live-label">📺 Currently on screens:</span>
       <strong id="live-url">—</strong>
       <span id="live-mode" style="color:var(--muted); font-size:0.78rem;"></span>
+      <label style="margin-left:auto; display:flex; align-items:center; gap:8px; flex-shrink:0;">Send to
+        <select id="target-select" style="padding:6px 10px; font-size:0.85rem;">
+          <option value="all">All screens</option>
+        </select>
+      </label>
     </div>
 
     <!-- TEMPLATES PANEL -->
@@ -1282,56 +1291,33 @@
       </div>
     </div>
 
-    <!-- PUSH IMAGE PANEL (hidden — functionality moved to Library panel) -->
-    <div id="panel-push-image" style="display:none !important;">
-      <div class="card">
-        <h2>Push Image</h2>
-        <div class="img-mode-row">
-          <button class="mode-btn img-mode-btn active" data-imgmode="upload">Upload file</button>
-          <button class="mode-btn img-mode-btn" data-imgmode="url">Image URL</button>
-        </div>
-        <div id="img-upload-zone">
-          <input type="file" id="img-file-input" accept="image/*" hidden>
-          <div id="img-drop-zone">Drop image here or click to browse</div>
-          <div id="img-progress-bar">
-            <div id="img-progress-fill"></div>
-          </div>
-        </div>
-        <div id="img-url-zone">
-          <div class="url-row">
-            <input id="img-url-input" type="url" placeholder="https://example.com/image.png">
-            <button id="img-url-push-btn">▶ Push</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- IMAGE LIBRARY PANEL -->
     <div id="panel-library" class="panel">
       <div class="panel-header">
         <h1 class="panel-title">Image Library</h1>
       </div>
       <div class="card">
-        <h2>Upload images</h2>
-        <div class="img-mode-row">
-          <button class="mode-btn lib-src-btn active" data-libsrc="upload">Upload file</button>
-          <button class="mode-btn lib-src-btn" data-libsrc="url">Image URL</button>
+        <h2>Add images &amp; videos</h2>
+        <p style="font-size:0.82rem; color:var(--muted); line-height:1.6; margin-bottom:14px;">
+          Images live in the <code>src/imgs/</code> folder of the GitHub repo (subfolders allowed, e.g. <code>src/imgs/lobby/</code>).
+          Upload them on GitHub, wait ~1 minute for GitHub Pages to publish, then click <strong>Sync from GitHub</strong>.
+        </p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="lib-sync-btn" class="btn-primary">🔄 Sync from GitHub</button>
+          <a id="lib-upload-link" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; padding:11px 22px; border-radius:8px; border:1px solid var(--border); color:var(--text); text-decoration:none; font-weight:600; font-size:0.92rem;">⬆ Upload on GitHub</a>
         </div>
-        <div id="lib-upload-zone">
-          <input type="file" id="lib-file-input" accept="image/*,video/*" multiple hidden>
-          <div id="lib-drop-zone">Drop images or videos here or click to browse</div>
-          <div id="lib-progress-bar"><div id="lib-progress-fill"></div></div>
-        </div>
-        <div id="lib-url-zone" style="display:none;">
-          <div class="url-row" style="margin-top:10px;">
-            <input id="lib-url-input" type="url" placeholder="https://example.com/image.jpg" style="flex:1;">
-            <button id="lib-url-add-btn">Add</button>
-          </div>
+        <div class="url-row" style="margin-top:14px;">
+          <input id="lib-url-input" type="url" placeholder="Or add any image/video URL: https://example.com/image.jpg" style="flex:1;">
+          <button id="lib-url-add-btn">Add</button>
         </div>
       </div>
       <div class="card">
-        <h2>Your images</h2>
-        <div id="library-empty" class="empty-state" style="padding:30px 0;">No images yet. Upload some above.</div>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+          <h2 style="margin-bottom:0; flex:1;">Your images</h2>
+          <select id="lib-folder-filter" style="padding:6px 10px; font-size:0.85rem; display:none;"></select>
+          <button id="lib-clear-all-btn" style="display:none; background:var(--danger); color:#fff; padding:7px 14px; font-size:0.82rem;">🗑 Remove all</button>
+        </div>
+        <div id="library-empty" class="empty-state" style="padding:30px 0;">No images yet. Click <strong>Sync from GitHub</strong> above.</div>
         <div id="library-grid" class="library-grid"></div>
       </div>
     </div>
@@ -1429,8 +1415,9 @@
             <option value="64px">64px</option>
             <option value="96px">96px</option>
           </select>
-          <input type="file" id="bg-image-file" accept="image/*" hidden>
-          <button id="bg-image-btn" style="flex: 0 0 auto; padding: 6px 12px; height: 32px; background: var(--panel); color: var(--text); border: 1px solid var(--border);" title="Upload background image">🖼 BG</button>
+          <select id="bg-image-select" title="Background image (from the Library)" style="max-width: 150px;">
+            <option value="">🖼 No BG image</option>
+          </select>
           <span id="bg-image-label" style="font-size: 0.72rem; color: var(--muted); max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></span>
         </div>
 
@@ -1447,6 +1434,26 @@
           <button id="save-as-tpl-btn" style="flex: 1; background: var(--panel); color: var(--text); border: 1px solid var(--border);">💾 Save as Template</button>
           <button id="editor-push-btn">▶ Push to screens</button>
         </div>
+      </div>
+    </div>
+
+    <!-- SCREENS PANEL -->
+    <div id="panel-screens" class="panel">
+      <div class="panel-header">
+        <h1 class="panel-title">Screens</h1>
+      </div>
+      <div class="card">
+        <p style="font-size:0.82rem; color:var(--muted); line-height:1.6;">
+          Open <code>receiver.html?screen=&lt;name&gt;</code> on a TV (e.g. <code>receiver.html?screen=lobby-left</code>) and it appears here.
+          Give screens the same group name to push to them together. Pick the target with <strong>Send to</strong> at the top.
+          A screen shows the newest push sent to all screens, its group, or itself.
+        </p>
+      </div>
+      <div class="card">
+        <h2>Connected screens</h2>
+        <div id="screens-empty" class="empty-state" style="padding:20px 0;">No screens yet. Open a receiver with <code>?screen=&lt;name&gt;</code>.</div>
+        <div id="screens-list"></div>
+        <datalist id="group-options"></datalist>
       </div>
     </div>
 
@@ -1518,9 +1525,12 @@
           </div>
         </div>
 
-        <div id="logo-drop-zone">Drop logo file here or click to upload<input type="file" id="logo-file-input" accept="image/*" hidden></div>
-
-        <div id="uploaded-logos-list"></div>
+        <div style="display:flex; gap:8px; align-items:center; margin-top:14px;">
+          <select id="logo-library-select" style="flex:1; padding:8px 10px; font-size:0.85rem;">
+            <option value="">— Pick logo from library —</option>
+          </select>
+          <button id="logo-set-btn" style="background:var(--accent); color:#fff; padding:9px 16px; white-space:nowrap;">Use as logo</button>
+        </div>
       </div>
     </div>
 
@@ -1614,7 +1624,6 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
   <script>
     // ─────────────────────────────────────────────────────────────────────────
@@ -1636,7 +1645,18 @@
     const isConfigured = !firebaseConfig.apiKey.startsWith("PASTE");
     const warningEl = document.getElementById('setup-banner');
     let db = null;
-    let storage = null;
+    // Images & videos are hosted on GitHub Pages (Firebase Storage needs a paid plan)
+    const IMAGES_BASE = 'https://kevinderudder.github.io/techorama-streaming/src/imgs/';
+    const GITHUB_UPLOAD_URL = 'https://github.com/kevinderudder/techorama-streaming/upload/main/src/imgs';
+
+    // Push target: 'all', 'group:<name>' or 'screen:<id>' (receiver.html?screen=<id>)
+    let pushTarget = 'all';
+
+    function currentRef(target = pushTarget) {
+      if (target.startsWith('group:')) return db.ref('signage/groups/' + target.slice(6) + '/current');
+      if (target.startsWith('screen:')) return db.ref('signage/screens/' + target.slice(7) + '/current');
+      return db.ref('signage/current');
+    }
 
     function switchPanel(name) {
       document.querySelectorAll('.nav-btn').forEach(b =>
@@ -1734,10 +1754,10 @@
     // Called before any manual push to stop an active schedule/slideshow
     let onManualPush = null;
 
-    function push(url, mode) {
+    function push(url, mode, target = pushTarget) {
       if (onManualPush) onManualPush();
       if (!db) { showToast('Not connected to Firebase', true); return; }
-      db.ref('signage/current').set({ url, mode, updatedAt: Date.now() })
+      currentRef(target).set({ url, mode, updatedAt: Date.now() })
         .then(() => {
           showToast('Pushed!');
           if (url !== '') addRecent(url, mode);
@@ -1755,69 +1775,11 @@
     document.getElementById('blank-btn').addEventListener('click', () => push('', 'blank'));
 
     // Image push
-    const imgFileInput = document.getElementById('img-file-input');
-    const imgDropZone = document.getElementById('img-drop-zone');
-
-    document.querySelectorAll('.img-mode-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const mode = btn.dataset.imgmode;
-        document.querySelectorAll('.img-mode-btn').forEach(b =>
-          b.classList.toggle('active', b.dataset.imgmode === mode));
-        document.getElementById('img-upload-zone').style.display = mode === 'upload' ? '' : 'none';
-        document.getElementById('img-url-zone').style.display = mode === 'url' ? '' : 'none';
-      });
-    });
-
-    imgDropZone.addEventListener('click', () => imgFileInput.click());
-    imgDropZone.addEventListener('dragover', e => { e.preventDefault(); imgDropZone.classList.add('drag-over'); });
-    imgDropZone.addEventListener('dragleave', () => imgDropZone.classList.remove('drag-over'));
-    imgDropZone.addEventListener('drop', e => {
-      e.preventDefault();
-      imgDropZone.classList.remove('drag-over');
-      if (e.dataTransfer.files[0]) uploadImage(e.dataTransfer.files[0]);
-    });
-    imgFileInput.addEventListener('change', () => { if (imgFileInput.files[0]) uploadImage(imgFileInput.files[0]); });
-
-    function uploadImage(file) {
-      if (!storage) { showToast('Not connected to Firebase', true); return; }
-      imgDropZone.classList.add('uploading');
-      imgDropZone.innerHTML = '<span class="upload-spinner"></span>Uploading...';
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64 = reader.result;
-        const path = 'signage/images/' + Date.now() + '_' + file.name;
-        storage.ref(path).putString(base64, 'data_url')
-          .on('state_changed',
-            snap => {
-              const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
-              document.getElementById('img-progress-bar').style.display = '';
-              document.getElementById('img-progress-fill').style.width = pct + '%';
-              imgDropZone.innerHTML = `<span class="upload-spinner"></span>Uploading... ${pct}%`;
-            },
-            err => {
-              imgDropZone.classList.remove('uploading');
-              imgDropZone.innerHTML = 'Drop image here or click to browse';
-              document.getElementById('img-progress-bar').style.display = 'none';
-              showToast('Upload error: ' + err.message, true);
-            },
-            () => {
-              storage.ref(path).getDownloadURL().then(url => {
-                imgDropZone.classList.remove('uploading');
-                imgDropZone.innerHTML = 'Drop image here or click to browse';
-                document.getElementById('img-progress-bar').style.display = 'none';
-                pushImage(url);
-              });
-            }
-          );
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function pushImage(url) {
+    function pushImage(url, target = pushTarget) {
       if (onManualPush) onManualPush();
       if (!db) { showToast('Not connected to Firebase', true); return; }
       const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{width:100vw;height:100vh;overflow:hidden;background:#000}img{width:100%;height:100%;object-fit:cover}</style></head><body><img src="${url}"></body></html>`;
-      db.ref('signage/current').set({ mode: 'html', html, updatedAt: Date.now() })
+      currentRef(target).set({ mode: 'html', html, updatedAt: Date.now() })
         .then(() => {
           showToast('Image pushed!');
           document.getElementById('live-url').textContent = url;
@@ -1826,10 +1788,10 @@
         .catch(err => showToast('Error: ' + err.message, true));
     }
 
-    function pushVideo(url) {
+    function pushVideo(url, target = pushTarget) {
       if (onManualPush) onManualPush();
       if (!db) { showToast('Not connected to Firebase', true); return; }
-      db.ref('signage/current').set({ url, mode: 'video', updatedAt: Date.now() })
+      currentRef(target).set({ url, mode: 'video', updatedAt: Date.now() })
         .then(() => {
           showToast('Video pushed!');
           document.getElementById('live-url').textContent = url;
@@ -1837,11 +1799,6 @@
         })
         .catch(err => showToast('Error: ' + err.message, true));
     }
-
-    document.getElementById('img-url-push-btn').addEventListener('click', () => {
-      const url = document.getElementById('img-url-input').value.trim();
-      if (url) pushImage(url);
-    });
 
     // HTML Editor
     let editorMode = 'visual';
@@ -1861,7 +1818,7 @@
       document.querySelectorAll('.editor-mode-btn').forEach(b =>
         b.classList.toggle('active', b.dataset.editormode === mode));
 
-      const formattingBtns = toolbar.querySelectorAll('.tool-btn, #block-type, #font-size-picker, #text-color-picker, #bg-color-picker, #bg-image-btn, #bg-image-label');
+      const formattingBtns = toolbar.querySelectorAll('.tool-btn, #block-type, #font-size-picker, #text-color-picker, #bg-color-picker, #bg-image-select, #bg-image-label');
 
       if (mode === 'html') {
         document.getElementById('html-source').value = generateHtmlDocument();
@@ -1900,45 +1857,6 @@
       editorBgColor = e.target.value;
       document.getElementById('editor-canvas-wrapper').style.background = editorBgColor;
       updatePreview();
-    });
-
-    document.getElementById('bg-image-btn').addEventListener('click', () => {
-      document.getElementById('bg-image-file').click();
-    });
-
-    document.getElementById('bg-image-file').addEventListener('change', e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      if (!storage) { showToast('Not connected to Firebase', true); return; }
-      const btn = document.getElementById('bg-image-btn');
-      btn.textContent = '⏳ Uploading...';
-      btn.disabled = true;
-      const path = 'signage/backgrounds/' + Date.now() + '_' + file.name;
-      const reader = new FileReader();
-      reader.onload = () => {
-        storage.ref(path).putString(reader.result, 'data_url')
-          .on('state_changed', null,
-            err => {
-              btn.textContent = '🖼 BG Image';
-              btn.disabled = false;
-              showToast('Upload error: ' + err.message, true);
-            },
-            () => {
-              storage.ref(path).getDownloadURL().then(url => {
-                editorBgImage = url;
-                document.getElementById('editor-canvas-wrapper').style.backgroundImage = `url(${url})`;
-                document.getElementById('editor-canvas-wrapper').style.backgroundSize = 'cover';
-                document.getElementById('editor-canvas-wrapper').style.backgroundPosition = 'center';
-                document.getElementById('bg-image-label').textContent = file.name;
-                btn.textContent = '🖼 BG Image';
-                btn.disabled = false;
-                showToast('Background image set!');
-              });
-            }
-          );
-      };
-      reader.readAsDataURL(file);
-      e.target.value = '';
     });
 
     document.getElementById('font-size-picker').addEventListener('change', e => {
@@ -1995,7 +1913,7 @@
       const html = editorMode === 'html'
         ? document.getElementById('html-source').value
         : generateHtmlDocument();
-      db.ref('signage/current').set({ mode: 'html', html, updatedAt: Date.now() })
+      currentRef().set({ mode: 'html', html, updatedAt: Date.now() })
         .then(() => {
           showToast('HTML slide pushed!');
           document.getElementById('live-url').textContent = '(HTML slide)';
@@ -2057,74 +1975,10 @@
       renderLogoSettings();
     });
 
-    function uploadLogo(file) {
-      if (!storage) { showToast('Not connected to Firebase', true); return; }
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64 = reader.result;
-        const path = 'signage/logos/' + Date.now() + '_' + file.name;
-        storage.ref(path).putString(base64, 'data_url')
-          .on('state_changed', null, err => showToast('Upload error: ' + err.message, true),
-            () => {
-              storage.ref(path).getDownloadURL().then(url => {
-                logoSettings.url = url;
-                saveLogoSettings();
-              });
-            }
-          );
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function renderUploadedLogos() {
-      const list = document.getElementById('uploaded-logos-list');
-      if (!storage) { list.innerHTML = ''; return; }
-      storage.ref('signage/logos').listAll().then(res => {
-        list.innerHTML = '<h3 style="font-size:0.9rem; margin-top:20px; margin-bottom:10px; color:var(--muted);">Uploaded logos</h3>';
-        res.items.forEach(ref => {
-          ref.getMetadata().then(meta => {
-            ref.getDownloadURL().then(url => {
-              const div = document.createElement('div');
-              div.className = 'logo-list-item';
-              div.innerHTML = `
-                <div class="li-preview"><img src="${url}" alt=""></div>
-                <span class="li-name">${escHtml(ref.name)}</span>
-                <button class="li-use">Use</button>
-                <button class="li-del">🗑</button>
-              `;
-              div.querySelector('.li-use').addEventListener('click', () => {
-                logoSettings.url = url;
-                saveLogoSettings();
-                renderLogoSettings();
-              });
-              div.querySelector('.li-del').addEventListener('click', () => {
-                ref.delete().then(() => renderUploadedLogos());
-              });
-              list.appendChild(div);
-            });
-          });
-        });
-      });
-    }
-
-    const logoDropZone = document.getElementById('logo-drop-zone');
-    const logoFileInput = document.getElementById('logo-file-input');
-
-    logoDropZone.addEventListener('click', () => logoFileInput.click());
-    logoDropZone.addEventListener('dragover', e => { e.preventDefault(); logoDropZone.classList.add('drag-over'); });
-    logoDropZone.addEventListener('dragleave', () => logoDropZone.classList.remove('drag-over'));
-    logoDropZone.addEventListener('drop', e => {
-      e.preventDefault();
-      logoDropZone.classList.remove('drag-over');
-      if (e.dataTransfer.files[0]) uploadLogo(e.dataTransfer.files[0]);
-    });
-    logoFileInput.addEventListener('change', () => { if (logoFileInput.files[0]) uploadLogo(logoFileInput.files[0]); });
-
     if (isConfigured) {
       warningEl.classList.add('hidden');
       firebase.initializeApp(firebaseConfig);
       db = firebase.database();
-      storage = firebase.storage();
 
       db.ref('.info/connected').on('value', snap => {
         const connDot = document.getElementById('conn-dot');
@@ -2134,16 +1988,135 @@
         connLabel.textContent = connected ? 'Connected' : 'Connecting…';
         pushBtn.disabled = !connected;
         document.getElementById('push-btn').disabled = !connected;
-        document.getElementById('img-url-push-btn').disabled = !connected;
         document.getElementById('editor-push-btn').disabled = !connected;
         document.getElementById('blank-btn').disabled = !connected;
       });
 
-      db.ref('signage/current').on('value', snap => {
-        const data = snap.val();
-        if (!data) return;
+      // ─── SCREENS & GROUPS ─────────────────────────────────────────────────────
+
+      let globalCurrent = null;
+      let screens = {};       // id → { presence, group, current }
+      let groupsCurrent = {}; // group → { current }
+
+      function newest(...items) {
+        return items.filter(Boolean)
+          .reduce((n, d) => !n || (d.updatedAt || 0) > (n.updatedAt || 0) ? d : n, null);
+      }
+
+      function sanitizeKey(str) {
+        return (str || '').trim().replace(/[.#$\[\]\/]/g, '-');
+      }
+
+      function groupNames() {
+        return [...new Set(Object.values(screens).map(s => s.group).filter(Boolean))].sort();
+      }
+
+      // What the selected target is showing — same "newest wins" rule as the receiver
+      function renderLiveStatus() {
+        let data, label;
+        if (pushTarget.startsWith('screen:')) {
+          const id = pushTarget.slice(7);
+          const s = screens[id] || {};
+          data = newest(globalCurrent, s.group && (groupsCurrent[s.group] || {}).current, s.current);
+          label = `📺 Currently on ${id}:`;
+        } else if (pushTarget.startsWith('group:')) {
+          const g = pushTarget.slice(6);
+          data = newest(globalCurrent, (groupsCurrent[g] || {}).current);
+          label = `📺 Currently on group ${g}:`;
+        } else {
+          data = globalCurrent;
+          label = '📺 Currently on screens:';
+        }
+        document.getElementById('live-label').textContent = label;
+        if (!data) {
+          document.getElementById('live-url').textContent = '—';
+          document.getElementById('live-mode').textContent = '';
+          return;
+        }
         document.getElementById('live-url').textContent = data.mode === 'html' ? '(HTML slide)' : (data.url || '(blank)');
         document.getElementById('live-mode').textContent = data.url || data.mode === 'html' ? `[${data.mode}]` : '';
+      }
+
+      function renderTargetSelect() {
+        const sel = document.getElementById('target-select');
+        const groups = groupNames();
+        const ids = Object.keys(screens).sort();
+        let html = '<option value="all">All screens</option>';
+        if (groups.length) {
+          html += '<optgroup label="Groups">' + groups.map(g =>
+            `<option value="group:${escHtml(g)}">${escHtml(g)} (${ids.filter(id => screens[id].group === g).length})</option>`).join('') + '</optgroup>';
+        }
+        if (ids.length) {
+          html += '<optgroup label="Screens">' + ids.map(id => {
+            const online = screens[id].presence && screens[id].presence.online;
+            return `<option value="screen:${escHtml(id)}">${online ? '🟢' : '⚫'} ${escHtml(id)}</option>`;
+          }).join('') + '</optgroup>';
+        }
+        sel.innerHTML = html;
+        // Selected group/screen disappeared (e.g. group emptied) → fall back to all
+        if (![...sel.options].some(o => o.value === pushTarget)) pushTarget = 'all';
+        sel.value = pushTarget;
+      }
+
+      function renderScreensList() {
+        const list = document.getElementById('screens-list');
+        const ids = Object.keys(screens).sort();
+        document.getElementById('screens-empty').style.display = ids.length === 0 ? '' : 'none';
+        document.getElementById('group-options').innerHTML = groupNames().map(g => `<option value="${escHtml(g)}">`).join('');
+        list.innerHTML = '';
+        ids.forEach(id => {
+          const s = screens[id];
+          const online = s.presence && s.presence.online;
+          const lastSeen = s.presence && s.presence.lastSeen ? new Date(s.presence.lastSeen).toLocaleString() : 'never';
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); font-size:0.88rem;';
+          row.innerHTML = `
+            <span title="${online ? 'Online' : 'Offline'}">${online ? '🟢' : '⚫'}</span>
+            <div style="flex:1; min-width:0;">
+              <div style="font-weight:600;">${escHtml(id)}</div>
+              <div style="color:var(--muted); font-size:0.75rem;">${online ? 'Online' : 'Last seen ' + escHtml(lastSeen)}</div>
+            </div>
+            <input type="text" class="screen-group-input" list="group-options" value="${escHtml(s.group || '')}" placeholder="Group (optional)" style="width:180px; padding:7px 10px; font-size:0.85rem;">
+            <button class="screen-del-btn" title="Forget this screen" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:6px 10px; font-size:0.85rem;">🗑</button>
+          `;
+          const input = row.querySelector('.screen-group-input');
+          const saveGroup = () => {
+            const group = sanitizeKey(input.value);
+            if (group === (s.group || '')) return;
+            db.ref('signage/screens/' + id + '/group').set(group || null)
+              .then(() => showToast(group ? `${id} → group ${group}` : `${id} removed from group`))
+              .catch(err => showToast('Error: ' + err.message, true));
+          };
+          input.addEventListener('change', saveGroup);
+          input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); });
+          row.querySelector('.screen-del-btn').addEventListener('click', () => {
+            if (!confirm(`Forget screen "${id}"? It reappears when its receiver reconnects.`)) return;
+            db.ref('signage/screens/' + id).remove();
+          });
+          list.appendChild(row);
+        });
+      }
+
+      document.getElementById('target-select').addEventListener('change', e => {
+        pushTarget = e.target.value;
+        renderLiveStatus();
+      });
+
+      db.ref('signage/current').on('value', snap => {
+        globalCurrent = snap.val();
+        renderLiveStatus();
+      });
+
+      db.ref('signage/screens').on('value', snap => {
+        screens = snap.val() || {};
+        renderTargetSelect();
+        renderScreensList();
+        renderLiveStatus();
+      });
+
+      db.ref('signage/groups').on('value', snap => {
+        groupsCurrent = snap.val() || {};
+        renderLiveStatus();
       });
 
       db.ref('signage/settings/logo').on('value', snap => {
@@ -2154,7 +2127,6 @@
       });
 
       renderLogoSettings();
-      renderUploadedLogos();
 
       // Fallback image settings
       function renderFallbackSettings(url) {
@@ -2211,8 +2183,53 @@
         renderFallbackSettings(snap.val());
       });
 
+      // Library-backed pickers for the editor background and the logo
+      function fillLibrarySelect(sel, items, placeholder) {
+        const current = sel.value;
+        sel.innerHTML = `<option value="">${placeholder}</option>`;
+        Object.values(items)
+          .filter(item => item.mediaType !== 'video')
+          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+          .forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item.url;
+            opt.textContent = (item.folder ? item.folder + '/' : '') + item.name;
+            if (item.url === current) opt.selected = true;
+            sel.appendChild(opt);
+          });
+        if (current && sel.value !== current) {
+          // Keep a value that isn't (or is no longer) in the library, e.g. loaded from a template
+          const opt = document.createElement('option');
+          opt.value = current;
+          opt.textContent = 'Custom image';
+          opt.selected = true;
+          sel.appendChild(opt);
+        }
+      }
+
+      document.getElementById('bg-image-select').addEventListener('change', e => {
+        editorBgImage = e.target.value;
+        const wrapper = document.getElementById('editor-canvas-wrapper');
+        wrapper.style.backgroundImage = editorBgImage ? `url(${editorBgImage})` : '';
+        wrapper.style.backgroundSize = 'cover';
+        wrapper.style.backgroundPosition = 'center';
+        document.getElementById('bg-image-label').textContent = '';
+      });
+
+      document.getElementById('logo-set-btn').addEventListener('click', () => {
+        const url = document.getElementById('logo-library-select').value;
+        if (!url) { showToast('Pick a logo from the library first', true); return; }
+        logoSettings.url = url;
+        saveLogoSettings();
+        renderLogoSettings();
+        showToast('Logo set!');
+      });
+
       db.ref('signage/imageLibrary').on('value', snap => {
-        populateFallbackLibrarySelect(snap.val() || {});
+        const items = snap.val() || {};
+        populateFallbackLibrarySelect(items);
+        fillLibrarySelect(document.getElementById('bg-image-select'), items, '🖼 No BG image');
+        fillLibrarySelect(document.getElementById('logo-library-select'), items, '— Pick logo from library —');
       });
 
       // Templates
@@ -2294,6 +2311,9 @@
                 document.getElementById('editor-canvas-wrapper').style.backgroundSize = 'cover';
                 document.getElementById('editor-canvas-wrapper').style.backgroundPosition = 'center';
                 document.getElementById('bg-image-label').textContent = 'from template';
+                const bgSel = document.getElementById('bg-image-select');
+                if (![...bgSel.options].some(o => o.value === editorBgImage)) bgSel.add(new Option('Custom image', editorBgImage));
+                bgSel.value = editorBgImage;
               }
               switchPanel('editor');
               showToast('Template loaded into editor');
@@ -2312,7 +2332,7 @@
       function pushTemplate(tpl) {
         if (tpl.type === 'html') {
           if (!db) { showToast('Not connected', true); return; }
-          db.ref('signage/current').set({ mode: 'html', html: tpl.content, updatedAt: Date.now() })
+          currentRef().set({ mode: 'html', html: tpl.content, updatedAt: Date.now() })
             .then(() => showToast('Template pushed!'))
             .catch(err => showToast('Error: ' + err.message, true));
         } else if (tpl.type === 'image') {
@@ -2356,72 +2376,87 @@
 
       let libraryItems = {};  // id → item, shared with slideshow picker
 
-      function uploadImageToLibrary(file) {
-        if (!storage) { showToast('Not connected to Firebase', true); return; }
-        const dropZone = document.getElementById('lib-drop-zone');
-        const progressBar = document.getElementById('lib-progress-bar');
-        const progressFill = document.getElementById('lib-progress-fill');
-        dropZone.innerHTML = '<span class="upload-spinner"></span>Uploading...';
-        dropZone.classList.add('uploading');
-        progressBar.style.display = '';
+      const VIDEO_EXTS = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
+      const MEDIA_EXTS = [...VIDEO_EXTS, 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif'];
 
-        const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
-        const path = 'signage/images/' + Date.now() + '_' + file.name;
-        const label = mediaType === 'video' ? 'Video' : 'Image';
-        const reader = new FileReader();
-        reader.onload = () => {
-          storage.ref(path).putString(reader.result, 'data_url')
-            .on('state_changed',
-              snap => {
-                const pct = Math.round(snap.bytesTransferred / snap.totalBytes * 100);
-                progressFill.style.width = pct + '%';
-                dropZone.innerHTML = `<span class="upload-spinner"></span>Uploading... ${pct}%`;
-              },
-              err => {
-                dropZone.classList.remove('uploading');
-                dropZone.innerHTML = 'Drop images or videos here or click to browse';
-                progressBar.style.display = 'none';
-                showToast('Upload error: ' + err.message, true);
-              },
-              () => {
-                storage.ref(path).getDownloadURL().then(url => {
-                  dropZone.classList.remove('uploading');
-                  dropZone.innerHTML = 'Drop images or videos here or click to browse';
-                  progressBar.style.display = 'none';
-                  progressFill.style.width = '0%';
-                  db.ref('signage/imageLibrary').push().then(ref => {
-                    ref.set({ id: ref.key, name: file.name, url, storagePath: path, mediaType, createdAt: Date.now() });
-                  });
-                  showToast(label + ' added to library!');
-                });
-              }
-            );
-        };
-        reader.readAsDataURL(file);
-      }
-
-      function addUrlToLibrary(url) {
+      function mediaTypeOf(url) {
         const ext = url.split('?')[0].split('.').pop().toLowerCase();
-        const mediaType = ['mp4', 'webm', 'mov', 'avi', 'mkv'].includes(ext) ? 'video' : 'image';
-        const name = url.split('/').pop().split('?')[0] || mediaType;
-        db.ref('signage/imageLibrary').push().then(ref => {
-          ref.set({ id: ref.key, name, url, storagePath: null, mediaType, createdAt: Date.now() });
-        });
-        showToast((mediaType === 'video' ? 'Video' : 'Image') + ' added to library!');
+        return VIDEO_EXTS.includes(ext) ? 'video' : 'image';
       }
 
-      function deleteLibraryImage(id, storagePath) {
+      function addUrlToLibrary(url, name, folder) {
+        const mediaType = mediaTypeOf(url);
+        return db.ref('signage/imageLibrary').push().then(ref =>
+          ref.set({ id: ref.key, name: name || url.split('/').pop().split('?')[0] || mediaType,
+                    url, folder: folder || null, mediaType, createdAt: Date.now() }));
+      }
+
+      // Adds every file listed in src/imgs/manifest.json (generated by GitHub Pages) that isn't in the library yet
+      function syncFromGitHub() {
+        const btn = document.getElementById('lib-sync-btn');
+        btn.disabled = true;
+        btn.textContent = '⏳ Syncing…';
+        fetch(IMAGES_BASE + 'manifest.json', { cache: 'no-store' })
+          .then(res => { if (!res.ok) throw new Error('manifest.json not found (HTTP ' + res.status + ')'); return res.json(); })
+          .then(files => {
+            const known = new Set(Object.values(libraryItems).map(i => i.url));
+            const added = files
+              .filter(f => MEDIA_EXTS.includes(f.path.split('.').pop().toLowerCase()))
+              .map(f => ({ ...f, url: IMAGES_BASE + f.path.split('/').map(encodeURIComponent).join('/') }))
+              .filter(f => !known.has(f.url));
+            return Promise.all(added.map(f => {
+              const parts = f.path.split('/');
+              const name = parts.pop();
+              return addUrlToLibrary(f.url, name, parts.join('/'));
+            })).then(() => added.length);
+          })
+          .then(count => showToast(count ? `${count} new file${count > 1 ? 's' : ''} added` : 'Library is up to date'))
+          .catch(err => showToast('Sync failed: ' + err.message, true))
+          .finally(() => { btn.disabled = false; btn.textContent = '🔄 Sync from GitHub'; });
+      }
+
+      document.getElementById('lib-sync-btn').addEventListener('click', syncFromGitHub);
+      document.getElementById('lib-upload-link').href = GITHUB_UPLOAD_URL;
+
+      function deleteLibraryImage(id) {
         db.ref('signage/imageLibrary/' + id).remove();
-        if (storagePath) storage.ref(storagePath).delete().catch(() => {});
         showToast('Image removed');
+      }
+
+      document.getElementById('lib-clear-all-btn').addEventListener('click', () => {
+        const items = Object.values(libraryItems);
+        if (items.length === 0) { showToast('Library is already empty', true); return; }
+        if (!confirm('Remove all ' + items.length + ' items from the library?\n(Files on GitHub are not deleted.)')) return;
+        db.ref('signage/imageLibrary').remove()
+          .then(() => showToast('Library cleared'))
+          .catch(err => showToast('Error: ' + err.message, true));
+      });
+
+      let libFolderFilter = '';
+      document.getElementById('lib-folder-filter').addEventListener('change', e => {
+        libFolderFilter = e.target.value;
+        renderLibraryGrid(libraryItems);
+      });
+
+      function renderFolderFilter(arr) {
+        const sel = document.getElementById('lib-folder-filter');
+        const folders = [...new Set(arr.map(i => i.folder).filter(Boolean))].sort();
+        if (libFolderFilter && !folders.includes(libFolderFilter)) libFolderFilter = '';
+        sel.style.display = folders.length ? '' : 'none';
+        sel.innerHTML = '<option value="">📁 All folders</option>' +
+          folders.map(f => `<option value="${escHtml(f)}">📁 ${escHtml(f)}</option>`).join('');
+        sel.value = libFolderFilter;
       }
 
       function renderLibraryGrid(items) {
         const grid = document.getElementById('library-grid');
         const empty = document.getElementById('library-empty');
         grid.innerHTML = '';
-        const arr = Object.values(items).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        empty.style.display = arr.length === 0 ? '' : 'none';
+        const all = Object.values(items).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        renderFolderFilter(all);
+        const arr = libFolderFilter ? all.filter(i => i.folder === libFolderFilter) : all;
+        empty.style.display = all.length === 0 ? '' : 'none';
+        document.getElementById('lib-clear-all-btn').style.display = all.length === 0 ? 'none' : '';
         arr.forEach(item => {
           const isVideo = item.mediaType === 'video';
           const div = document.createElement('div');
@@ -2431,7 +2466,7 @@
               ? `<video src="${escHtml(item.url)}" preload="metadata" muted></video><span class="lib-item-video-badge">VIDEO</span>`
               : `<img src="${escHtml(item.url)}" alt="${escHtml(item.name)}" loading="lazy">`
             }
-            <div class="lib-item-name">${escHtml(item.name)}</div>
+            <div class="lib-item-name" title="${escHtml((item.folder ? item.folder + '/' : '') + item.name)}">${item.folder && !libFolderFilter ? `<span style="color:var(--muted)">${escHtml(item.folder)}/</span>` : ''}${escHtml(item.name)}</div>
             <div class="lib-item-actions">
               <button class="lib-push-btn">▶ Push</button>
               <button class="lib-del-btn">🗑 Remove</button>
@@ -2440,41 +2475,17 @@
           div.querySelector('.lib-push-btn').addEventListener('click', () => isVideo ? pushVideo(item.url) : pushImage(item.url));
           div.querySelector('.lib-del-btn').addEventListener('click', () => {
             if (!confirm('Remove "' + item.name + '" from library?')) return;
-            deleteLibraryImage(item.id, item.storagePath);
+            deleteLibraryImage(item.id);
           });
           grid.appendChild(div);
         });
         renderSlideshowPicker(items);
       }
 
-      // Library upload wiring
-      const libFileInput = document.getElementById('lib-file-input');
-      const libDropZone = document.getElementById('lib-drop-zone');
-      libDropZone.addEventListener('click', () => libFileInput.click());
-      libDropZone.addEventListener('dragover', e => { e.preventDefault(); libDropZone.classList.add('drag-over'); });
-      libDropZone.addEventListener('dragleave', () => libDropZone.classList.remove('drag-over'));
-      libDropZone.addEventListener('drop', e => {
-        e.preventDefault(); libDropZone.classList.remove('drag-over');
-        [...e.dataTransfer.files].forEach(f => uploadImageToLibrary(f));
-      });
-      libFileInput.addEventListener('change', () => {
-        [...libFileInput.files].forEach(f => uploadImageToLibrary(f));
-        libFileInput.value = '';
-      });
-
-      document.querySelectorAll('.lib-src-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const src = btn.dataset.libsrc;
-          document.querySelectorAll('.lib-src-btn').forEach(b => b.classList.toggle('active', b.dataset.libsrc === src));
-          document.getElementById('lib-upload-zone').style.display = src === 'upload' ? '' : 'none';
-          document.getElementById('lib-url-zone').style.display = src === 'url' ? '' : 'none';
-        });
-      });
-
       document.getElementById('lib-url-add-btn').addEventListener('click', () => {
         const url = document.getElementById('lib-url-input').value.trim();
         if (!url) return;
-        addUrlToLibrary(url);
+        addUrlToLibrary(url).then(() => showToast((mediaTypeOf(url) === 'video' ? 'Video' : 'Image') + ' added to library!'));
         document.getElementById('lib-url-input').value = '';
       });
 
@@ -2564,7 +2575,7 @@
         if (onManualPush) onManualPush();
         if (!db) { showToast('Not connected', true); return; }
         const images = slideshowSelected.map(s => s.url);
-        db.ref('signage/current').set({ mode: 'slideshow', images, interval: slideshowMs, updatedAt: Date.now() })
+        currentRef().set({ mode: 'slideshow', images, interval: slideshowMs, updatedAt: Date.now() })
           .then(() => {
             showToast('Slideshow pushed!');
             document.getElementById('live-url').textContent = `(Slideshow — ${images.length} images, ${slideshowMs/1000}s)`;
@@ -2680,26 +2691,27 @@
       function pushSlotContent(slot) {
         if (!slot.content) { showToast('Schedule: "' + slot.name + '" has no content set', true); return; }
 
+        // The schedule always targets all screens, whatever "Send to" is set to
         if (slot.type === 'image') {
-          pushImage(slot.content);
+          pushImage(slot.content, 'all');
           showToast('Schedule: ' + slot.name);
         } else if (slot.type === 'video') {
-          pushVideo(slot.content);
+          pushVideo(slot.content, 'all');
           showToast('Schedule: ' + slot.name);
         } else if (slot.type === 'slideshow') {
           const preset = snap_presets_cache[slot.content];
           if (!preset) { showToast('Schedule: slideshow preset not found', true); return; }
           if (onManualPush) onManualPush();
-          db.ref('signage/current').set({ mode: 'slideshow', images: preset.images, interval: preset.interval, updatedAt: Date.now() })
+          currentRef('all').set({ mode: 'slideshow', images: preset.images, interval: preset.interval, updatedAt: Date.now() })
             .then(() => showToast('Schedule: ' + slot.name));
         } else if (slot.type === 'url') {
-          push(slot.content, 'iframe');
+          push(slot.content, 'iframe', 'all');
           showToast('Schedule: ' + slot.name);
         } else if (slot.type === 'template') {
           db.ref('signage/templates/' + slot.content).once('value').then(snap => {
             const tpl = snap.val();
             if (!tpl) { showToast('Schedule: template not found', true); return; }
-            db.ref('signage/current').set({ mode: 'html', html: tpl.content, updatedAt: Date.now() })
+            currentRef('all').set({ mode: 'html', html: tpl.content, updatedAt: Date.now() })
               .then(() => showToast('Schedule: ' + slot.name));
           });
         }
