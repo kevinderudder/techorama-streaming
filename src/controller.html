@@ -4,18 +4,37 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Signage Controller</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <script>try { const t = localStorage.getItem('signage_theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
   <style>
     :root {
-      --bg:       #0f1117;
-      --panel:    #1c1f2e;
-      --border:   #2d3150;
-      --accent:   #5b6af0;
-      --accent-h: #7b87ff;
-      --danger:   #e05252;
-      --ok:       #3dba6f;
-      --text:     #e2e4f0;
-      --muted:    #7a7e99;
-      --radius:   10px;
+      --bg:        #0d0d0f;
+      --panel:     #161618;
+      --panel-2:   #1d1d20;
+      --border:    #2a2a2e;
+      --accent:    #5b8def;
+      --accent-h:  #7aa3f3;
+      --on-accent: #ffffff;
+      --danger:    #e5484d;
+      --ok:        #30a46c;
+      --text:      #ececee;
+      --muted:     #8b8b94;
+      --radius:    8px;
+      --tint:      255,255,255;
+    }
+    /* Light theme: picked in the sidebar, or the computer's setting when nothing is picked */
+    :root[data-theme="light"] {
+      --bg: #f1f4f9; --panel: #ffffff; --panel-2: #f8fafc; --border: #e5e9f0;
+      --accent: #3b6fe0; --accent-h: #2f5ec7; --on-accent: #ffffff;
+      --danger: #dc3e42; --ok: #218358; --text: #1e293b; --muted: #64748b; --tint: 15,23,42;
+    }
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]) {
+        --bg: #f1f4f9; --panel: #ffffff; --panel-2: #f8fafc; --border: #e5e9f0;
+        --accent: #3b6fe0; --accent-h: #2f5ec7; --on-accent: #ffffff;
+        --danger: #dc3e42; --ok: #218358; --text: #1e293b; --muted: #64748b; --tint: 15,23,42;
+      }
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -86,14 +105,26 @@
     }
 
     .nav-btn:hover:not(.active) {
-      background: rgba(91,106,240,0.1);
+      background: rgba(var(--tint),0.055);
       color: var(--text);
     }
 
     .nav-btn.active {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
     }
+
+    .nav-section {
+      font-size: 0.66rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      opacity: 0.75;
+      padding: 14px 14px 4px;
+    }
+    .nav-section:first-child { padding-top: 4px; }
+    .nav-btn.nav-help { padding: 8px 14px; font-size: 0.82rem; }
 
     .nav-icon { font-size: 1.1rem; flex-shrink: 0; }
     .nav-label { flex: 1; }
@@ -162,6 +193,16 @@
       gap: 10px;
     }
     #live-status strong { color: var(--text); word-break: break-all; }
+    .nav-count { margin-left: auto; font-size: 0.68rem; font-weight: 700; min-width: 18px; padding: 1px 6px; border-radius: 999px; background: var(--danger); color: #fff; text-align: center; }
+    .al-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border); font-size: 0.85rem; }
+    .al-row:first-child { border-top: none; }
+    .al-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .al-info { background: #71717a; } .al-warning { background: #f0a500; } .al-urgent { background: #d92d32; }
+    #live-sched { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .ls-chip { font-size: 0.74rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: rgba(48,164,108,0.16); color: var(--ok); white-space: nowrap; }
+    .ls-chip.override { background: rgba(240,165,0,0.18); color: #c98a00; }
+    .ls-back { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 3px 9px; font-size: 0.76rem; white-space: nowrap; }
+    .ls-back:hover { border-color: var(--accent); }
 
     #setup-banner {
       background: #2a1f00;
@@ -222,7 +263,7 @@
       gap: 10px;
     }
 
-    input[type="url"], input[type="text"], textarea, select {
+    input[type="url"], input[type="text"], input[type="datetime-local"], input[type="number"], textarea, select {
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 8px;
@@ -234,7 +275,7 @@
       font-family: inherit;
     }
 
-    input[type="url"]:focus, input[type="text"]:focus, textarea:focus, select:focus {
+    input[type="url"]:focus, input[type="text"]:focus, input[type="datetime-local"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
       border-color: var(--accent);
     }
 
@@ -256,12 +297,12 @@
 
     .btn-primary {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
     }
     .btn-primary:hover:not(:disabled) { background: var(--accent-h); }
 
     #url-input { flex: 1; }
-    #push-btn { background: var(--accent); color: #fff; white-space: nowrap; }
+    #push-btn { background: var(--accent); color: var(--on-accent); white-space: nowrap; }
     #push-btn:hover:not(:disabled) { background: var(--accent-h); }
 
     .mode-row {
@@ -283,7 +324,7 @@
     }
     .mode-btn.active {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       border-color: var(--accent);
     }
     .mode-btn:hover:not(.active) { border-color: var(--accent); color: var(--text); }
@@ -342,7 +383,7 @@
     }
     #img-drop-zone.drag-over {
       border-color: var(--accent);
-      background: rgba(91,106,240,0.08);
+      background: rgba(var(--tint),0.044);
     }
 
     #img-progress-bar {
@@ -392,7 +433,7 @@
       cursor: pointer;
       transition: all 0.15s;
     }
-    .editor-mode-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .editor-mode-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
     .editor-mode-btn:hover:not(.active) { border-color: var(--accent); color: var(--text); }
 
     #editor-toolbar {
@@ -503,7 +544,7 @@
     #editor-push-btn {
       flex: 2;
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
     }
     #editor-push-btn:hover:not(:disabled) { background: var(--accent-h); }
 
@@ -552,7 +593,7 @@
       border-radius: 20px;
     }
 
-    .tpl-type-html  { background: rgba(91,106,240,0.2); color: var(--accent-h); }
+    .tpl-type-html  { background: rgba(var(--tint),0.11); color: var(--accent-h); }
     .tpl-type-image { background: rgba(61,186,111,0.2); color: var(--ok); }
     .tpl-type-video { background: rgba(240,165,0,0.2);  color: #f0a500; }
     .tpl-type-url   { background: rgba(122,126,153,0.2); color: var(--muted); }
@@ -569,7 +610,7 @@
       cursor: pointer;
       transition: color 0.15s, background 0.15s;
     }
-    .tpl-edit-btn:hover { color: var(--accent); background: rgba(91,106,240,0.1); }
+    .tpl-edit-btn:hover { color: var(--accent); background: rgba(var(--tint),0.055); }
     .tpl-del-btn:hover  { color: var(--danger); background: rgba(224,82,82,0.1); }
 
     .tpl-preview {
@@ -613,7 +654,7 @@
     .tpl-push-btn {
       margin: 8px 12px 12px;
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       border: none;
       border-radius: 7px;
       padding: 9px 14px;
@@ -811,7 +852,7 @@
     }
     .pos-btn.active, .size-btn.active {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       border-color: var(--accent);
     }
     .pos-btn:hover:not(.active), .size-btn:hover:not(.active) {
@@ -820,11 +861,15 @@
     }
 
     #logo-position-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+      display: inline-grid;
+      grid-template-columns: auto auto;
       margin-bottom: 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
     }
+    #logo-position-grid > button:nth-child(even) { border-left: 1px solid var(--border); }
+    #logo-position-grid > button:nth-child(n+3) { border-top: 1px solid var(--border); }
 
     #logo-drop-zone {
       border: 2px dashed var(--border);
@@ -839,7 +884,7 @@
     }
     #logo-drop-zone.drag-over {
       border-color: var(--accent);
-      background: rgba(91,106,240,0.08);
+      background: rgba(var(--tint),0.044);
     }
 
     .logo-list-item {
@@ -911,7 +956,7 @@
       transition: border-color 0.2s, background 0.2s;
       margin-top: 4px;
     }
-    #lib-drop-zone.drag-over { border-color: var(--accent); background: rgba(91,106,240,0.08); }
+    #lib-drop-zone.drag-over { border-color: var(--accent); background: rgba(var(--tint),0.044); }
     #lib-drop-zone.uploading { opacity: 0.6; cursor: not-allowed; }
     #lib-progress-bar { height: 6px; background: var(--border); border-radius: 3px; margin-top: 10px; overflow: hidden; display: none; }
     #lib-progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.2s; }
@@ -922,6 +967,33 @@
       grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
       gap: 12px;
     }
+
+    .cd-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px 16px; }
+    .cd-form label, .tte-form label { display: flex; flex-direction: column; gap: 6px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .cd-form input, .cd-form select, .tte-form input, .tte-form select { text-transform: none; letter-spacing: normal; font-weight: 400; }
+    .cd-show { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; margin-bottom: 16px; font-size: 0.88rem; }
+    .cd-show label { display: flex; align-items: center; gap: 7px; cursor: pointer; }
+    .cd-show input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent); }
+    .cd-show select { padding: 5px 8px; font-size: 0.85rem; }
+    .cd-quick { background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; font-size: 0.8rem; text-transform: none; letter-spacing: normal; }
+
+    .ov-group { margin-bottom: 20px; }
+    .ov-group:last-child { margin-bottom: 0; }
+    .ov-group-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 0.85rem; font-weight: 600; }
+    .ov-group-head .ov-count { color: var(--muted); font-weight: 400; }
+    .ov-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .ov-tile { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: border-color 0.2s; background: var(--panel); }
+    .ov-tile:hover { border-color: var(--accent); }
+    .ov-tile.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    .ov-tile.offline .ov-preview { opacity: 0.4; }
+    .ov-preview { position: relative; aspect-ratio: 16 / 9; background: #000; overflow: hidden; container-type: inline-size; }
+    .ov-preview img, .ov-preview video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .ov-preview iframe { position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; border: 0; transform-origin: 0 0; pointer-events: none; }
+    .ov-preview .ov-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 10px; color: #aaa; font-size: 0.78rem; word-break: break-all; }
+    .ov-badge { position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.68rem; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
+    .ov-info { padding: 8px 10px; font-size: 0.8rem; }
+    .ov-info .ov-name { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .ov-info .ov-src { color: var(--muted); font-size: 0.72rem; margin-top: 2px; }
 
     .lib-item {
       position: relative;
@@ -979,7 +1051,7 @@
 
     .lib-push-btn {
       background: var(--accent);
-      color: #fff;
+      color: var(--on-accent);
       border: none;
       border-radius: 7px;
       padding: 7px 18px;
@@ -1015,108 +1087,102 @@
     .lib-item.selectable .lib-checkbox { display: block; }
     .lib-item.selectable .lib-item-actions { display: none; }
 
-    /* === SCHEDULE === */
-    .schedule-slot {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    .schedule-slot.disabled { opacity: 0.45; }
+    /* === TIMETABLE === */
+    .tt-badge { font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--success, #22c55e); color: var(--success, #22c55e); }
+    .tt-badge.off { color: var(--muted); border-color: var(--border); }
+    .tt-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .tt-table th { text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 6px 8px; border-bottom: 1px solid var(--border); }
+    .tt-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .tt-table .tt-muted { color: var(--muted); font-size: 0.75rem; }
+    .tt-table tr.tt-past td { opacity: 0.45; }
+    .tt-table tr.tt-live td:first-child { color: var(--success, #22c55e); }
+    .tt-table tr.tt-error td { color: var(--danger); }
+    .tt-muted { color: var(--muted); font-size: 0.75rem; }
 
-    .slot-top-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+    /* === SCHEDULE PLANNER === */
+    .pl-intro { font-size: 0.82rem; color: var(--muted); line-height: 1.5; margin: -6px 0 12px; max-width: 920px; }
+    .pl-intro strong { color: var(--text); font-weight: 600; }
+    .pl-toolbar { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 14px; }
+    .pl-days { display: flex; gap: 6px; flex-wrap: wrap; }
+    .pl-day { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 7px 13px; border-radius: 999px; font-size: 0.8rem; font-weight: 500; }
+    .pl-day:hover:not(.active) { border-color: var(--accent); }
+    .pl-day.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    .pl-day .n { opacity: 0.7; margin-left: 5px; font-weight: 400; }
+    .pl-day.today:not(.active) { border-color: var(--ok); }
+    .pl-toolbar-right { display: flex; gap: 8px; align-items: center; }
+    .pl-seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+    .pl-seg button { background: transparent; color: var(--muted); padding: 7px 14px; font-size: 0.8rem; border-radius: 0; transition: background 0.15s, color 0.15s; }
+    .pl-seg button + button { border-left: 1px solid var(--border); }
+    .pl-seg button.active { background: var(--accent); color: var(--on-accent); }
+    .pl-seg-wide { display: flex; }
+    .pl-seg-wide button { flex: 1; padding: 10px; font-size: 0.86rem; }
+    #pl-zoom { width: auto; padding: 6px 10px; font-size: 0.8rem; }
+    .pl-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
+    .pl-actions .btn-primary { padding: 9px 16px; font-size: 0.82rem; }
+    .pl-spacer { flex: 1; }
+    .pl-btn { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 9px 16px; font-size: 0.82rem; }
+    .pl-btn:hover:not(:disabled) { border-color: var(--accent); }
 
-    .slot-time { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-    .slot-time input[type="time"] {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      font-size: 0.88rem;
-      padding: 6px 8px;
-      width: 90px;
-      outline: none;
-    }
-    .slot-time input[type="time"]:focus { border-color: var(--accent); }
-    .slot-sep { color: var(--muted); font-size: 0.78rem; }
+    #pl-timeline { max-height: 66vh; overflow: auto; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); }
+    .pl-head { position: sticky; top: 0; z-index: 6; display: flex; background: var(--panel); border-bottom: 1px solid var(--border); min-width: max-content; }
+    .pl-gutter { width: 58px; flex-shrink: 0; }
+    .pl-lane-head { flex: 1 0 180px; padding: 9px 12px; font-size: 0.78rem; font-weight: 600; border-left: 1px solid var(--border); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pl-lane-head .tt-muted { font-weight: 400; margin-left: 4px; }
+    .pl-body { display: flex; position: relative; min-width: max-content; }
+    .pl-hours { width: 58px; flex-shrink: 0; position: relative; }
+    .pl-hour { position: absolute; right: 9px; font-size: 0.7rem; color: var(--muted); transform: translateY(-50%); font-variant-numeric: tabular-nums; }
+    .pl-hline { position: absolute; left: 58px; right: 0; border-top: 1px solid var(--border); pointer-events: none; }
+    .pl-hline.half { border-top-style: dashed; opacity: 0.45; }
+    .pl-lane { flex: 1 0 180px; position: relative; border-left: 1px solid var(--border); cursor: copy; }
+    .pl-lane:hover { background: rgba(var(--tint),0.022); }
+    .pl-block { position: absolute; border-radius: 6px; overflow: hidden; cursor: pointer; font-size: 0.74rem; line-height: 1.3;
+      background: rgba(var(--tint),0.055); border: 1px solid rgba(var(--tint),0.248); box-shadow: 0 1px 4px rgba(0,0,0,0.35); }
+    .pl-block:hover { z-index: 4; border-color: var(--accent-h); box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+    .pl-block.content { background: rgba(45,180,160,0.20); border-color: rgba(45,180,160,0.6); }
+    .pl-block.content:hover { border-color: #3fd6bd; }
+    .pl-block.session { background: rgba(var(--tint),0.07); backdrop-filter: blur(2px); border-style: dashed; }
+    .pl-block.ghost { opacity: 0.38; border-style: dotted; box-shadow: none; }
+    .pl-block.ghost:hover { opacity: 0.7; }
+    .pl-block.past { opacity: 0.42; }
+    .pl-block.ghost.past { opacity: 0.2; }
+    .pl-block.live { outline: 2px solid var(--ok); outline-offset: -1px; }
+    .pl-block-clock { position: absolute; left: 0; right: 0; background: rgba(var(--tint),0.231); }
+    .pl-block-bar { position: absolute; right: 0; width: 5px; background: #f0a500; }
+    .pl-block-start { position: absolute; left: 0; right: 0; height: 0; border-top: 2px solid rgba(var(--tint),0.75); }
+    .pl-block-text { position: relative; padding: 4px 10px 4px 8px; display: flex; gap: 6px; align-items: flex-start; }
+    .pl-block-text img { width: 34px; height: 19px; object-fit: cover; border-radius: 3px; flex-shrink: 0; }
+    .pl-block-text .t { min-width: 0; }
+    .pl-block-text b { font-weight: 700; font-variant-numeric: tabular-nums; margin-right: 4px; }
+    .pl-block-text .sub { color: var(--muted); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pl-block-text .title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+    .pl-chip { display: inline-block; font-size: 0.66rem; padding: 0 5px; border-radius: 4px; background: rgba(0,0,0,0.35); margin-right: 3px; white-space: nowrap; }
+    .pl-now { position: absolute; left: 52px; right: 0; height: 0; border-top: 2px solid var(--danger); z-index: 5; pointer-events: none; }
+    .pl-now::before { content: ''; position: absolute; left: 0; top: -5px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
+    .pl-empty { padding: 38px 20px; text-align: center; color: var(--muted); font-size: 0.86rem; line-height: 1.7; }
+    .pl-legend { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; font-size: 0.75rem; color: var(--muted); margin-top: 12px; }
+    .pl-sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; }
+    .pl-sw-clock { background: rgba(var(--tint),0.33); }
+    .pl-sw-bar { background: #f0a500; width: 5px; }
+    .pl-sw-content { background: rgba(45,180,160,0.55); }
+    .pl-sw-now { background: var(--danger); height: 2px; vertical-align: 3px; }
+    #tt-errors:empty { display: none; }
+    #tt-errors { margin-bottom: 14px; padding: 10px 14px; border: 1px solid var(--danger); border-radius: 8px; font-size: 0.8rem; color: var(--danger); }
+    #tt-errors div { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+    #tt-errors button { margin-left: auto; background: transparent; border: 1px solid var(--border); color: var(--text); padding: 3px 8px; font-size: 0.75rem; }
 
-    .slot-type-select {
-      padding: 6px 8px;
-      font-size: 0.82rem;
-      height: 34px;
-      min-width: 100px;
-    }
+    .pl-defaults summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+    .pl-defaults summary::-webkit-details-marker { display: none; }
+    .pl-defaults summary h2 { margin: 0; }
+    .pl-defaults summary h2::before { content: '▸ '; }
+    .pl-defaults[open] summary h2::before { content: '▾ '; }
 
-    .slot-name-input {
-      min-width: 90px;
-      max-width: 130px;
-      padding: 6px 10px;
-      font-size: 0.82rem;
-      height: 34px;
-    }
+    .pl-savebar { position: sticky; bottom: 12px; z-index: 20; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; box-shadow: 0 6px 24px rgba(0,0,0,0.45); }
+    .pl-savebar.dirty { border-color: #f0a500; }
+    .pl-savebar #tt-info { flex: 1; font-size: 0.84rem; color: var(--muted); min-width: 200px; }
 
-    .slot-content-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .slot-content-row select,
-    .slot-content-row input[type="url"] {
-      flex: 1;
-      padding: 6px 10px;
-      font-size: 0.85rem;
-      height: 36px;
-    }
-
-    .slot-thumb {
-      width: 64px;
-      height: 36px;
-      object-fit: cover;
-      border-radius: 5px;
-      flex-shrink: 0;
-      background: #0a0c14;
-      border: 1px solid var(--border);
-    }
-
-    .slot-del-btn {
-      background: transparent;
-      color: var(--muted);
-      border: none;
-      padding: 4px 8px;
-      border-radius: 5px;
-      font-size: 1rem;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-    .slot-del-btn:hover { color: var(--danger); background: rgba(224,82,82,0.1); }
-
-    #schedule-active-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.78rem;
-      color: var(--ok);
-      padding: 4px 10px;
-      border: 1px solid var(--ok);
-      border-radius: 20px;
-    }
-    #schedule-active-badge.off { color: var(--muted); border-color: var(--border); }
-    #schedule-active-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--ok);
-    }
-    #schedule-active-badge.off #schedule-active-dot { background: var(--muted); }
+    .tte-form.kind-content .tte-session-only { display: none !important; }
+    .tte-form:not(.kind-content) .tte-content-only { display: none !important; }
 
     /* === SLIDESHOW === */
     .interval-btn {
@@ -1130,7 +1196,7 @@
       border-radius: 7px;
       transition: all 0.15s;
     }
-    .interval-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .interval-btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
     .interval-btn:hover:not(.active) { border-color: var(--accent); color: var(--text); }
 
     #slideshow-picker { margin-top: 14px; }
@@ -1147,7 +1213,7 @@
       font-size: 0.88rem;
     }
     .ss-preset-name { flex: 1; }
-    .ss-preset-load { background: var(--accent); color: #fff; padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; border: none; cursor: pointer; }
+    .ss-preset-load { background: var(--accent); color: var(--on-accent); padding: 5px 12px; border-radius: 6px; font-size: 0.78rem; border: none; cursor: pointer; }
     .ss-preset-load:hover { background: var(--accent-h); }
     .ss-preset-del { background: transparent; color: var(--muted); border: none; padding: 4px 6px; border-radius: 5px; cursor: pointer; font-size: 0.88rem; }
     .ss-preset-del:hover { color: var(--danger); background: rgba(224,82,82,0.1); }
@@ -1175,12 +1241,110 @@
     #toast.show { transform: translateX(-50%) translateY(0); }
     #toast.error { background: var(--danger); }
 
+    /* === COMPACT, NEUTRAL THEME (overrides the sizes above) === */
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
+    button { padding: 7px 14px; font-size: 0.84rem; font-weight: 500; border-radius: 6px; }
+    .btn-primary, #push-btn { font-weight: 600; }
+    input[type="url"], input[type="text"], input[type="datetime-local"], input[type="number"], textarea, select {
+      padding: 7px 10px; font-size: 0.88rem; border-radius: 6px;
+    }
+    input:focus, textarea:focus, select:focus { box-shadow: 0 0 0 3px rgba(var(--tint),0.06); }
+
+    #sidebar { width: 196px; background: var(--bg); }
+    #sidebar-header { padding: 14px 16px; font-size: 0.98rem; }
+    #sidebar-title { color: var(--text); }
+    #sidebar-nav { padding: 8px; gap: 1px; }
+    .nav-btn { padding: 6px 10px; font-size: 0.84rem; border-radius: 6px; gap: 9px; }
+    .nav-icon { font-size: 0.95rem; }
+    .nav-btn:hover:not(.active) { background: rgba(var(--tint),0.05); }
+    .nav-btn.active { background: rgba(var(--tint),0.09); color: var(--text); font-weight: 600; }
+    .nav-section { padding: 12px 10px 3px; font-size: 0.64rem; }
+    #sidebar-footer { padding: 10px; gap: 8px; }
+    #blank-btn { padding: 7px 10px; font-size: 0.8rem; }
+    #theme-switch { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    #theme-switch button { flex: 1; background: transparent; color: var(--muted); padding: 4px 0; font-size: 0.74rem; border-radius: 0; }
+    #theme-switch button + button { border-left: 1px solid var(--border); }
+    #theme-switch button.active { background: rgba(var(--tint),0.09); color: var(--text); font-weight: 600; }
+
+    #main-content { padding: 16px 22px; }
+    #live-status { padding: 8px 12px; margin-bottom: 14px; font-size: 0.82rem; }
+    .panel-header { margin-bottom: 12px; }
+    .panel-title { font-size: 1.12rem; font-weight: 650; }
+    .card { padding: 14px 16px; margin-bottom: 12px; }
+    .card h2 { font-size: 0.7rem; letter-spacing: 0.08em; margin-bottom: 10px; }
+    .field-label { font-size: 0.7rem; margin-bottom: 5px; }
+    .cd-form { gap: 10px 14px; }
+    .cd-form label, .tte-form label { font-size: 0.68rem; gap: 4px; }
+    .modal-body { padding: 16px; gap: 10px; }
+
+    /* Option rows (iframe/redirect, position, size): small connected buttons instead of full-width blocks */
+    .mode-row { display: inline-flex; flex-wrap: wrap; gap: 0; margin-top: 8px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+    .mode-row > button, .mode-btn, .pos-btn, .size-btn {
+      flex: 0 0 auto; padding: 5px 12px; font-size: 0.8rem; border: none; border-radius: 0; background: transparent;
+    }
+    .mode-row > button + button { border-left: 1px solid var(--border); }
+    .mode-btn:hover:not(.active), .pos-btn:hover:not(.active), .size-btn:hover:not(.active) { background: rgba(var(--tint),0.05); }
+    .mode-btn.active, .pos-btn.active, .size-btn.active { background: var(--accent); color: var(--on-accent); }
+    .interval-btn { padding: 5px 10px; font-size: 0.8rem; }
+
+    .setting-row { max-width: 420px; margin-bottom: 8px; font-size: 0.88rem; }
+    .toggle-switch { width: 34px; height: 20px; }
+    .toggle-slider:before { width: 14px; height: 14px; background-color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+    input:checked + .toggle-slider:before { transform: translateX(14px); }
+
+    /* Settings: cards side by side on wide screens */
+    @media (min-width: 1200px) {
+      #panel-settings.active { columns: 2; column-gap: 12px; }
+      #panel-settings > * { break-inside: avoid; }
+      #panel-settings > .panel-header { column-span: all; }
+    }
+
+    #lib-drop-zone { padding: 14px; font-size: 0.86rem; border-width: 1px; }
+    .library-grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+
+    /* === CLEAN APP LAYOUT: plain-text nav on the page colour, content on one raised surface === */
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); }
+    input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
+    button, input[type="url"], input[type="text"], input[type="datetime-local"], input[type="number"], textarea, select { border-radius: 8px; }
+
+    #sidebar { width: 210px; background: var(--bg); border-right: none; }
+    #sidebar-header { border-bottom: none; padding: 22px 22px 14px; font-size: 1.05rem; font-weight: 700; }
+    #sidebar-nav { padding: 6px 12px; }
+    .nav-section { padding: 16px 10px 4px; font-size: 0.66rem; color: var(--muted); opacity: 0.8; }
+    .nav-btn { padding: 7px 10px; font-size: 0.9rem; font-weight: 500; color: var(--muted); background: transparent; }
+    .nav-btn .nav-icon { display: none; }
+    .nav-btn:hover:not(.active) { background: transparent; color: var(--text); }
+    .nav-btn.active { background: transparent; color: var(--accent); font-weight: 600; }
+    #sidebar-footer { border-top: none; padding: 12px; }
+    #theme-switch { background: var(--panel); }
+
+    #main-content {
+      background: var(--panel); margin-top: 14px; height: calc(100vh - 14px); padding: 22px 28px;
+      border: 1px solid var(--border); border-right: none; border-bottom: none; border-top-left-radius: 16px;
+      box-shadow: 0 1px 3px rgba(15,23,42,0.05), 0 12px 32px rgba(15,23,42,0.05);
+    }
+    #live-status { background: var(--panel-2); border: 1px solid var(--border); border-radius: 10px; }
+    .panel-title { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.01em; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: none; padding: 16px 18px; }
+    .card h2 { font-size: 0.95rem; font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--text); }
+
+    .tt-table { font-size: 0.88rem; }
+    .tt-table th { text-transform: none; letter-spacing: 0; font-size: 0.82rem; font-weight: 600; color: var(--text); padding: 11px 12px; background: var(--panel); }
+    .tt-table td { padding: 11px 12px; }
+    .tt-table tr:nth-child(even) td { background: var(--panel-2); }
+    .tt-table tr:hover td { background: rgba(var(--tint),0.035); }
+
     /* === RESPONSIVE === */
     @media (max-width: 768px) {
       #sidebar { width: 60px; }
       #sidebar-title { display: none; }
+      .nav-section { font-size: 0; padding: 8px 0 0; margin: 6px 10px 0; border-top: 1px solid var(--border); }
+      .nav-section:first-child { border-top: none; margin-top: 0; }
       .nav-label { display: none; }
       .nav-btn { justify-content: center; padding: 10px; }
+      .nav-btn .nav-icon { display: inline; }
+      #main-content { margin-top: 0; height: 100vh; border-radius: 0; padding: 16px; }
+      #theme-switch { display: none; }
       #blank-btn { padding: 10px; font-size: 0; }
       #blank-btn::before { content: "⬛"; font-size: 1.1rem; }
       #sidebar-header { justify-content: center; padding: 16px 8px; }
@@ -1197,45 +1361,61 @@
     </div>
 
     <ul id="sidebar-nav">
+      <li class="nav-section">Show now</li>
       <li><button class="nav-btn active" data-panel="templates">
         <span class="nav-icon">📋</span>
         <span class="nav-label">Templates</span>
-      </button></li>
-      <li><button class="nav-btn" data-panel="push-url">
-        <span class="nav-icon">🔗</span>
-        <span class="nav-label">Push URL</span>
-      </button></li>
-      <li><button class="nav-btn" data-panel="library">
-        <span class="nav-icon">🖼</span>
-        <span class="nav-label">Library</span>
-      </button></li>
-      <li><button class="nav-btn" data-panel="slideshow">
-        <span class="nav-icon">🎞</span>
-        <span class="nav-label">Slideshow</span>
-      </button></li>
-      <li><button class="nav-btn" data-panel="schedule">
-        <span class="nav-icon">📅</span>
-        <span class="nav-label">Schedule</span>
       </button></li>
       <li><button class="nav-btn" data-panel="editor">
         <span class="nav-icon">📝</span>
         <span class="nav-label">HTML Editor</span>
       </button></li>
+      <li><button class="nav-btn" data-panel="push-url">
+        <span class="nav-icon">🔗</span>
+        <span class="nav-label">Website / URL</span>
+      </button></li>
+      <li><button class="nav-btn" data-panel="slideshow">
+        <span class="nav-icon">🎞</span>
+        <span class="nav-label">Slideshow</span>
+      </button></li>
+      <li><button class="nav-btn" data-panel="countdown">
+        <span class="nav-icon">⏱</span>
+        <span class="nav-label">Clock &amp; Countdown</span>
+      </button></li>
+      <li><button class="nav-btn" data-panel="alerts">
+        <span class="nav-icon">🚨</span>
+        <span class="nav-label">Alerts</span>
+        <span id="nav-alert-count" class="nav-count" style="display:none;"></span>
+      </button></li>
+      <li class="nav-section">Plan</li>
+      <li><button class="nav-btn" data-panel="timetable">
+        <span class="nav-icon">🗓</span>
+        <span class="nav-label">Schedule</span>
+      </button></li>
+      <li class="nav-section">Media</li>
+      <li><button class="nav-btn" data-panel="library">
+        <span class="nav-icon">🖼</span>
+        <span class="nav-label">Library</span>
+      </button></li>
+      <li class="nav-section">Screens</li>
       <li><button class="nav-btn" data-panel="screens">
         <span class="nav-icon">🖥</span>
-        <span class="nav-label">Screens</span>
+        <span class="nav-label">Overview</span>
       </button></li>
       <li><button class="nav-btn" data-panel="settings">
         <span class="nav-icon">⚙</span>
         <span class="nav-label">Settings</span>
       </button></li>
-      <li><button class="nav-btn" data-panel="help">
-        <span class="nav-icon">❓</span>
-        <span class="nav-label">Help</span>
-      </button></li>
     </ul>
 
     <div id="sidebar-footer">
+      <button class="nav-btn nav-help" data-panel="help">
+        <span class="nav-icon">❓</span>
+        <span class="nav-label">Help</span>
+      </button>
+      <div id="theme-switch" title="Theme">
+        <button data-theme="">Auto</button><button data-theme="light">☀ Light</button><button data-theme="dark">☾ Dark</button>
+      </div>
       <button id="blank-btn">⬛ Blank Screens</button>
       <div id="connection-badge">
         <div id="conn-dot"></div>
@@ -1250,6 +1430,7 @@
       <span id="live-label">📺 Currently on screens:</span>
       <strong id="live-url">—</strong>
       <span id="live-mode" style="color:var(--muted); font-size:0.78rem;"></span>
+      <span id="live-sched"></span>
       <label style="margin-left:auto; display:flex; align-items:center; gap:8px; flex-shrink:0;">Send to
         <select id="target-select" style="padding:6px 10px; font-size:0.85rem;">
           <option value="all">All screens</option>
@@ -1298,17 +1479,20 @@
       </div>
       <div class="card">
         <h2>Add images &amp; videos</h2>
-        <p style="font-size:0.82rem; color:var(--muted); line-height:1.6; margin-bottom:14px;">
-          Images live in the <code>src/imgs/</code> folder of the GitHub repo (subfolders allowed, e.g. <code>src/imgs/lobby/</code>).
-          Upload them on GitHub, wait ~1 minute for GitHub Pages to publish, then click <strong>Sync from GitHub</strong>.
-        </p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button id="lib-sync-btn" class="btn-primary">🔄 Sync from GitHub</button>
-          <a id="lib-upload-link" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; padding:11px 22px; border-radius:8px; border:1px solid var(--border); color:var(--text); text-decoration:none; font-weight:600; font-size:0.92rem;">⬆ Upload on GitHub</a>
+        <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px;">
+          <label for="lib-upload-folder" style="font-size:0.82rem; color:var(--muted); white-space:nowrap;">Folder (optional)</label>
+          <input type="text" id="lib-upload-folder" list="lib-folder-options" placeholder="e.g. sponsors" style="flex:1; max-width:260px;">
+          <datalist id="lib-folder-options"></datalist>
         </div>
-        <div class="url-row" style="margin-top:14px;">
-          <input id="lib-url-input" type="url" placeholder="Or add any image/video URL: https://example.com/image.jpg" style="flex:1;">
-          <button id="lib-url-add-btn">Add</button>
+        <div id="lib-drop-zone">⬆ Drop images or videos here, or click to upload<input type="file" id="lib-file-input" accept="image/*,video/*" multiple hidden></div>
+        <div id="lib-progress-bar"><div id="lib-progress-fill"></div></div>
+        <p style="font-size:0.82rem; color:var(--muted); line-height:1.6; margin:18px 0 10px;">
+          Or paste image or video links, one per line. <strong>Dropbox</strong> share links work as-is
+          (in Dropbox: <em>Share → Copy link</em> on each file); they're converted to direct links automatically.
+        </p>
+        <div style="display:flex; gap:8px; align-items:flex-start;">
+          <textarea id="lib-url-input" rows="3" placeholder="https://www.dropbox.com/scl/fi/…/photo.jpg?rlkey=…&amp;dl=0&#10;https://example.com/image.jpg" style="flex:1; resize:vertical; font-family:inherit;"></textarea>
+          <button id="lib-url-add-btn" class="btn-primary">Add</button>
         </div>
       </div>
       <div class="card">
@@ -1355,7 +1539,7 @@
       </div>
 
       <div style="display:flex; gap:10px; margin-top:4px;">
-        <button id="push-slideshow-btn" style="flex:2; background:var(--accent); color:#fff;">▶ Push Slideshow</button>
+        <button id="push-slideshow-btn" style="flex:2; background:var(--accent); color:var(--on-accent);">▶ Push Slideshow</button>
         <button id="save-ss-preset-btn" style="flex:1; background:var(--panel); border:1px solid var(--border); color:var(--text);">💾 Save preset</button>
       </div>
 
@@ -1364,26 +1548,6 @@
         <div id="ss-presets-empty" class="empty-state" style="padding:20px 0;">No saved presets.</div>
         <div id="ss-presets-list"></div>
       </div>
-    </div>
-
-    <!-- SCHEDULE PANEL -->
-    <div id="panel-schedule" class="panel">
-      <div class="panel-header">
-        <h1 class="panel-title">Schedule</h1>
-        <div style="display:flex; align-items:center; gap:12px;">
-          <div id="schedule-active-badge" class="off">
-            <div id="schedule-active-dot"></div>
-            <span id="schedule-active-label">Inactive</span>
-          </div>
-          <button id="toggle-schedule-btn" class="btn-primary" style="padding:8px 16px; font-size:0.82rem;">Activate</button>
-          <button id="add-slot-btn" style="background:var(--panel); border:1px solid var(--border); color:var(--text); padding:8px 16px; font-size:0.82rem;">+ Add Slot</button>
-        </div>
-      </div>
-
-      <div id="schedule-empty" class="empty-state">
-        <p>No time slots yet. Click <strong>+ Add Slot</strong> to build a schedule.</p>
-      </div>
-      <div id="schedule-list"></div>
     </div>
 
     <!-- HTML EDITOR PANEL -->
@@ -1438,6 +1602,263 @@
     </div>
 
     <!-- SCREENS PANEL -->
+    <div id="panel-countdown" class="panel">
+      <div class="panel-header">
+        <h1 class="panel-title">Clock &amp; Countdown</h1>
+      </div>
+      <div class="card">
+        <p style="font-size:0.82rem; color:var(--muted); line-height:1.6; margin-bottom:14px;">
+          A full-screen slide with a big clock and/or a countdown to the next session, on top of an image or colour.
+          It goes to the screens picked in <strong>Send to</strong>, so each room can count down to its own session.
+        </p>
+        <div class="cd-show">
+          <label><input type="checkbox" id="cd-show-info" checked> Session info</label>
+          <label><input type="checkbox" id="cd-show-countdown" checked> Countdown</label>
+          <label><input type="checkbox" id="cd-show-clock"> Clock</label>
+        </div>
+        <div class="cd-form">
+          <label>Label<input type="text" id="cd-label" value="Next session"></label>
+          <label>Session title<input type="text" id="cd-title" placeholder="e.g. Building AI agents in .NET"></label>
+          <label>Speaker / room<input type="text" id="cd-subtitle" placeholder="e.g. Jane Doe · Room 3"></label>
+          <label>Session starts at
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <input id="cd-time" type="datetime-local" style="flex:1; min-width:200px;">
+              <button class="cd-quick" data-min="5">+5 min</button>
+              <button class="cd-quick" data-min="10">+10 min</button>
+              <button class="cd-quick" data-min="15">+15 min</button>
+            </div>
+          </label>
+          <label>Text when it starts<input type="text" id="cd-done" value="Starting now"></label>
+          <label>Background
+            <div style="display:flex; gap:6px;">
+              <select id="cd-bg-image" style="flex:1;"><option value="">No image</option></select>
+              <input id="cd-bg-color" type="color" value="#14162a" title="Background colour" style="width:48px; padding:2px;">
+            </div>
+          </label>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:16px;">
+          <button id="cd-push-btn" class="btn-primary">▶ Push to screens</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Progress bar overlay</h2>
+        <p style="font-size:0.82rem; color:var(--muted); line-height:1.6; margin:-6px 0 14px;">
+          A bar on top of whatever is on screen (an image, slideshow, …) that fills up until the time you pick.
+          Shown on the screens in <strong>Send to</strong> until you remove it. Use <code>{countdown}</code> in the text for the time left.
+        </p>
+        <div class="cd-form">
+          <label>Text (optional)<input type="text" id="pb-text" placeholder="e.g. Keynote starts in {countdown}"></label>
+          <label>Runs until
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <input id="pb-time" type="datetime-local" style="flex:1; min-width:200px;">
+              <button class="cd-quick pb-quick" data-min="5">+5 min</button>
+              <button class="cd-quick pb-quick" data-min="15">+15 min</button>
+              <button class="cd-quick pb-quick" data-min="30">+30 min</button>
+            </div>
+          </label>
+          <label>Position &amp; colour
+            <div style="display:flex; gap:6px;">
+              <select id="pb-position" style="flex:1;">
+                <option value="bottom">Bottom</option>
+                <option value="top">Top</option>
+              </select>
+              <input id="pb-color" type="color" value="#5b6af0" title="Bar colour" style="width:48px; padding:2px;">
+            </div>
+          </label>
+          <label>Bar height (px, screen is 1080 high)
+            <input id="pb-height" type="number" min="4" max="300" step="2" value="48">
+          </label>
+          <label>Text alignment
+            <select id="pb-align">
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </label>
+          <label>When full, keep it for (min, 0 = remove at once)
+            <input id="pb-done-min" type="number" min="0" max="120" step="1" value="1">
+          </label>
+          <label>Text when full (optional)<input type="text" id="pb-done-text" placeholder="e.g. Keynote has started"></label>
+        </div>
+        <div class="ov-preview" id="pb-preview" style="margin-top:16px; max-width:640px; background:linear-gradient(135deg,#1e293b,#334155);"></div>
+        <div style="display:flex; gap:8px; margin-top:16px; flex-wrap:wrap;">
+          <button id="pb-show-btn" class="btn-primary">▶ Show bar</button>
+          <button id="pb-remove-btn" style="background:transparent; border:1px solid var(--border); color:var(--text); padding:11px 22px;">■ Remove bar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Preview</h2>
+        <div class="ov-preview" id="cd-preview" style="max-width:640px; border-radius:var(--radius);"></div>
+      </div>
+    </div>
+
+    <div id="panel-timetable" class="panel">
+      <div class="panel-header">
+        <h1 class="panel-title">Schedule</h1>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span id="tt-status-badge" class="tt-badge off">Off</span>
+          <button id="tt-toggle-btn" class="btn-primary" style="padding:8px 16px; font-size:0.82rem;">Turn on</button>
+        </div>
+      </div>
+      <p class="pl-intro">
+        <strong>🖼 Content</strong> is what the screens show; <strong>⏱ Countdowns</strong> and progress bars go on top of it.
+        The screens follow this by themselves. Sending something from <em>Show now</em> overrides it on those screens until you press <strong>↩ Back to schedule</strong>.
+      </p>
+
+      <div id="pl-old-slots" class="card" style="display:none;"></div>
+
+      <div class="card pl-card">
+        <div class="pl-toolbar">
+          <div id="pl-days" class="pl-days"></div>
+          <div class="pl-toolbar-right">
+            <div class="pl-seg" id="pl-view">
+              <button data-view="timeline" class="active">Timeline</button>
+              <button data-view="list">List</button>
+            </div>
+            <select id="pl-zoom" title="Zoom">
+              <option value="1">Zoom: compact</option>
+              <option value="2" selected>Zoom: normal</option>
+              <option value="4">Zoom: large</option>
+            </select>
+          </div>
+        </div>
+        <div class="pl-actions">
+          <button id="pl-add-content-btn" class="btn-primary">🖼 Add content</button>
+          <button id="tt-add-btn" class="pl-btn">⏱ Add countdown</button>
+          <span class="pl-spacer"></span>
+          <button id="tt-template-btn" class="pl-btn">⬇ Excel template</button>
+          <button id="tt-upload-btn" class="pl-btn">⬆ Upload Excel</button>
+          <input id="tt-file-input" type="file" accept=".xlsx,.xls,.csv" style="display:none;">
+        </div>
+        <div id="tt-errors"></div>
+        <div id="pl-timeline"></div>
+        <div id="pl-list" style="display:none; overflow-x:auto;"><table class="tt-table" id="tt-table"></table></div>
+        <div id="pl-legend" class="pl-legend">
+          <span><i class="pl-sw pl-sw-clock"></i>Countdown (on top)</span>
+          <span><i class="pl-sw pl-sw-bar"></i>Progress bar</span>
+          <span><i class="pl-sw pl-sw-content"></i>Content</span>
+          <span><i class="pl-sw pl-sw-now"></i>Now</span>
+          <span class="tt-muted">Click an empty spot in a column to add something there, or a block to edit it.</span>
+        </div>
+      </div>
+
+      <details class="card pl-defaults" id="pl-defaults">
+        <summary><h2>Defaults for every item</h2><span class="tt-muted">Countdown position, progress bar look, “Starting now”, transition</span></summary>
+        <div class="cd-form" style="margin-top:16px;">
+          <label>Transition (into each item and back)
+            <div style="display:flex; gap:6px;">
+              <select id="tt-tr-type" style="flex:1;">
+                <option value="">Same as Settings</option>
+                <option value="fade">Fade</option>
+                <option value="black">Fade through black</option>
+                <option value="push">Push (from the right)</option>
+                <option value="up">Slide up</option>
+                <option value="wipe">Wipe</option>
+                <option value="zoom">Zoom</option>
+                <option value="none">None (cut)</option>
+              </select>
+              <input id="tt-tr-duration" type="number" min="0" max="10" step="0.1" value="0.8" title="Seconds" style="width:80px;">
+            </div>
+          </label>
+          <label>Countdown position &amp; size (on top of the content)
+            <div style="display:flex; gap:6px;">
+              <select id="tt-ov-position" style="flex:1;">
+                <option value="bottom-left">Bottom left</option>
+                <option value="bottom-right">Bottom right</option>
+                <option value="top-left">Top left</option>
+                <option value="top-right">Top right</option>
+                <option value="center">Center</option>
+              </select>
+              <select id="tt-ov-size" style="width:110px;">
+                <option value="small">Small</option>
+                <option value="medium" selected>Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
+          </label>
+          <label>Bar position &amp; colour
+            <div style="display:flex; gap:6px;">
+              <select id="tt-bar-position" style="flex:1;">
+                <option value="bottom">Bottom</option>
+                <option value="top">Top</option>
+              </select>
+              <input id="tt-bar-color" type="color" value="#5b6af0" title="Bar colour" style="width:48px; padding:2px;">
+            </div>
+          </label>
+          <label>Bar height (px, screen is 1080 high)
+            <input id="tt-bar-height" type="number" min="4" max="300" step="2" value="48">
+          </label>
+          <label>Bar text alignment
+            <select id="tt-bar-align">
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </label>
+          <label>Text when the session starts<input type="text" id="tt-done-text" value="Starting now"></label>
+          <label>Show that text for (min, 0 = go back at once)
+            <input id="tt-done-min" type="number" min="0" max="120" step="1" value="1">
+          </label>
+          <label>When the bar is full, keep it for (min, 0 = remove at once)
+            <input id="tt-bar-done-min" type="number" min="0" max="120" step="1" value="1">
+          </label>
+          <label>Bar text when full (optional)<input type="text" id="tt-bar-done-text" placeholder="e.g. Session has started"></label>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px;">
+          <button id="tt-tr-all-btn" class="pl-btn">↺ Use the default transition for every item</button>
+          <span class="tt-muted">Items with their own transition (set with ✏️) keep it, unless you press this.</span>
+        </div>
+      </details>
+
+      <div id="pl-savebar" class="pl-savebar">
+        <div id="tt-info"></div>
+        <button id="tt-clear-btn" class="pl-btn">🗑 Clear</button>
+        <button id="tt-save-btn" class="btn-primary">💾 Save to screens</button>
+      </div>
+    </div>
+
+    <div id="panel-alerts" class="panel">
+      <div class="panel-header">
+        <h1 class="panel-title">Alerts</h1>
+      </div>
+      <div class="card">
+        <h2>Send an alert</h2>
+        <div class="cd-form" style="margin-top:10px;">
+          <label style="grid-column:1 / -1;">Message<textarea id="al-text" rows="2" placeholder="e.g. The keynote moves to Hall B"></textarea></label>
+          <label>Show on<select id="al-target"><option value="all">All screens</option></select></label>
+          <label>For
+            <select id="al-duration">
+              <option value="5">5 minutes</option>
+              <option value="15" selected>15 minutes</option>
+              <option value="30">30 minutes</option>
+              <option value="60">1 hour</option>
+              <option value="0">Until I remove it</option>
+            </select>
+          </label>
+          <div><span class="field-label">Style</span>
+            <div class="pl-seg" id="al-style">
+              <button data-v="info" class="active">ℹ Info</button><button data-v="warning">! Warning</button><button data-v="urgent">⚠ Urgent</button>
+            </div>
+          </div>
+          <div><span class="field-label">Show as</span>
+            <div class="pl-seg" id="al-display">
+              <button data-v="banner" class="active">Banner on top</button><button data-v="fullscreen">Full screen</button>
+            </div>
+          </div>
+        </div>
+        <div class="ov-preview" id="al-preview" style="margin-top:14px; max-width:420px; border-radius:6px; background:linear-gradient(135deg,#27272a,#3f3f46);"></div>
+        <div style="margin-top:14px;"><button id="al-send-btn" class="btn-primary">🚨 Send alert</button></div>
+      </div>
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <h2 style="margin:0; flex:1;">Active alerts</h2>
+          <button id="al-clear-btn" class="pl-btn" style="display:none;">Remove all</button>
+        </div>
+        <div id="al-list" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
     <div id="panel-screens" class="panel">
       <div class="panel-header">
         <h1 class="panel-title">Screens</h1>
@@ -1448,6 +1869,11 @@
           Give screens the same group name to push to them together. Pick the target with <strong>Send to</strong> at the top.
           A screen shows the newest push sent to all screens, its group, or itself.
         </p>
+      </div>
+      <div class="card">
+        <h2>What's on screen</h2>
+        <p style="font-size:0.78rem; color:var(--muted); margin:-6px 0 14px;">Live preview per screen. Click a screen or group name to send to it.</p>
+        <div id="screens-overview"></div>
       </div>
       <div class="card">
         <h2>Connected screens</h2>
@@ -1476,7 +1902,7 @@
           <select id="fallback-library-select" style="flex:1; padding:8px 10px; font-size:0.85rem;">
             <option value="">— Pick from library —</option>
           </select>
-          <button id="fallback-set-btn" style="background:var(--accent); color:#fff; padding:9px 16px; white-space:nowrap;">Set as fallback</button>
+          <button id="fallback-set-btn" style="background:var(--accent); color:var(--on-accent); padding:9px 16px; white-space:nowrap;">Set as fallback</button>
         </div>
 
         <div style="margin-top:10px;">
@@ -1485,6 +1911,67 @@
             <button id="fallback-url-btn" style="background:var(--panel); border:1px solid var(--border); color:var(--text);">Use URL</button>
           </div>
         </div>
+      </div>
+
+      <div class="card">
+        <h2>Clock Overlay</h2>
+        <div class="setting-row">
+          <span>Show clock on screens</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="clock-visible-toggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="setting-row">
+          <span>Show seconds</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="clock-seconds-toggle">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div style="margin-top:14px;">
+          <label style="display:block; font-size:0.78rem; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:8px;">Position</label>
+          <div class="mode-row">
+            <button class="pos-btn clock-pos-btn" data-pos="top-left">↖ Top left</button>
+            <button class="pos-btn clock-pos-btn" data-pos="top-right">↗ Top right</button>
+            <button class="pos-btn clock-pos-btn" data-pos="bottom-left">↙ Bottom left</button>
+            <button class="pos-btn clock-pos-btn" data-pos="bottom-right">↘ Bottom right</button>
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <label style="display:block; font-size:0.78rem; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:8px;">Size</label>
+          <div class="mode-row">
+            <button class="size-btn clock-size-btn" data-size="small">Small</button>
+            <button class="size-btn clock-size-btn" data-size="medium">Medium</button>
+            <button class="size-btn clock-size-btn" data-size="large">Large</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Transitions</h2>
+        <p style="font-size:0.82rem; color:var(--muted); margin:-4px 0 14px;">How the screens go from one thing to the next: image to image, image to a colour slide, slideshow images, video and blank.</p>
+        <div class="cd-form">
+          <label>Effect
+            <select id="tr-type">
+              <option value="fade">Fade</option>
+              <option value="black">Fade through black</option>
+              <option value="push">Push from the right</option>
+              <option value="up">Push from the bottom</option>
+              <option value="wipe">Wipe</option>
+              <option value="zoom">Zoom</option>
+              <option value="none">None (cut)</option>
+            </select>
+          </label>
+          <label>Duration (seconds)
+            <input id="tr-duration" type="number" min="0" max="10" step="0.1" value="0.8">
+          </label>
+        </div>
+        <div style="display:flex; gap:14px; align-items:center; margin-top:14px; flex-wrap:wrap;">
+          <div id="tr-preview" style="position:relative; width:240px; aspect-ratio:16/9; border-radius:8px; overflow:hidden; background:#000; border:1px solid var(--border);"></div>
+          <button id="tr-preview-btn" style="background:transparent; border:1px solid var(--border); color:var(--text); padding:9px 18px;">▶ Preview</button>
+        </div>
+        <p style="font-size:0.78rem; color:var(--muted); margin-top:10px;">Saved straight away. Reload screens that were opened before this update.</p>
       </div>
 
       <div class="card">
@@ -1529,7 +2016,7 @@
           <select id="logo-library-select" style="flex:1; padding:8px 10px; font-size:0.85rem;">
             <option value="">— Pick logo from library —</option>
           </select>
-          <button id="logo-set-btn" style="background:var(--accent); color:#fff; padding:9px 16px; white-space:nowrap;">Use as logo</button>
+          <button id="logo-set-btn" style="background:var(--accent); color:var(--on-accent); padding:9px 16px; white-space:nowrap;">Use as logo</button>
         </div>
       </div>
     </div>
@@ -1618,6 +2105,77 @@
     </div>
   </div>
 
+  <!-- TIMETABLE SESSION MODAL -->
+  <div id="tt-edit-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 id="tte-heading">Edit session</h2>
+        <button id="tte-close-btn" class="modal-close-btn">✕</button>
+      </div>
+      <div class="modal-body tte-form">
+        <div class="pl-seg pl-seg-wide" id="tte-kind">
+          <button data-kind="content" class="active">🖼 Content</button>
+          <button data-kind="session">⏱ Countdown (on top of the content)</button>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <label><span id="tte-start-label">Session starts</span><input id="tte-start" type="datetime-local"></label>
+          <label class="tte-content-only">Until<input id="tte-until" type="datetime-local"></label>
+        </div>
+        <div>
+          <span class="field-label">Show on</span>
+          <div id="tte-targets" style="display:flex; flex-wrap:wrap; gap:6px 16px; font-size:0.85rem;"></div>
+        </div>
+        <div class="tte-content-only">
+          <span class="field-label">What to show</span>
+          <div style="display:flex; gap:6px; align-items:flex-start;">
+            <select id="tte-content-type" style="width:150px; flex-shrink:0;">
+              <option value="image">🖼 Image</option>
+              <option value="video">🎬 Video</option>
+              <option value="slideshow">🎞 Slideshow</option>
+              <option value="template">📋 Template</option>
+              <option value="html">&lt;/&gt; HTML</option>
+              <option value="url">🔗 Website / URL</option>
+              <option value="color">🎨 Colour</option>
+            </select>
+            <div id="tte-content-picker" style="flex:1; display:flex; gap:6px; align-items:center; min-width:0;"></div>
+          </div>
+        </div>
+        <label><span id="tte-title-label">Title</span><input id="tte-title" type="text" placeholder="e.g. Next sessions start"></label>
+        <label class="tte-session-only">Speaker / room<input id="tte-subtitle" type="text" placeholder="optional"></label>
+        <div class="tte-session-only" style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <label>Countdown (min before, 0 = none)<input id="tte-clock-min" type="number" min="0" step="1"></label>
+          <label>Progress bar (min before, 0 = no bar)<input id="tte-bar-min" type="number" min="0" step="1"></label>
+        </div>
+        <label class="tte-session-only">Bar text ({countdown} = time left, {title} = title)<input id="tte-bar-text" type="text" placeholder="Next session starts in {countdown}"></label>
+        <div class="tte-session-only" style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+          <label>"Starting now" shows for (min)<input id="tte-starting-min" type="number" min="0" step="1" placeholder="default"></label>
+          <label>Full bar stays for (min)<input id="tte-bar-done-min" type="number" min="0" step="1" placeholder="default"></label>
+        </div>
+        <label class="tte-session-only">Bar text when full<input id="tte-bar-done-text" type="text" placeholder="default"></label>
+        <label>Transition
+          <div style="display:flex; gap:6px;">
+            <select id="tte-tr-type" style="flex:1;">
+              <option value="">Schedule default</option>
+              <option value="fade">Fade</option>
+              <option value="black">Fade through black</option>
+              <option value="push">Push (from the right)</option>
+              <option value="up">Slide up</option>
+              <option value="wipe">Wipe</option>
+              <option value="zoom">Zoom</option>
+              <option value="none">None (cut)</option>
+            </select>
+            <input id="tte-tr-duration" type="number" min="0" max="10" step="0.1" value="0.8" title="Seconds" style="width:90px;">
+          </div>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button id="tte-delete-btn" style="background:var(--danger); color:#fff; margin-right:auto;">🗑 Remove</button>
+        <button id="tte-cancel-btn">Cancel</button>
+        <button id="tte-apply-btn" class="btn-primary">Apply</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST NOTIFICATION -->
   <div id="toast">Pushed!</div>
 
@@ -1625,6 +2183,22 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
+  <script>
+    // Theme: Auto (= the computer's setting), Light or Dark; remembered in this browser
+    (() => {
+      const sw = document.getElementById('theme-switch');
+      const mark = () => sw.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.theme === (document.documentElement.dataset.theme || '')));
+      sw.addEventListener('click', e => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        if (b.dataset.theme) document.documentElement.dataset.theme = b.dataset.theme;
+        else delete document.documentElement.dataset.theme;
+        try { b.dataset.theme ? localStorage.setItem('signage_theme', b.dataset.theme) : localStorage.removeItem('signage_theme'); } catch (err) {}
+        mark();
+      });
+      mark();
+    })();
+  </script>
   <script>
     // ─────────────────────────────────────────────────────────────────────────
     // STEP 1 — Replace this block with your Firebase project config.
@@ -1645,9 +2219,11 @@
     const isConfigured = !firebaseConfig.apiKey.startsWith("PASTE");
     const warningEl = document.getElementById('setup-banner');
     let db = null;
-    // Images & videos are hosted on GitHub Pages (Firebase Storage needs a paid plan)
-    const IMAGES_BASE = 'https://kevinderudder.github.io/techorama-streaming/src/imgs/';
-    const GITHUB_UPLOAD_URL = 'https://github.com/kevinderudder/techorama-streaming/upload/main/src/imgs';
+    // Uploaded images & videos live in Supabase Storage (Firebase Storage needs a paid plan).
+    // Publishable key = safe in the browser; the bucket's policies only allow access to "signage".
+    const SUPABASE_URL = 'https://phyzrybcvlopamscplwo.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_uPp1YH3fd_4-lv7IKzv8Tg_-P5o8LmO';
+    const SUPABASE_BUCKET = 'signage';
 
     // Push target: 'all', 'group:<name>' or 'screen:<id>' (receiver.html?screen=<id>)
     let pushTarget = 'all';
@@ -1775,10 +2351,14 @@
     document.getElementById('blank-btn').addEventListener('click', () => push('', 'blank'));
 
     // Image push
+    function imagePageHtml(url) {
+      return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{width:100vw;height:100vh;overflow:hidden;background:#000}img{width:100%;height:100%;object-fit:cover}</style></head><body><img src="${url}"></body></html>`;
+    }
+
     function pushImage(url, target = pushTarget) {
       if (onManualPush) onManualPush();
       if (!db) { showToast('Not connected to Firebase', true); return; }
-      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{width:100vw;height:100vh;overflow:hidden;background:#000}img{width:100%;height:100%;object-fit:cover}</style></head><body><img src="${url}"></body></html>`;
+      const html = imagePageHtml(url);
       currentRef(target).set({ mode: 'html', html, updatedAt: Date.now() })
         .then(() => {
           showToast('Image pushed!');
@@ -1942,9 +2522,9 @@
       document.getElementById('logo-no-logo').style.display = hasLogo ? 'none' : '';
       if (hasLogo) document.getElementById('logo-preview-img').src = logoSettings.url;
 
-      document.querySelectorAll('.pos-btn').forEach(b =>
+      document.querySelectorAll('.pos-btn:not(.clock-pos-btn)').forEach(b =>
         b.classList.toggle('active', b.dataset.pos === logoSettings.position));
-      document.querySelectorAll('.size-btn').forEach(b =>
+      document.querySelectorAll('.size-btn:not(.clock-size-btn)').forEach(b =>
         b.classList.toggle('active', b.dataset.size === logoSettings.size));
     }
 
@@ -1953,7 +2533,7 @@
       saveLogoSettings();
     });
 
-    document.querySelectorAll('.pos-btn').forEach(btn => {
+    document.querySelectorAll('.pos-btn:not(.clock-pos-btn)').forEach(btn => {
       btn.addEventListener('click', () => {
         logoSettings.position = btn.dataset.pos;
         saveLogoSettings();
@@ -1961,7 +2541,7 @@
       });
     });
 
-    document.querySelectorAll('.size-btn').forEach(btn => {
+    document.querySelectorAll('.size-btn:not(.clock-size-btn)').forEach(btn => {
       btn.addEventListener('click', () => {
         logoSettings.size = btn.dataset.size;
         saveLogoSettings();
@@ -1974,6 +2554,43 @@
       saveLogoSettings();
       renderLogoSettings();
     });
+
+    // Clock overlay settings
+    let clockSettings = { visible: false, seconds: false, position: 'top-left', size: 'medium' };
+
+    function saveClockSettings() {
+      if (!db) return;
+      db.ref('signage/settings/clock').set(clockSettings);
+    }
+
+    function renderClockSettings() {
+      document.getElementById('clock-visible-toggle').checked = clockSettings.visible;
+      document.getElementById('clock-seconds-toggle').checked = clockSettings.seconds;
+      document.querySelectorAll('.clock-pos-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.pos === clockSettings.position));
+      document.querySelectorAll('.clock-size-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.size === clockSettings.size));
+    }
+
+    document.getElementById('clock-visible-toggle').addEventListener('change', e => {
+      clockSettings.visible = e.target.checked;
+      saveClockSettings();
+    });
+    document.getElementById('clock-seconds-toggle').addEventListener('change', e => {
+      clockSettings.seconds = e.target.checked;
+      saveClockSettings();
+    });
+    document.querySelectorAll('.clock-pos-btn').forEach(btn => btn.addEventListener('click', () => {
+      clockSettings.position = btn.dataset.pos;
+      saveClockSettings();
+      renderClockSettings();
+    }));
+    document.querySelectorAll('.clock-size-btn').forEach(btn => btn.addEventListener('click', () => {
+      clockSettings.size = btn.dataset.size;
+      saveClockSettings();
+      renderClockSettings();
+    }));
+    renderClockSettings();
 
     if (isConfigured) {
       warningEl.classList.add('hidden');
@@ -1994,6 +2611,7 @@
 
       // ─── SCREENS & GROUPS ─────────────────────────────────────────────────────
 
+      let alerts = {}, alertSig = '';
       let globalCurrent = null;
       let screens = {};       // id → { presence, group, current }
       let groupsCurrent = {}; // group → { current }
@@ -2028,6 +2646,20 @@
           label = '📺 Currently on screens:';
         }
         document.getElementById('live-label').textContent = label;
+        const sched = document.getElementById('live-sched');
+        const others = pushTarget === 'all' ? overriddenScreens().length : 0;
+        if (data && !data.followSchedule) {
+          sched.innerHTML = `<span class="ls-chip override">✋ Override</span><button class="ls-back" data-target="${escHtml(pushTarget)}">↩ Back to schedule</button>`;
+        } else {
+          sched.innerHTML = `<span class="ls-chip">🗓 Following the schedule</span>` +
+            (others ? `<span class="tt-muted">${others} screen${others > 1 ? 's' : ''} overridden</span><button class="ls-back" data-target="all">↩ All back to schedule</button>` : '');
+        }
+        if (!data || data.followSchedule) {
+          const tt = pushTarget.startsWith('screen:') ? screenContent(pushTarget.slice(7)) : null;
+          document.getElementById('live-url').textContent = tt && tt.data ? tt.source.replace(/^🗓 Schedule · /, '') : '—';
+          document.getElementById('live-mode').textContent = '';
+          return;
+        }
         if (!data) {
           document.getElementById('live-url').textContent = '—';
           document.getElementById('live-mode').textContent = '';
@@ -2035,6 +2667,24 @@
         }
         document.getElementById('live-url').textContent = data.mode === 'html' ? '(HTML slide)' : (data.url || '(blank)');
         document.getElementById('live-mode').textContent = data.url || data.mode === 'html' ? `[${data.mode}]` : '';
+      }
+
+      // Is the target showing something that was pushed (an override), or following the schedule?
+      function manualFor(target) {
+        if (target.startsWith('screen:')) {
+          const s = screens[target.slice(7)] || {};
+          return newest(globalCurrent, s.group && (groupsCurrent[s.group] || {}).current, s.current);
+        }
+        if (target.startsWith('group:')) return newest(globalCurrent, (groupsCurrent[target.slice(6)] || {}).current);
+        return globalCurrent;
+      }
+      const isOverride = target => { const m = manualFor(target); return !!m && !m.followSchedule; };
+      const overriddenScreens = () => Object.keys(screens).filter(id => isOverride('screen:' + id));
+
+      function backToSchedule(target = pushTarget) {
+        return currentRef(target).set({ followSchedule: true, updatedAt: Date.now() })
+          .then(() => showToast((target === 'all' ? 'All screens' : target.replace(':', ' ')) + ' follow the schedule again'))
+          .catch(err => showToast('Error: ' + err.message, true));
       }
 
       function renderTargetSelect() {
@@ -2053,6 +2703,10 @@
           }).join('') + '</optgroup>';
         }
         sel.innerHTML = html;
+        const alSel = document.getElementById('al-target');
+        const alValue = alSel.value;
+        alSel.innerHTML = html;
+        alSel.value = [...alSel.options].some(o => o.value === alValue) ? alValue : 'all';
         // Selected group/screen disappeared (e.g. group emptied) → fall back to all
         if (![...sel.options].some(o => o.value === pushTarget)) pushTarget = 'all';
         sel.value = pushTarget;
@@ -2097,14 +2751,294 @@
         });
       }
 
+      // ── Overview: what each screen is showing, grouped ──
+      let fallbackImageUrl = null;
+      let globalProgress = null;
+
+      function screenProgress(id) {
+        const s = screens[id] || {};
+        const tt = timetableActive(id, s.group).bar;
+        const ttBar = tt && { ...((timetable.look || {}).bar || {}), target: tt.start, startedAt: tt.barFrom, text: tt.text,
+                              doneText: tt.doneText || null, doneMin: tt.doneMin, updatedAt: tt.barFrom };
+        const live = d => d && !(d.target && Date.now() > d.target + barHold(d));
+        const p = newest(...[globalProgress, s.group && (groupsCurrent[s.group] || {}).progress, s.progress, ttBar].filter(live));
+        return p && !p.off && p.target ? p : null;
+      }
+
+      // How long a full bar stays (older bars: 1 minute)
+      function barHold(p) {
+        return (p.doneMin == null ? 1 : p.doneMin) * 60000;
+      }
+
+      function formatLeft(ms) {
+        const s = Math.max(0, Math.ceil(ms / 1000));
+        const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60);
+        return (h ? h + ':' + pad2(m) : m) + ':' + pad2(s % 60);
+      }
+
+      // Same layout as the receiver's bar, scaled to the preview width (1920px screen = 100cqw)
+      function progressBarHtml(p) {
+        if (!p) return '';
+        const cq = px => (px / 19.2).toFixed(3) + 'cqw';
+        const pct = Math.min(100, Math.max(0, (Date.now() - p.startedAt) / (p.target - p.startedAt) * 100));
+        const height = p.text ? Math.max(p.height || 48, 28) : (p.height || 12);
+        const justify = { center: 'center', right: 'flex-end' }[p.align] || 'flex-start';
+        const text = Date.now() >= p.target && p.doneText ? p.doneText : (p.text || '').replace(/\{countdown\}/g, formatLeft(p.target - Date.now()));
+        return `<div style="position:absolute; left:0; right:0; ${p.position === 'top' ? 'top' : 'bottom'}:0; height:${cq(height)}; background:rgba(255,255,255,0.2);">
+          <div style="height:100%; width:${pct}%; background:${escHtml(p.color || '#5b6af0')};"></div>
+          <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:${justify}; padding:0 ${cq(24)}; color:#fff; font-weight:600; font-size:${cq(Math.max(14, Math.round(height * 0.5)))}; white-space:nowrap; text-shadow:0 1px 4px rgba(0,0,0,.6);">${escHtml(text)}</div>
+        </div>`;
+      }
+      let overviewSignature = '';
+
+      // ── Alerts: signage/alerts/<id> = { showOn, text, style, display, until, createdAt } ──
+      const ALERT_COLORS = { info: ['#18181b', '#fff'], warning: ['#f0a500', '#111'], urgent: ['#d92d32', '#fff'] };
+      const ALERT_ICON = { info: 'ℹ ', warning: '! ', urgent: '⚠ ' };
+      const liveAlerts = () => Object.entries(alerts).filter(([, a]) => a && a.text && !(a.until && Date.now() >= a.until))
+        .sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
+
+      // Which alerts a screen shows (same rule as the receiver)
+      function alertsFor(target) {
+        const id = target.slice(7), g = (screens[id] || {}).group;
+        return liveAlerts().map(([, a]) => a).filter(a => String(a.showOn || '').split(',').some(t =>
+          t === 'all' || t === target || (g && t === 'group:' + g)));
+      }
+
+      function alertHtml(list) {
+        const cq = px => (px / 19.2).toFixed(3) + 'cqw';
+        const full = list.find(a => a.display === 'fullscreen');
+        const col = a => ALERT_COLORS[a.style] || ALERT_COLORS.info;
+        if (full) return `<div style="position:absolute; inset:0; z-index:3; display:flex; align-items:center; justify-content:center; text-align:center; padding:8% 8%;
+          background:${col(full)[0]}; color:${col(full)[1]}; font-weight:700; font-size:${cq(86)}; line-height:1.2;">${escHtml(full.text)}</div>`;
+        return `<div style="position:absolute; top:0; left:0; right:0; z-index:3;">` + list.filter(a => a.display !== 'fullscreen').slice(0, 3).map(a =>
+          `<div style="padding:${cq(17)} ${cq(77)}; background:${col(a)[0]}; color:${col(a)[1]}; font-weight:600; font-size:${cq(37)}; line-height:1.3;">${escHtml((ALERT_ICON[a.style] || ALERT_ICON.info) + a.text)}</div>`).join('') + '</div>';
+      }
+      const alertPreviewHtml = target => alertHtml(alertsFor(target));
+
+      function alertForm() {
+        const v = id => (document.querySelector(`#${id} button.active`) || {}).dataset?.v;
+        return { text: document.getElementById('al-text').value.trim(), showOn: document.getElementById('al-target').value,
+                 style: v('al-style') || 'info', display: v('al-display') || 'banner', minutes: Number(document.getElementById('al-duration').value) };
+      }
+
+      function renderAlertPreview() {
+        const f = alertForm();
+        document.getElementById('al-preview').innerHTML = alertHtml([{ text: f.text || 'Your message', style: f.style, display: f.display }]);
+      }
+
+      function renderAlerts() {
+        const list = liveAlerts();
+        const count = document.getElementById('nav-alert-count');
+        count.textContent = list.length;
+        count.style.display = list.length ? '' : 'none';
+        document.getElementById('al-clear-btn').style.display = list.length > 1 ? '' : 'none';
+        document.getElementById('al-list').innerHTML = list.length ? list.map(([key, a]) => `
+          <div class="al-row">
+            <span class="al-dot al-${escHtml(ALERT_COLORS[a.style] ? a.style : 'info')}"></span>
+            <div style="flex:1; min-width:0;">
+              <div style="font-weight:600; word-break:break-word;">${escHtml(a.text)}</div>
+              <div class="tt-muted" style="font-size:0.76rem;">${escHtml(showOnLabel(a.showOn))} · ${a.display === 'fullscreen' ? 'full screen' : 'banner'} ·
+                ${a.until ? 'until ' + hm(a.until) : 'until removed'}</div>
+            </div>
+            <button class="pl-btn al-del" data-key="${escHtml(key)}" style="padding:4px 10px;">Remove</button>
+          </div>`).join('') : '<div class="tt-muted" style="font-size:0.85rem;">No alerts on the screens.</div>';
+      }
+
+      // The schedule's session countdown as the receiver draws it: no background, on top of the content
+      function countdownPreviewHtml(o) {
+        if (!o) return '';
+        const look = (timetable && timetable.look) || {};
+        const ov = look.overlay || {};
+        const cq = px => (px / 19.2).toFixed(3) + 'cqw';
+        const fs = { small: 37, large: 81 }[ov.size] || 54;
+        const pos = {
+          center: 'top:50%; left:50%; transform:translate(-50%,-50%); text-align:center;',
+          'top-left': `top:${cq(43)}; left:${cq(77)};`,
+          'top-right': `top:${cq(43)}; right:${cq(77)}; text-align:right;`,
+          'bottom-right': `bottom:${cq(43)}; right:${cq(77)}; text-align:right;`
+        }[ov.position] || `bottom:${cq(43)}; left:${cq(77)};`;
+        const left = o.start - Date.now();
+        const done = look.doneText ?? 'Starting now';
+        return `<div style="position:absolute; ${pos} max-width:80%; font-size:${cq(fs)}; color:#fff; line-height:1.15; text-shadow:0 0 2px rgba(0,0,0,.85),0 2px 14px rgba(0,0,0,.75); pointer-events:none;">
+          ${o.title ? `<div style="font-weight:700;">${escHtml(o.title)}</div>` : ''}${o.subtitle ? `<div style="font-size:.55em; opacity:.9;">${escHtml(o.subtitle)}</div>` : ''}
+          <div style="font-weight:800; font-size:1.9em; font-variant-numeric:tabular-nums;">${left > 0
+            ? `<span style="font-size:.3em; font-weight:600; letter-spacing:.15em; text-transform:uppercase; margin-right:.5em; vertical-align:middle;">Starts in</span>${formatLeft(left)}`
+            : escHtml(done)}</div></div>`;
+      }
+
+      function screenContent(id) {
+        const s = screens[id] || {};
+        const groupData = s.group && (groupsCurrent[s.group] || {}).current;
+        const tt = timetableActive(id, s.group);
+        const ttData = tt.content && tt.content.show ? Object.assign({}, tt.content.show, { updatedAt: tt.content.clockFrom }) : null;
+        const manual = newest(globalCurrent, groupData, s.current);
+        const override = !!manual && !manual.followSchedule;
+        const data = override ? manual : ttData;
+        let source;
+        if (override) source = '✋ Override · ' + (manual === s.current ? 'sent to this screen' : manual === groupData ? 'sent to group ' + s.group : 'sent to all screens');
+        else if (ttData) source = '🗓 Schedule · ' + (tt.content.title || contentLabel(tt.content.content));
+        else source = timetable && timetable.enabled ? '🗓 Schedule · nothing planned now' : '';
+        return { data, source, override, overlay: tt.overlay || null };
+      }
+
+      function timeAgo(ts) {
+        if (!ts) return '';
+        const sec = Math.round((Date.now() - ts) / 1000);
+        if (sec < 60) return 'just now';
+        if (sec < 3600) return Math.floor(sec / 60) + ' min ago';
+        if (sec < 86400) return Math.floor(sec / 3600) + ' h ago';
+        return new Date(ts).toLocaleDateString();
+      }
+
+      function previewHtml(data) {
+        if (!data || data.mode === 'blank' || (!data.url && !['html', 'slideshow'].includes(data.mode))) {
+          return fallbackImageUrl
+            ? `<img src="${escHtml(fallbackImageUrl)}"><span class="ov-badge">FALLBACK</span>`
+            : '<div class="ov-text">Blank</div>';
+        }
+        if (data.mode === 'html') {
+          return `<iframe sandbox="allow-scripts" loading="lazy" srcdoc="${escHtml(data.html || '')}"></iframe>`;
+        }
+        if (data.mode === 'video') {
+          return `<video src="${escHtml(data.url)}" muted autoplay loop playsinline></video><span class="ov-badge">VIDEO</span>`;
+        }
+        if (data.mode === 'slideshow') {
+          const imgs = Array.isArray(data.images) ? data.images : Object.values(data.images || {});
+          return `${imgs[0] ? `<img src="${escHtml(imgs[0])}">` : ''}<span class="ov-badge">SLIDESHOW · ${imgs.length}</span>`;
+        }
+        if (data.mode === 'redirect') {
+          return `<div class="ov-text">↪ ${escHtml(data.url)}</div><span class="ov-badge">REDIRECT</span>`;
+        }
+        return `<iframe sandbox="allow-scripts allow-same-origin" loading="lazy" src="${escHtml(data.url)}"></iframe><span class="ov-badge">WEB</span>`;
+      }
+
+      function selectTarget(target) {
+        pushTarget = target;
+        document.getElementById('target-select').value = target;
+        renderLiveStatus();
+        renderScreensOverview(true);
+        showToast('Sending to ' + (target === 'all' ? 'all screens' : target.replace(':', ' ')));
+      }
+
+      function renderScreensOverview(force) {
+        const el = document.getElementById('screens-overview');
+        const ids = Object.keys(screens).sort();
+        // Only rebuild when something visible changed, so previews don't reload/flicker
+        const sig = JSON.stringify([pushTarget, fallbackImageUrl, ids.map(id => {
+          const { data, override, overlay } = screenContent(id);
+          const p = screenProgress(id);
+          return [id, screens[id].group || '', !!(screens[id].presence && screens[id].presence.online), data && data.updatedAt, override, overlay && overlay.start, p && p.updatedAt];
+        }), alertSig]);
+        if (!force && sig === overviewSignature) return;
+        overviewSignature = sig;
+
+        if (!ids.length) { el.innerHTML = '<div class="empty-state" style="padding:12px 0;">No screens yet.</div>'; return; }
+        const byGroup = {};
+        ids.forEach(id => (byGroup[screens[id].group || ''] ||= []).push(id));
+        const groups = Object.keys(byGroup).sort((a, b) => (a === '') - (b === '') || a.localeCompare(b));
+
+        el.innerHTML = groups.map(g => `
+          <div class="ov-group">
+            <div class="ov-group-head">
+              ${g ? `<span class="ov-group-link" data-target="group:${escHtml(g)}" style="cursor:pointer; ${pushTarget === 'group:' + g ? 'color:var(--accent);' : ''}">📁 ${escHtml(g)}</span>` : '<span>No group</span>'}
+              <span class="ov-count">${byGroup[g].length} screen${byGroup[g].length > 1 ? 's' : ''}</span>
+            </div>
+            <div class="ov-grid">
+              ${byGroup[g].map(id => {
+                const { data, source, override, overlay } = screenContent(id);
+                const online = screens[id].presence && screens[id].presence.online;
+                return `
+                  <div class="ov-tile${online ? '' : ' offline'}${pushTarget === 'screen:' + id ? ' selected' : ''}" data-target="screen:${escHtml(id)}">
+                    <div class="ov-preview">${previewHtml(data)}${countdownPreviewHtml(overlay)}${progressBarHtml(screenProgress(id))}${alertPreviewHtml('screen:' + id)}</div>
+                    <div class="ov-info">
+                      <div class="ov-name">${online ? '🟢' : '⚫'} ${escHtml(id)}</div>
+                      <div class="ov-src">${online ? escHtml(source || 'Nothing pushed yet') + (data && override ? ' · ' + timeAgo(data.updatedAt) : '') : 'Offline'}${overlay ? ' · ⏱ countdown' : ''}${screenProgress(id) ? ' · ▬ bar' : ''}</div>
+                      ${override ? `<button class="ls-back" data-back="screen:${escHtml(id)}" style="margin-top:6px;">↩ Back to schedule</button>` : ''}
+                    </div>
+                  </div>`;
+              }).join('')}
+            </div>
+          </div>`).join('');
+
+        el.querySelectorAll('[data-target]').forEach(n =>
+          n.addEventListener('click', e => { if (!e.target.closest('[data-back]')) selectTarget(n.dataset.target); }));
+        el.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => backToSchedule(b.dataset.back)));
+        previewResizer.disconnect();
+        el.querySelectorAll('.ov-preview').forEach(p => { if (p.querySelector('iframe')) previewResizer.observe(p); });
+      }
+
+      // Scale the 1920×1080 preview iframes down to the tile width (also when the panel becomes visible)
+      const previewResizer = new ResizeObserver(entries => entries.forEach(e => {
+        const frame = e.target.querySelector('iframe');
+        if (frame) frame.style.transform = `scale(${e.contentRect.width / 1920})`;
+      }));
+
+      db.ref('signage/settings/fallbackImage').on('value', snap => {
+        fallbackImageUrl = snap.val() || null;
+        renderScreensOverview();
+      });
+
+      db.ref('signage/progress').on('value', snap => {
+        globalProgress = snap.val();
+        renderScreensOverview();
+      });
+      // Refresh tiles now and then so bar previews advance and expired bars disappear
+      setInterval(() => renderScreensOverview(true), 30000);
+
+      document.getElementById('live-sched').addEventListener('click', e => {
+        const b = e.target.closest('.ls-back');
+        if (b) backToSchedule(b.dataset.target);
+      });
+
+      ['al-style', 'al-display'].forEach(id => document.getElementById(id).addEventListener('click', e => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        document.querySelectorAll(`#${id} button`).forEach(x => x.classList.toggle('active', x === b));
+        renderAlertPreview();
+      }));
+      document.getElementById('al-text').addEventListener('input', renderAlertPreview);
+      renderAlertPreview();
+      document.getElementById('al-send-btn').addEventListener('click', () => {
+        const f = alertForm();
+        if (!f.text) { showToast('Type a message first', true); return; }
+        const now = Date.now();
+        db.ref('signage/alerts').push({ text: f.text, showOn: f.showOn, style: f.style, display: f.display,
+                                        until: f.minutes ? now + f.minutes * 60000 : null, createdAt: now })
+          .then(() => { document.getElementById('al-text').value = ''; renderAlertPreview(); showToast('Alert sent to ' + showOnLabel(f.showOn)); })
+          .catch(err => showToast('Error: ' + err.message, true));
+      });
+      document.getElementById('al-list').addEventListener('click', e => {
+        const b = e.target.closest('.al-del');
+        if (b) db.ref('signage/alerts/' + b.dataset.key).remove().catch(err => showToast('Error: ' + err.message, true));
+      });
+      document.getElementById('al-clear-btn').addEventListener('click', () => {
+        if (confirm('Remove every alert from the screens?'))
+          db.ref('signage/alerts').remove().catch(err => showToast('Error: ' + err.message, true));
+      });
+      db.ref('signage/alerts').on('value', snap => {
+        alerts = snap.val() || {};
+        // Expired alerts are gone from the screens already: tidy them up
+        Object.entries(alerts).forEach(([k, a]) => { if (a && a.until && a.until < Date.now() - 60000) db.ref('signage/alerts/' + k).remove().catch(() => {}); });
+        alertSig = JSON.stringify(liveAlerts());
+        renderAlerts();
+        renderScreensOverview();
+      });
+      // Alerts run out by themselves
+      setInterval(() => {
+        const sig = JSON.stringify(liveAlerts());
+        if (sig !== alertSig) { alertSig = sig; renderAlerts(); renderScreensOverview(); }
+      }, 5000);
+
       document.getElementById('target-select').addEventListener('change', e => {
         pushTarget = e.target.value;
         renderLiveStatus();
+        renderScreensOverview(true);
       });
 
       db.ref('signage/current').on('value', snap => {
         globalCurrent = snap.val();
         renderLiveStatus();
+        renderScreensOverview();
       });
 
       db.ref('signage/screens').on('value', snap => {
@@ -2112,11 +3046,15 @@
         renderTargetSelect();
         renderScreensList();
         renderLiveStatus();
+        renderScreensOverview();
+        refreshPlannerLanes();
       });
 
       db.ref('signage/groups').on('value', snap => {
         groupsCurrent = snap.val() || {};
         renderLiveStatus();
+        renderScreensOverview();
+        refreshPlannerLanes();
       });
 
       db.ref('signage/settings/logo').on('value', snap => {
@@ -2126,7 +3064,68 @@
         }
       });
 
+      db.ref('signage/settings/clock').on('value', snap => {
+        if (snap.val()) {
+          clockSettings = { ...clockSettings, ...snap.val() };
+          renderClockSettings();
+        }
+      });
+
       renderLogoSettings();
+
+      // Transitions — same effects as the receiver (receiver.html, TRANSITIONS)
+      (() => {
+        const TRANSITIONS = {
+          fade:  [{ opacity: 0 }, { opacity: 1 }],
+          push:  [{ transform: 'translateX(100%)' }, { transform: 'translateX(0)' }],
+          up:    [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }],
+          wipe:  [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)' }],
+          zoom:  [{ opacity: 0, transform: 'scale(1.15)' }, { opacity: 1, transform: 'scale(1)' }],
+          black: [{ opacity: 0, offset: 0 }, { opacity: 0, offset: 0.5 }, { opacity: 1, offset: 1 }]
+        };
+        const typeSel = document.getElementById('tr-type');
+        const durInput = document.getElementById('tr-duration');
+        const preview = document.getElementById('tr-preview');
+        const read = () => ({ type: typeSel.value, duration: Math.min(10, Math.max(0, Number(durInput.value) || 0)) });
+        const save = () => db.ref('signage/settings/transition').set(read())
+          .then(() => { showToast('Transition saved'); play(); })
+          .catch(err => showToast('Error: ' + err.message, true));
+        typeSel.addEventListener('change', save);
+        durInput.addEventListener('change', save);
+
+        // Preview: alternate between a Library image and a colour slide
+        let showImage = false;
+        function play() {
+          const { type, duration } = read();
+          const img = (Object.values(libraryItems).find(i => i.mediaType !== 'video') || {}).url;
+          const el = document.createElement('div');
+          el.style.cssText = 'position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; font:600 0.9rem system-ui;';
+          showImage = !showImage && !!img;
+          if (showImage) el.style.background = `#000 url("${encodeURI(img)}") center/cover no-repeat`;
+          else { el.style.background = '#1e293b'; el.textContent = 'Colour slide'; }
+          preview.appendChild(el);
+          const ms = duration * 1000;
+          const old = [...preview.children].slice(0, -1);
+          const finish = () => old.forEach(o => o.remove());
+          if (!TRANSITIONS[type] || !ms) { finish(); return; }
+          if (type === 'black') {
+            const black = document.createElement('div');
+            black.style.cssText = 'position:absolute; inset:0; background:#000;';
+            preview.insertBefore(black, el);
+            black.animate([{ opacity: 0 }, { opacity: 1, offset: 0.5 }, { opacity: 0 }], { duration: ms, easing: 'ease-in-out' })
+              .onfinish = () => black.remove();
+          }
+          el.animate(TRANSITIONS[type], { duration: ms, easing: 'ease-in-out' }).onfinish = finish;
+        }
+        document.getElementById('tr-preview-btn').addEventListener('click', play);
+
+        db.ref('signage/settings/transition').on('value', snap => {
+          const t = snap.val() || {};
+          typeSel.value = t.type || 'fade';
+          durInput.value = t.duration ?? 0.8;
+          if (!preview.children.length) play();
+        });
+      })();
 
       // Fallback image settings
       function renderFallbackSettings(url) {
@@ -2171,7 +3170,7 @@
       document.getElementById('fallback-url-btn').addEventListener('click', () => {
         const url = document.getElementById('fallback-url-input').value.trim();
         if (!url) { showToast('Enter an image URL', true); return; }
-        setFallbackImage(url);
+        setFallbackImage(directUrl(url));
         document.getElementById('fallback-url-input').value = '';
       });
 
@@ -2225,8 +3224,1140 @@
         showToast('Logo set!');
       });
 
+      // ── Session countdown: a self-contained HTML slide that ticks on the screen itself ──
+      function pad2(n) { return String(n).padStart(2, '0'); }
+
+      function toLocalInputValue(d) {
+        return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+      }
+
+      // Self-contained slide: big clock and/or countdown, ticking on the screen itself
+      function countdownHtml({ label, title, subtitle, target, doneText, bgImage, bgColor,
+                               showInfo, showCountdown, showClock }) {
+        const hasTarget = !isNaN(target);
+        showCountdown = showCountdown && hasTarget;
+        const at = new Date(target);
+        const js = v => JSON.stringify(v).replace(/</g, '\\u003c');
+        const info = showInfo
+          ? (label ? `<div class="label">${escHtml(label)}</div>` : '') +
+            (title ? `<h1>${escHtml(title)}</h1>` : '') +
+            (subtitle ? `<div class="sub">${escHtml(subtitle)}</div>` : '')
+          : '';
+        const clockOnly = showClock && !showCountdown;
+        const body = (showClock ? `<div id="clk" class="${clockOnly ? 'big' : 'small'}"></div>` : '') + info +
+          (showCountdown ? `<div class="in" id="in">Starts in</div><div id="t"></div><div class="at">Starts at ${pad2(at.getHours())}:${pad2(at.getMinutes())}</div>` : '');
+        return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100vw;height:100vh;overflow:hidden}
+body{background:${bgColor}${bgImage ? ` url("${encodeURI(bgImage)}") center/cover no-repeat` : ''};color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;align-items:center;justify-content:center;text-align:center}
+.wrap{padding:5vh 7vw;max-width:90vw;${bgImage ? 'background:rgba(0,0,0,.55);border-radius:3vh;' : ''}}
+.label{font-size:3vh;letter-spacing:.3em;text-transform:uppercase;opacity:.7}
+h1{font-size:7.5vh;font-weight:700;line-height:1.15;margin:2vh 0 1vh}
+.sub{font-size:3.6vh;opacity:.85}
+.in{font-size:3vh;letter-spacing:.2em;text-transform:uppercase;opacity:.65;margin-top:4vh}
+#t{font-size:24vh;font-weight:800;line-height:1;margin-top:1vh;font-variant-numeric:tabular-nums}
+#t.done{font-size:13vh}
+.at{font-size:3vh;opacity:.65;margin-top:2vh}
+#clk{font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+#clk.big{font-size:30vh}
+#clk.small{font-size:6vh;opacity:.85;margin-bottom:3vh}
+</style></head><body>
+${body ? `<div class="wrap">${body}</div>` : ''}
+<script>
+var T=${hasTarget ? target : 'null'},D=${js(doneText || '')};
+function p(n){return(n<10?'0':'')+n}
+function tick(){var now=Date.now(),e;
+if(e=document.getElementById('clk')){var d=new Date();e.textContent=p(d.getHours())+':'+p(d.getMinutes())}
+if(e=document.getElementById('t')){var s=Math.ceil((T-now)/1000);
+if(s<=0){e.textContent=D;e.className='done';document.getElementById('in').style.display='none'}else{
+var h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;e.textContent=(h?h+':'+p(m):m)+':'+p(x)}}}
+tick();setInterval(tick,250);
+<\/script></body></html>`;
+      }
+
+      function readCountdownForm() {
+        const time = document.getElementById('cd-time').value;
+        return {
+          label: document.getElementById('cd-label').value.trim(),
+          title: document.getElementById('cd-title').value.trim(),
+          subtitle: document.getElementById('cd-subtitle').value.trim(),
+          target: time ? new Date(time).getTime() : NaN,
+          doneText: document.getElementById('cd-done').value.trim(),
+          bgImage: document.getElementById('cd-bg-image').value,
+          bgColor: document.getElementById('cd-bg-color').value,
+          showInfo: document.getElementById('cd-show-info').checked,
+          showCountdown: document.getElementById('cd-show-countdown').checked,
+          showClock: document.getElementById('cd-show-clock').checked
+        };
+      }
+
+      const cdResizer = new ResizeObserver(entries => entries.forEach(e => {
+        const frame = e.target.querySelector('iframe');
+        if (frame) frame.style.transform = `scale(${e.contentRect.width / 1920})`;
+      }));
+
+      function renderCountdownPreview() {
+        const f = readCountdownForm();
+        const el = document.getElementById('cd-preview');
+        if (isNaN(f.target) && !f.showClock) { el.innerHTML = '<div class="ov-text">Pick a start time</div>'; return; }
+        el.innerHTML = '<iframe sandbox="allow-scripts"></iframe>';
+        el.querySelector('iframe').srcdoc = countdownHtml(f);
+        cdResizer.disconnect();
+        cdResizer.observe(el);
+      }
+
+      (() => {
+        // Default: next full quarter hour
+        const d = new Date(Math.ceil((Date.now() + 60000) / 900000) * 900000);
+        document.getElementById('cd-time').value = toLocalInputValue(d);
+        document.querySelectorAll('.cd-form input, .cd-form select, .cd-show input, .cd-show select').forEach(i =>
+          i.addEventListener('change', renderCountdownPreview));
+        document.querySelectorAll('.cd-quick:not(.pb-quick)').forEach(b => b.addEventListener('click', e => {
+          e.preventDefault();
+          const t = new Date(Date.now() + Number(b.dataset.min) * 60000);
+          t.setSeconds(0, 0);
+          document.getElementById('cd-time').value = toLocalInputValue(t);
+          renderCountdownPreview();
+        }));
+        document.getElementById('cd-push-btn').addEventListener('click', () => {
+          const f = readCountdownForm();
+          if (isNaN(f.target) && !f.showClock) { showToast('Pick a start time', true); return; }
+          if (onManualPush) onManualPush();
+          currentRef().set({ mode: 'html', html: countdownHtml(f), updatedAt: Date.now() })
+            .then(() => showToast('Pushed to screens!'))
+            .catch(err => showToast('Error: ' + err.message, true));
+        });
+        renderCountdownPreview();
+      })();
+
+      // ── Progress bar overlay: stored next to "current" (signage/progress, groups/<g>/progress, screens/<id>/progress) ──
+      function progressRef(target = pushTarget) {
+        if (target.startsWith('group:')) return db.ref('signage/groups/' + target.slice(6) + '/progress');
+        if (target.startsWith('screen:')) return db.ref('signage/screens/' + target.slice(7) + '/progress');
+        return db.ref('signage/progress');
+      }
+
+      (() => {
+        const d = new Date(Math.ceil((Date.now() + 60000) / 900000) * 900000);
+        document.getElementById('pb-time').value = toLocalInputValue(d);
+        document.querySelectorAll('.pb-quick').forEach(b => b.addEventListener('click', e => {
+          e.preventDefault();
+          const t = new Date(Date.now() + Number(b.dataset.min) * 60000);
+          t.setSeconds(0, 0);
+          document.getElementById('pb-time').value = toLocalInputValue(t);
+        }));
+        const readProgressForm = () => {
+          const time = document.getElementById('pb-time').value;
+          return {
+            target: time ? new Date(time).getTime() : NaN,
+            startedAt: Date.now(),
+            text: document.getElementById('pb-text').value.trim() || null,
+            position: document.getElementById('pb-position').value,
+            color: document.getElementById('pb-color').value,
+            height: Math.min(300, Math.max(4, Number(document.getElementById('pb-height').value) || 48)),
+            align: document.getElementById('pb-align').value,
+            doneMin: Math.max(0, Number(document.getElementById('pb-done-min').value) || 0),
+            doneText: document.getElementById('pb-done-text').value.trim() || null
+          };
+        };
+        // Preview shows the bar half-way
+        const renderProgressPreview = () => {
+          const p = readProgressForm();
+          if (isNaN(p.target) || p.target <= Date.now()) p.target = Date.now() + 600000;
+          p.startedAt = Date.now() - (p.target - Date.now());
+          document.getElementById('pb-preview').innerHTML = progressBarHtml(p);
+        };
+        ['pb-text', 'pb-time', 'pb-position', 'pb-color', 'pb-height', 'pb-align', 'pb-done-text'].forEach(id =>
+          document.getElementById(id).addEventListener('input', renderProgressPreview));
+        document.querySelectorAll('.pb-quick').forEach(b => b.addEventListener('click', renderProgressPreview));
+        setInterval(renderProgressPreview, 1000);
+        renderProgressPreview();
+
+        document.getElementById('pb-show-btn').addEventListener('click', () => {
+          const p = readProgressForm();
+          if (isNaN(p.target) || p.target <= Date.now()) { showToast('Pick a time in the future', true); return; }
+          progressRef().set({ ...p, updatedAt: Date.now() })
+            .then(() => showToast('Progress bar shown'))
+            .catch(err => showToast('Error: ' + err.message, true));
+        });
+        // "off" instead of deleting, so it also overrides a bar sent to a group/all (newest wins)
+        document.getElementById('pb-remove-btn').addEventListener('click', () => {
+          progressRef().set({ off: true, updatedAt: Date.now() })
+            .then(() => showToast('Progress bar removed'))
+            .catch(err => showToast('Error: ' + err.message, true));
+        });
+      })();
+
+      // ── Timetable: sessions from Excel; every receiver switches the clock slide / progress bar on by itself ──
+      let timetable = null; // signage/timetable: { enabled, look, items, updatedAt }
+      let ttRows = null;    // rows from an uploaded file that aren't saved yet
+      let ttFileName = '';
+
+      const XLSX_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      function loadXlsx() {
+        if (window.XLSX) return Promise.resolve(window.XLSX);
+        return new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = XLSX_SRC;
+          s.onload = () => resolve(window.XLSX);
+          s.onerror = () => reject(new Error('Could not load the Excel reader'));
+          document.head.appendChild(s);
+        });
+      }
+
+      // What the timetable shows on a screen right now: { clock, bar } (items or undefined)
+      function timetableActive(screenId, group) {
+        if (!timetable || !timetable.enabled) return {};
+        const now = Date.now();
+        // How specific the target is for this screen: -1 = not for it, 0 = all, 1 = its group, 2 = the screen
+        const rank = i => Math.max(-1, ...String(i.showOn || '').split(',').map(t =>
+          t === 'all' ? 0 : group && t === 'group:' + group ? 1 : t === 'screen:' + screenId ? 2 : -1));
+        const items = Object.values(timetable.items || {}).filter(i => rank(i) >= 0);
+        const active = (from, until) => items.filter(i => i[from] && i[from] <= now && now < (i[until] || i.start + 60000));
+        // Same rules as the receiver: content of the most specific target (then the latest start);
+        // the countdown of the first session goes on top of it
+        const clocks = active('clockFrom', 'clockUntil');
+        return {
+          content: clocks.filter(i => i.kind === 'content').sort((a, b) => rank(b) - rank(a) || b.start - a.start)[0],
+          overlay: clocks.filter(i => i.kind !== 'content').sort((a, b) => a.start - b.start)[0],
+          bar: active('barFrom', 'barUntil').sort((a, b) => a.start - b.start)[0]
+        };
+      }
+
+      function setSelectValue(sel, value) {
+        if (value && ![...sel.options].some(o => o.value === value)) {
+          const opt = document.createElement('option');
+          opt.value = value;
+          opt.textContent = 'Custom image';
+          sel.appendChild(opt);
+        }
+        sel.value = value || '';
+      }
+
+      function readTtLook() {
+        const min = id => Math.max(0, Number(document.getElementById(id).value) || 0);
+        const trType = document.getElementById('tt-tr-type').value;
+        return {
+          transition: trType ? { type: trType, duration: trDuration(document.getElementById('tt-tr-duration').value) } : null,
+          overlay: { position: document.getElementById('tt-ov-position').value, size: document.getElementById('tt-ov-size').value },
+          doneText: document.getElementById('tt-done-text').value.trim(),
+          doneMin: min('tt-done-min'),
+          bar: {
+            doneMin: min('tt-bar-done-min'),
+            doneText: document.getElementById('tt-bar-done-text').value.trim() || null,
+            position: document.getElementById('tt-bar-position').value,
+            color: document.getElementById('tt-bar-color').value,
+            height: Math.min(300, Math.max(4, Number(document.getElementById('tt-bar-height').value) || 48)),
+            align: document.getElementById('tt-bar-align').value
+          }
+        };
+      }
+
+      function applyTtLook(look) {
+        if (!look) return;
+        document.getElementById('tt-tr-type').value = (look.transition && look.transition.type) || '';
+        document.getElementById('tt-tr-duration').value = look.transition ? look.transition.duration ?? 0.8 : 0.8;
+        document.getElementById('tt-ov-position').value = (look.overlay || {}).position || 'bottom-left';
+        document.getElementById('tt-ov-size').value = (look.overlay || {}).size || 'medium';
+        document.getElementById('tt-done-text').value = look.doneText ?? 'Starting now';
+        document.getElementById('tt-done-min').value = look.doneMin ?? 1;
+        const bar = look.bar || {};
+        document.getElementById('tt-bar-position').value = bar.position || 'bottom';
+        document.getElementById('tt-bar-color').value = bar.color || '#5b6af0';
+        document.getElementById('tt-bar-height').value = bar.height || 48;
+        document.getElementById('tt-bar-align').value = bar.align || 'left';
+        document.getElementById('tt-bar-done-min').value = bar.doneMin ?? 1;
+        document.getElementById('tt-bar-done-text').value = bar.doneText || '';
+      }
+
+      // "all", or one or more groups / screens separated by commas → "all" or "group:a,screen:b"
+      function resolveShowOn(value) {
+        const parts = String(value ?? '').split(/[,;]/).map(s => s.trim()).filter(Boolean);
+        if (!parts.length) return 'all';
+        const targets = parts.map(resolveShowOnPart);
+        if (targets.includes(null)) return null;
+        return targets.includes('all') ? 'all' : [...new Set(targets)].join(',');
+      }
+
+      // One target, case-insensitive; "group:x" / "screen:x" force the type
+      function resolveShowOnPart(v) {
+        if (/^all( screens)?$/i.test(v)) return 'all';
+        const forced = v.match(/^(group|screen)\s*:\s*(.+)$/i);
+        if (forced) return forced[1].toLowerCase() + ':' + sanitizeKey(forced[2]);
+        const lower = v.toLowerCase();
+        const group = [...new Set([...groupNames(), ...Object.keys(groupsCurrent)])].find(g => g.toLowerCase() === lower);
+        if (group) return 'group:' + group;
+        const screen = Object.keys(screens).find(id => id.toLowerCase() === lower);
+        if (screen) return 'screen:' + screen;
+        return null;
+      }
+
+      function showOnLabel(showOn) {
+        return String(showOn || 'all').split(',').map(t =>
+          t === 'all' ? 'All screens' : t.startsWith('group:') ? '📁 ' + t.slice(6) : '🖥 ' + t.slice(7)).join(', ');
+      }
+
+      // Excel dates are day numbers since 1899-12-30, times are fractions of a day
+      function parseExcelDay(v) {
+        if (v instanceof Date) return [v.getFullYear(), v.getMonth() + 1, v.getDate()];
+        if (typeof v === 'number') {
+          const d = new Date(1899, 11, 30 + Math.floor(v));
+          return [d.getFullYear(), d.getMonth() + 1, d.getDate()];
+        }
+        const s = String(v).trim();
+        let m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+        if (m) return [+m[1], +m[2], +m[3]];
+        m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/); // day first (Belgian format)
+        if (m) return [m[3].length === 2 ? 2000 + +m[3] : +m[3], +m[2], +m[1]];
+        return null;
+      }
+
+      function parseExcelTime(v, separateDate) {
+        if (v instanceof Date) return [v.getHours(), v.getMinutes()];
+        // "14.30" typed in a CSV/text cell arrives as the number 14.3
+        if (typeof v === 'number' && separateDate && v >= 1 && v < 24) {
+          const h = Math.floor(v), m = Math.round((v - h) * 100);
+          return m < 60 ? [h, m] : null;
+        }
+        if (typeof v === 'number') {
+          const min = Math.round((v % 1) * 1440);
+          return [Math.floor(min / 60) % 24, min % 60];
+        }
+        const m = String(v).trim().match(/(\d{1,2})\s*[:.hu]\s*(\d{2})/i);
+        return m ? [+m[1], +m[2]] : null;
+      }
+
+      const TT_COLUMNS = {
+        date: ['date', 'day', 'datum'],
+        start: ['start', 'starttime', 'time', 'starts', 'startsat', 'begin'],
+        showOn: ['showon', 'screen', 'screens', 'group', 'target'],
+        title: ['title', 'session', 'sessiontitle'],
+        subtitle: ['speakerroom', 'speaker', 'room', 'subtitle'],
+        clockMin: ['countdownminbefore', 'countdown', 'clockminbefore', 'clock', 'clockminutes', 'clockminutesbefore'],
+        barMin: ['progressbarminbefore', 'progressbar', 'bar', 'barminbefore', 'barminutes', 'progressbarminutesbefore'],
+        barText: ['bartext', 'progressbartext', 'text'],
+        startingMin: ['startingnowmin', 'startingnow', 'startingnowminutes'],
+        barDoneMin: ['barwhenfullmin', 'barwhenfull', 'barafterfullmin', 'whenfullmin'],
+        barDoneText: ['bartextwhenfull', 'textwhenfull', 'whenfulltext'],
+        transition: ['transition', 'overgang']
+      };
+
+      const TR_LABELS = { fade: 'Fade', black: 'Through black', push: 'Push', up: 'Slide up', wipe: 'Wipe', zoom: 'Zoom', none: 'Cut' };
+      const trDuration = v => Math.min(10, Math.max(0, Number(String(v).replace(',', '.')) || 0));
+
+      // Transition cell: "fade", "push 0.5", "zoom 1,2s", "none" → { type, duration }; empty → null (= default);
+      // undefined when it can't be read
+      function parseTransition(value) {
+        const v = String(value ?? '').trim().toLowerCase();
+        if (!v) return null;
+        const m = v.match(/^([a-z ]+?)\s*(?:([\d.,]+)\s*s?)?$/);
+        if (!m) return undefined;
+        const alias = { cut: 'none', 'through black': 'black', 'fade through black': 'black', slide: 'up', 'slide up': 'up' };
+        const type = alias[m[1]] || m[1];
+        if (!TR_LABELS[type]) return undefined;
+        return { type, duration: m[2] ? trDuration(m[2]) : 0.8 };
+      }
+
+      function transitionLabel(t) {
+        return t ? TR_LABELS[t.type] + (t.type === 'none' ? '' : ' ' + t.duration + 's') : '';
+      }
+
+      function parseTimetableSheet(XLSX, data) {
+        const wb = XLSX.read(data, { type: 'array' });
+        const ws = wb.Sheets['Sessions'] || wb.Sheets[wb.SheetNames[0]];
+        const grid = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '' });
+        const headerIdx = grid.findIndex(r => r.some(c => String(c).trim()));
+        if (headerIdx < 0) throw new Error('The sheet is empty');
+        const col = {};
+        grid[headerIdx].forEach((h, i) => {
+          const key = String(h).toLowerCase().replace(/[^a-z]/g, '');
+          Object.entries(TT_COLUMNS).forEach(([name, aliases]) => { if (col[name] == null && aliases.includes(key)) col[name] = i; });
+        });
+        if (col.start == null) throw new Error('No "Start" column found. Use the template.');
+
+        return grid.slice(headerIdx + 1)
+          .filter(r => r.some(c => String(c).trim()))
+          .map((r, n) => {
+            const get = name => col[name] == null ? '' : r[col[name]];
+            const row = {
+              line: headerIdx + n + 2,
+              title: String(get('title')).trim(),
+              subtitle: String(get('subtitle')).trim(),
+              showOnRaw: String(get('showOn')).trim(),
+              barText: String(get('barText')).trim()
+            };
+            const num = (v, dflt) => String(v).trim() === '' ? dflt : Number(String(v).replace(',', '.'));
+            row.clockMin = num(get('clockMin'), 5);
+            row.barMin = num(get('barMin'), 0);
+            // Empty = use the defaults under "Look"
+            row.startingMin = num(get('startingMin'), null);
+            row.barDoneMin = num(get('barDoneMin'), null);
+            row.barDoneText = String(get('barDoneText')).trim() || null;
+            row.kind = 'session';
+            const trRaw = String(get('transition')).trim();
+            row.transition = parseTransition(trRaw);
+            // A full date+time in the Start cell works too
+            const startCell = get('start');
+            const day = parseExcelDay(get('date') !== '' ? get('date') : startCell);
+            const time = parseExcelTime(startCell, get('date') !== '');
+            row.showOn = resolveShowOn(row.showOnRaw);
+            if (!day) row.error = 'No valid date';
+            else if (!time) row.error = 'No valid start time';
+            else if ([row.clockMin, row.barMin, row.startingMin, row.barDoneMin].some(m => m != null && (isNaN(m) || m < 0))) row.error = 'Minutes must be a number';
+            else if (!row.showOn) row.error = `Unknown screen or group "${row.showOnRaw}"`;
+            else if (row.transition === undefined) row.error = `Unknown transition "${trRaw}": use fade, black, push, up, wipe, zoom or none, optionally with seconds (e.g. "push 0.5")`;
+            if (day && time) row.start = new Date(day[0], day[1] - 1, day[2], time[0], time[1]).getTime();
+            return row;
+          });
+      }
+
+      const CONTENT_TYPES = { image: '🖼 Image', video: '🎬 Video', slideshow: '🎞 Slideshow', template: '📋 Template', html: '</> HTML', url: '🔗 Website', color: '🎨 Colour' };
+
+      // What a content item shows, as receiver data; null when it can't be found (any more)
+      function contentShow(c) {
+        if (!c || !c.value) return null;
+        if (c.type === 'image') return { mode: 'html', html: imagePageHtml(c.value) };
+        if (c.type === 'color') return /^#[0-9a-f]{3,8}$/i.test(c.value)
+          ? { mode: 'html', html: `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>html,body{margin:0;height:100%;background:${c.value}}</style></head><body></body></html>` } : null;
+        if (c.type === 'video') return { mode: 'video', url: c.value };
+        if (c.type === 'html') return { mode: 'html', html: c.value };
+        if (c.type === 'url') return { mode: 'iframe', url: c.value };
+        if (c.type === 'slideshow') {
+          const p = snap_presets_cache[c.value];
+          return p ? { mode: 'slideshow', images: p.images, interval: p.interval } : null;
+        }
+        if (c.type === 'template') {
+          const t = snap_templates_cache[c.value];
+          if (!t) return null;
+          // Templates are html, an image, a video or a website (same as pushing them)
+          if (t.type === 'image') return contentShow({ type: 'image', value: t.content });
+          if (t.type === 'video') return contentShow({ type: 'video', value: t.content });
+          if (t.type === 'url') return contentShow({ type: 'url', value: t.content });
+          return { mode: 'html', html: t.content };
+        }
+        return null;
+      }
+
+      function contentLabel(c) {
+        if (!c || !c.value) return 'nothing picked';
+        if (c.type === 'slideshow') { const p = snap_presets_cache[c.value]; return p ? `${p.name} (${p.images.length} images)` : 'slideshow (deleted)'; }
+        if (c.type === 'template') { const t = snap_templates_cache[c.value]; return t ? t.name : 'template (deleted)'; }
+        if (c.type === 'color') return c.value;
+        if (c.type === 'html') {
+          const t = c.value.match(/<title>([^<]*)<\/title>/i);
+          const text = (t ? t[1] : c.value.replace(/<(style|script)[\s\S]*?<\/\1>/gi, '').replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
+          return text ? text.slice(0, 40) : 'HTML';
+        }
+        const item = Object.values(libraryItems).find(i => i.url === c.value);
+        if (item) return item.name;
+        try { const u = new URL(c.value); return c.type === 'url' ? u.host + u.pathname.replace(/\/$/, '') : decodeURIComponent(u.pathname.split('/').pop()) || u.host; }
+        catch (e) { return c.value; }
+      }
+
+      function contentThumb(c) {
+        if (!c || !c.value) return '';
+        if (c.type === 'image') return c.value;
+        if (c.type === 'slideshow') { const p = snap_presets_cache[c.value]; return p && p.images[0] || ''; }
+        return '';
+      }
+
+      function ttItemFromRow(r, look) {
+        const effectiveTransition = r.transition || look.transition || null;
+        if (r.kind === 'content') {
+          return {
+            kind: 'content', start: r.start, until: r.until, showOn: r.showOn, title: r.title || null,
+            content: r.content, transition: r.transition || null, effectiveTransition,
+            // The receiver treats it like a clock slide that runs from start until "until"
+            clockFrom: r.start, clockUntil: r.until,
+            show: contentShow(r.content) || r.show || null
+          };
+        }
+        const clockFrom = r.clockMin > 0 ? r.start - r.clockMin * 60000 : null;
+        const barFrom = r.barMin > 0 ? r.start - r.barMin * 60000 : null;
+        const startingMin = r.startingMin ?? look.doneMin ?? 1;
+        const barDoneMin = r.barDoneMin ?? (look.bar || {}).doneMin ?? 1;
+        return {
+          kind: 'session',
+          start: r.start, showOn: r.showOn, title: r.title || null, subtitle: r.subtitle || null,
+          clockMin: r.clockMin, barMin: r.barMin, barText: r.barText || null,
+          startingMin: r.startingMin ?? null, barDoneMin: r.barDoneMin ?? null, barDoneText: r.barDoneText || null,
+          transition: r.transition || null, effectiveTransition,
+          clockFrom, barFrom,
+          clockUntil: clockFrom ? r.start + startingMin * 60000 : null,
+          barUntil: barFrom ? r.start + barDoneMin * 60000 : null,
+          doneMin: barDoneMin,
+          doneText: barFrom ? (r.barDoneText || (look.bar || {}).doneText || null) : null,
+          text: barFrom ? (r.barText || 'Next session starts in {countdown}').replace(/\{title\}/g, r.title || '') : null
+        };
+      }
+
+      function fmtTime(ts) {
+        const d = new Date(ts);
+        return `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+      }
+      const hm = ts => `${pad2(new Date(ts).getHours())}:${pad2(new Date(ts).getMinutes())}`;
+      const dayKey = ts => { const d = new Date(ts); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; };
+      const dayStart = key => { const [y, m, d] = key.split('-').map(Number); return new Date(y, m - 1, d).getTime(); };
+      const localInput = ts => { const d = new Date(ts); return `${dayKey(ts)}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`; };
+
+      function currentTtRows() {
+        const rows = ttRows || Object.values((timetable && timetable.items) || {});
+        return rows.sort((a, b) => (a.start || 0) - (b.start || 0));
+      }
+
+      // Editing a saved schedule turns it into unsaved rows, saved with "Save to screens"
+      function ensureTtRows() {
+        if (ttRows) return;
+        ttRows = Object.values((timetable && timetable.items) || {}).map(r => Object.assign({}, r))
+          .sort((a, b) => (a.start || 0) - (b.start || 0));
+        ttFileName = 'changes in the controller';
+      }
+
+      function editTtRow(idx, change) {
+        ensureTtRows();
+        const row = ttRows[idx];
+        if (!row) return;
+        Object.assign(row, change);
+        renderTimetable();
+      }
+
+      // ── Item modal: edit a row, or add one (idx = null, preset = { kind, start, showOn }) ──
+      let tteIdx = null, tteKind = 'content';
+
+      function setTteKind(kind) {
+        tteKind = kind;
+        document.querySelector('#tt-edit-modal .tte-form').classList.toggle('kind-content', kind === 'content');
+        document.querySelectorAll('#tte-kind button').forEach(b => b.classList.toggle('active', b.dataset.kind === kind));
+        document.getElementById('tte-start-label').textContent = kind === 'content' ? 'From' : 'Session starts';
+        document.getElementById('tte-title-label').textContent = kind === 'content' ? 'Name (only shown here, in the planner)' : 'Title';
+        document.getElementById('tte-title').placeholder = kind === 'content' ? 'e.g. Sponsor loop' : 'e.g. Next sessions start';
+        const heading = document.getElementById('tte-heading');
+        heading.textContent = (tteIdx == null ? 'Add ' : 'Edit ') + (kind === 'content' ? 'content' : 'countdown');
+      }
+
+      function renderTteContent(type, value) {
+        const box = document.getElementById('tte-content-picker');
+        const select = (items, empty) => `<select id="tte-content-value" style="flex:1; min-width:0;"><option value="">${empty}</option>` +
+          items.map(([v, label]) => `<option value="${escHtml(v)}"${v === value ? ' selected' : ''}>${escHtml(label)}</option>`).join('') + '</select>';
+        const lib = video => Object.values(libraryItems).filter(i => (i.mediaType === 'video') === video)
+          .sort((a, b) => ((a.folder || '') + a.name).localeCompare((b.folder || '') + b.name))
+          .map(i => [i.url, (i.folder ? i.folder + '/' : '') + i.name]);
+        const keep = items => value && !items.some(([v]) => v === value) ? items.concat([[value, contentLabel({ type, value })]]) : items;
+        if (type === 'image') {
+          box.innerHTML = (value ? `<img src="${escHtml(value)}" alt="" style="width:54px; height:30px; object-fit:cover; border-radius:4px; flex-shrink:0;">` : '') +
+            select(keep(lib(false)), '— Pick an image from the Library —');
+        } else if (type === 'video') {
+          box.innerHTML = select(keep(lib(true)), '— Pick a video from the Library —');
+        } else if (type === 'slideshow') {
+          const presets = Object.values(snap_presets_cache).sort((a, b) => a.name.localeCompare(b.name))
+            .map(p => [p.id, `${p.name} (${p.images.length} images, ${p.interval / 1000}s)`]);
+          box.innerHTML = select(presets, presets.length ? '— Pick a saved slideshow —' : 'No saved slideshows yet: save one on the Slideshow page');
+        } else if (type === 'template') {
+          const tpls = Object.values(snap_templates_cache).sort((a, b) => a.name.localeCompare(b.name)).map(t => [t.id, t.name]);
+          box.innerHTML = select(tpls, tpls.length ? '— Pick a template —' : 'No templates yet');
+        } else if (type === 'html') {
+          box.innerHTML = `<textarea id="tte-content-value" rows="7" spellcheck="false" placeholder="<!DOCTYPE html>… or paste a snippet; it fills the whole screen" style="flex:1; min-width:0; font-family:ui-monospace,Menlo,monospace; font-size:0.78rem;">${escHtml(value || '')}</textarea>`;
+        } else if (type === 'color') {
+          box.innerHTML = `<input id="tte-content-value" type="color" value="${escHtml(value || '#14162a')}" style="width:70px; height:40px; padding:2px;">`;
+        } else {
+          box.innerHTML = `<input id="tte-content-value" type="url" value="${escHtml(value || '')}" placeholder="https://…" style="flex:1; min-width:0;">`;
+        }
+      }
+
+      function openTtEdit(idx, preset = {}) {
+        const rows = currentTtRows();
+        const r = idx == null ? null : rows[idx];
+        tteIdx = idx;
+        const kind = r ? (r.kind === 'content' ? 'content' : 'session') : preset.kind || 'content';
+        let start = r ? r.start : preset.start;
+        if (!start) {
+          // Next quarter hour on the day shown in the planner
+          const now = Date.now();
+          start = Math.ceil((now + 60000) / 900000) * 900000;
+          if (plDay && plDay !== dayKey(now)) start = dayStart(plDay) + 9 * 3600000;
+        }
+        document.getElementById('tte-delete-btn').style.display = r ? '' : 'none';
+        document.getElementById('tte-start').value = localInput(start);
+        document.getElementById('tte-until').value = localInput(r && r.until || start + 3600000);
+        const showOn = String((r && r.showOn) || preset.showOn || 'all').split(',');
+        const targets = [...new Set([...groupNames(), ...Object.keys(groupsCurrent)])].sort().map(g => 'group:' + g)
+          .concat(Object.keys(screens).sort().map(s => 'screen:' + s));
+        showOn.filter(t => t !== 'all' && !targets.includes(t)).forEach(t => targets.push(t)); // e.g. a screen that is offline now
+        const box = (value, label) => `<label style="display:flex; flex-direction:row; align-items:center; gap:6px; text-transform:none; letter-spacing:normal; font-weight:400; color:var(--text);">` +
+          `<input type="checkbox" value="${escHtml(value)}"${showOn.includes(value) ? ' checked' : ''} style="width:auto;">${escHtml(label)}</label>`;
+        document.getElementById('tte-targets').innerHTML = box('all', 'All screens') + targets.map(t => box(t, showOnLabel(t))).join('');
+        syncTteTargets();
+        document.getElementById('tte-title').value = (r && r.title) || '';
+        document.getElementById('tte-subtitle').value = (r && r.subtitle) || '';
+        document.getElementById('tte-clock-min').value = r && kind === 'session' ? r.clockMin ?? 5 : 5;
+        document.getElementById('tte-bar-min').value = r && kind === 'session' ? r.barMin ?? 0 : 15;
+        document.getElementById('tte-bar-text').value = (r && r.barText) || '';
+        document.getElementById('tte-starting-min').value = r && r.startingMin != null ? r.startingMin : '';
+        document.getElementById('tte-bar-done-min').value = r && r.barDoneMin != null ? r.barDoneMin : '';
+        document.getElementById('tte-bar-done-text').value = (r && r.barDoneText) || '';
+        const content = (r && r.content) || { type: 'image', value: '' };
+        document.getElementById('tte-content-type').value = content.type;
+        renderTteContent(content.type, content.value);
+        const tr = r && r.transition;
+        document.getElementById('tte-tr-type').value = tr ? tr.type : '';
+        document.getElementById('tte-tr-duration').value = tr ? tr.duration : (readTtLook().transition || {}).duration ?? 0.8;
+        syncTteTransition();
+        setTteKind(kind);
+        document.getElementById('tt-edit-modal').classList.remove('hidden');
+        document.getElementById('tte-title').focus();
+      }
+
+      // "All screens" switches the separate groups/screens off
+      function syncTteTargets() {
+        const boxes = [...document.querySelectorAll('#tte-targets input')];
+        const all = boxes[0].checked;
+        boxes.slice(1).forEach(b => { b.disabled = all; b.parentElement.style.opacity = all ? 0.45 : 1; });
+      }
+
+      // "Schedule default" and "None" have no duration of their own
+      function syncTteTransition() {
+        const type = document.getElementById('tte-tr-type').value;
+        document.getElementById('tte-tr-duration').disabled = !type || type === 'none';
+      }
+
+      function closeTtEdit() {
+        document.getElementById('tt-edit-modal').classList.add('hidden');
+      }
+
+      function applyTtEdit() {
+        const start = new Date(document.getElementById('tte-start').value).getTime();
+        if (isNaN(start)) { showToast('Pick a start date and time', true); return; }
+        const boxes = [...document.querySelectorAll('#tte-targets input')];
+        const picked = boxes[0].checked ? ['all'] : boxes.slice(1).filter(b => b.checked).map(b => b.value);
+        if (!picked.length) { showToast('Pick where to show it: all screens, a group or a screen', true); return; }
+        const trType = document.getElementById('tte-tr-type').value;
+        const transition = trType ? { type: trType, duration: trDuration(document.getElementById('tte-tr-duration').value) } : null;
+        const title = document.getElementById('tte-title').value.trim();
+        let row;
+        if (tteKind === 'content') {
+          const until = new Date(document.getElementById('tte-until').value).getTime();
+          if (isNaN(until) || until <= start) { showToast('"Until" must be after "From"', true); return; }
+          const type = document.getElementById('tte-content-type').value;
+          const value = document.getElementById('tte-content-value').value.trim();
+          if (!value) { showToast('Pick what to show', true); return; }
+          if (type === 'url' && !/^https?:\/\//i.test(value)) { showToast('The website must start with http:// or https://', true); return; }
+          row = { kind: 'content', start, until, showOn: picked.join(','), title, content: { type, value }, transition, error: null };
+        } else {
+          const min = (id, dflt) => {
+            const v = document.getElementById(id).value.trim();
+            return v === '' ? dflt : Math.max(0, Number(v) || 0);
+          };
+          row = Object.assign({
+            kind: 'session', start, showOn: picked.join(','), title,
+            subtitle: document.getElementById('tte-subtitle').value.trim(),
+            clockMin: min('tte-clock-min', 5),
+            barMin: min('tte-bar-min', 0),
+            barText: document.getElementById('tte-bar-text').value.trim(),
+            startingMin: min('tte-starting-min', null),
+            barDoneMin: min('tte-bar-done-min', null),
+            barDoneText: document.getElementById('tte-bar-done-text').value.trim() || null,
+            transition, error: null
+          });
+        }
+        ensureTtRows();
+        if (tteIdx == null) ttRows.push(row);
+        else ttRows[tteIdx] = row;
+        plDay = dayKey(start);
+        closeTtEdit();
+        renderTimetable();
+      }
+
+      // ── Planner: day chips, timeline (a column per target) and list ──
+      let plDay = null, plView = 'timeline', plScrolledDay = null, plLaneSig = '';
+
+      // Compare looks without the empty values Firebase leaves out
+      function lookSig(look) {
+        const canon = v => v && typeof v === 'object'
+          ? '{' + Object.keys(v).sort().filter(k => v[k] != null && v[k] !== '').map(k => k + ':' + canon(v[k])).join(',') + '}'
+          : JSON.stringify(v);
+        const norm = Object.assign({}, look, { bgImage: null, bgColor: null,
+          overlay: Object.assign({ position: 'bottom-left', size: 'medium' }, (look || {}).overlay) });
+        return canon(norm);
+      }
+
+      function plLanes(dayRows) {
+        const lanes = ['all'];
+        [...new Set([...groupNames(), ...Object.keys(groupsCurrent)])].sort().forEach(g => lanes.push('group:' + g));
+        const used = new Set();
+        dayRows.forEach(r => String(r.showOn || 'all').split(',').forEach(t => used.add(t)));
+        [...used].filter(t => t.startsWith('group:') && !lanes.includes(t)).sort().forEach(t => lanes.push(t));
+        [...used].filter(t => t.startsWith('screen:')).sort().forEach(t => lanes.push(t));
+        return lanes;
+      }
+
+      // Groups and screens come and go: only redraw the planner when its columns change
+      function refreshPlannerLanes() {
+        if (!timetable && !ttRows) return;
+        const sig = plLanes([]).join('|');
+        if (sig !== plLaneSig) renderTimetable();
+      }
+
+      function laneHead(t) {
+        if (t === 'all') return `🖥 All screens <span class="tt-muted">${Object.keys(screens).length || ''}</span>`;
+        if (t.startsWith('group:')) {
+          const n = Object.values(screens).filter(s => s.group === t.slice(6)).length;
+          return `📁 ${escHtml(t.slice(6))} <span class="tt-muted">${n} screen${n === 1 ? '' : 's'}</span>`;
+        }
+        return `▫ ${escHtml(t.slice(7))}`;
+      }
+
+      // Time the block takes in the timeline: clock and bar for a session, from–until for content
+      function blockSpan(r, it) {
+        if (r.kind === 'content') return [r.start, r.until];
+        return [Math.min(it.clockFrom || r.start, it.barFrom || r.start),
+                Math.max(it.clockUntil || r.start, it.barUntil || r.start, r.start + 60000)];
+      }
+
+      // Calendar-style columns for blocks that overlap (each gets .col and .cols)
+      function packBlocks(blocks) {
+        let cluster = [], bottom = -Infinity;
+        const flush = () => { const n = Math.max(...cluster.map(b => b.col)) + 1; cluster.forEach(b => b.cols = n); cluster = []; };
+        blocks.sort((a, b) => a.top - b.top || b.bottom - a.bottom).forEach(b => {
+          if (cluster.length && b.top >= bottom) flush();
+          const ends = [];
+          cluster.forEach(c => ends[c.col] = Math.max(ends[c.col] ?? -Infinity, c.bottom));
+          let col = 0;
+          while (ends[col] != null && ends[col] > b.top) col++;
+          b.col = col;
+          cluster.push(b);
+          bottom = cluster.length === 1 ? b.bottom : Math.max(bottom, b.bottom);
+        });
+        if (cluster.length) flush();
+        return blocks;
+      }
+
+      function renderPlannerDays(rows) {
+        const today = dayKey(Date.now());
+        const counts = {};
+        rows.filter(r => !r.error && r.start).forEach(r => { const k = dayKey(r.start); counts[k] = (counts[k] || 0) + 1; });
+        const days = [...new Set([...Object.keys(counts), today])].sort();
+        if (!plDay || !days.includes(plDay)) {
+          plDay = counts[today] ? today : days.find(d => d > today && counts[d]) || days.filter(d => counts[d]).pop() || today;
+        }
+        document.getElementById('pl-days').innerHTML = days.map(d => {
+          const date = new Date(dayStart(d));
+          const label = date.toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: '2-digit' });
+          return `<button class="pl-day${d === plDay ? ' active' : ''}${d === today ? ' today' : ''}" data-day="${d}">` +
+            `${d === today ? 'Today · ' : ''}${escHtml(label)}<span class="n">${counts[d] || 0}</span></button>`;
+        }).join('');
+      }
+
+      function renderTimeline(rows, look) {
+        const el = document.getElementById('pl-timeline');
+        const day0 = dayStart(plDay), day1 = day0 + 86400000;
+        const now = Date.now();
+        const items = rows.map((r, idx) => ({ r, idx })).filter(({ r }) => !r.error && r.start && dayKey(r.start) === plDay)
+          .map(x => Object.assign(x, { it: ttItemFromRow(x.r, look) }))
+          .map(x => Object.assign(x, { span: blockSpan(x.r, x.it) }));
+        const lanes = plLanes(items.map(x => x.r));
+        plLaneSig = plLanes([]).join('|');
+
+        // Hours shown: what's planned, at least 08:00–18:00 when the day is empty
+        const hour = 3600000;
+        let from = items.length ? Math.min(...items.map(x => x.span[0])) : day0 + 8 * hour;
+        let to = items.length ? Math.max(...items.map(x => x.span[1])) : day0 + 18 * hour;
+        from = Math.max(day0, Math.floor((from - 15 * 60000 - day0) / hour) * hour + day0);
+        to = Math.min(day1, Math.ceil((to + 15 * 60000 - day0) / hour) * hour + day0);
+        if (to - from < 4 * hour) to = Math.min(day1, from + 4 * hour);
+        const ppm = Number(document.getElementById('pl-zoom').value) || 2;
+        const y = ts => (Math.min(Math.max(ts, from), to) - from) / 60000 * ppm;
+        const height = y(to);
+
+        let grid = '';
+        for (let t = from; t <= to; t += hour / 2) {
+          const full = (t - day0) % hour === 0;
+          grid += `<div class="pl-hline${full ? '' : ' half'}" style="top:${y(t)}px;"></div>`;
+        }
+        const hours = [];
+        for (let t = from; t <= to; t += hour) hours.push(`<div class="pl-hour" style="top:${Math.max(7, Math.min(height - 7, y(t)))}px;">${hm(t)}</div>`);
+
+        // What a lane gets from above: a group gets "all", a screen gets "all" and its group
+        const inherits = lane => lane === 'all' ? [] : lane.startsWith('group:') ? ['all']
+          : ['all'].concat((screens[lane.slice(7)] || {}).group ? ['group:' + screens[lane.slice(7)].group] : []);
+        const laneHtml = lanes.map(lane => {
+          const targets = x => String(x.r.showOn || 'all').split(',');
+          const toBlock = ghost => x => {
+            const top = y(x.span[0]);
+            return Object.assign({}, x, { ghost, top, bottom: Math.max(top + 28, y(x.span[1])) });
+          };
+          const mine = items.filter(x => targets(x).includes(lane)).map(toBlock(false));
+          const up = inherits(lane);
+          const inherited = items.filter(x => !targets(x).includes(lane) && targets(x).some(t => up.includes(t))).map(toBlock(true));
+          const ghostContent = packBlocks(inherited.filter(b => b.r.kind === 'content'));
+          const content = packBlocks(mine.filter(b => b.r.kind === 'content'));
+          const sessions = packBlocks(mine.concat(inherited).filter(b => b.r.kind !== 'content'));
+          // Countdowns sit on top of the content, indented so the content underneath stays visible
+          const inset = content.length || ghostContent.length ? 22 : 3;
+          return `<div class="pl-lane" data-lane="${escHtml(lane)}" style="height:${height}px;">` +
+            ghostContent.map(b => blockHtml(b, 3, 3)).join('') + content.map(b => blockHtml(b, 3, 3)).join('') +
+            sessions.map(b => blockHtml(b, inset, 3)).join('') + '</div>';
+        }).join('');
+
+        function blockHtml(b, left, right) {
+          const { r, it, idx } = b;
+          const h = b.bottom - b.top;
+          const past = b.span[1] < now, live = b.span[0] <= now && now < b.span[1];
+          const w = `calc((100% - ${left + right}px) / ${b.cols})`;
+          const pos = `top:${b.top}px; height:${h}px; left:calc(${left}px + ${w} * ${b.col}); width:calc(${w} - 3px);`;
+          const own = r.transition ? `<span class="pl-chip" title="Own transition">✨ ${escHtml(transitionLabel(r.transition))}</span>` : '';
+          const cls = `pl-block ${r.kind === 'content' ? 'content' : 'session'}${b.ghost ? ' ghost' : ''}${past ? ' past' : ''}${live ? ' live' : ''}`;
+          const from = b.ghost ? ' · from ' + showOnLabel(r.showOn) : '';
+          if (r.kind === 'content') {
+            const thumb = contentThumb(r.content);
+            const label = contentLabel(r.content);
+            const tip = `${hm(r.start)}–${hm(r.until)} · ${CONTENT_TYPES[r.content.type] || ''}: ${label}${r.title ? ' · ' + r.title : ''}${from}`;
+            return `<div class="${cls}" data-idx="${idx}" style="${pos}" title="${escHtml(tip)}">
+              <div class="pl-block-text">${thumb ? `<img src="${escHtml(thumb)}" alt="">` : r.content.type === 'color' ? `<i style="width:19px; height:19px; border-radius:3px; flex-shrink:0; background:${escHtml(r.content.value)};"></i>` : ''}
+                <div class="t"><span class="title"><b>${hm(r.start)}–${hm(r.until)}</b>${escHtml(r.title || label)}</span>
+                ${h >= 44 ? `<span class="sub">${escHtml((CONTENT_TYPES[r.content.type] || '') + (r.title ? ' · ' + label : ''))}</span>` : ''}
+                ${h >= 62 && own ? `<span class="sub">${own}</span>` : ''}</div>
+              </div></div>`;
+          }
+          const rel = ts => Math.max(0, y(ts) - b.top);
+          const clock = it.clockFrom ? `<div class="pl-block-clock" style="top:${rel(it.clockFrom)}px; height:${Math.max(2, y(it.clockUntil) - y(it.clockFrom))}px;"></div>` : '';
+          const bar = it.barFrom ? `<div class="pl-block-bar" style="top:${rel(it.barFrom)}px; height:${Math.max(2, y(it.barUntil) - y(it.barFrom))}px;"></div>` : '';
+          const chips = (it.clockFrom ? `<span class="pl-chip">⏱ ${r.clockMin}′</span>` : '') + (it.barFrom ? `<span class="pl-chip">▬ ${r.barMin}′</span>` : '') + own;
+          const tip = `${hm(r.start)} · ${r.title || '(no title)'}${r.subtitle ? ' · ' + r.subtitle : ''}\n` +
+            (it.clockFrom ? `Clock ${hm(it.clockFrom)}–${hm(it.clockUntil)}` : 'No clock') + ' · ' + (it.barFrom ? `bar ${hm(it.barFrom)}–${hm(it.barUntil)}` : 'no bar') +
+            `\nTransition: ${r.transition ? transitionLabel(r.transition) : 'default'}${from}`;
+          return `<div class="${cls}" data-idx="${idx}" style="${pos}" title="${escHtml(tip)}">${clock}${bar}
+            <div class="pl-block-start" style="top:${rel(r.start)}px;"></div>
+            <div class="pl-block-text">
+              <div class="t"><span class="title"><b>${hm(r.start)}</b>⏱ ${escHtml(r.title || '(no title)')}</span>
+              ${h >= 44 ? `<span class="sub">${escHtml(r.subtitle || '')}${r.subtitle && chips ? ' · ' : ''}${chips}</span>` : ''}</div>
+            </div></div>`;
+        }
+
+        const nowLine = now >= from && now <= to ? `<div class="pl-now" style="top:${y(now)}px;" title="Now ${hm(now)}"></div>` : '';
+        const scroll = el.scrollTop;
+        el.innerHTML = `<div class="pl-head"><div class="pl-gutter"></div>${lanes.map(l => `<div class="pl-lane-head" title="${escHtml(showOnLabel(l))}">${laneHead(l)}</div>`).join('')}</div>` +
+          `<div class="pl-body" data-from="${from}" data-ppm="${ppm}"><div class="pl-hours" style="height:${height}px;">${hours.join('')}</div>${grid}${laneHtml}${nowLine}</div>` +
+          (items.length ? '' : `<div class="pl-empty" style="position:sticky; left:0;">Nothing planned on this day yet.<br>Click in a column to add something at that time, or use <strong>🖼 Add content</strong> / <strong>⏱ Add countdown</strong>.</div>`);
+        // Keep the scroll position; on a newly opened day, scroll to now (today) or the first item
+        if (plScrolledDay === plDay) el.scrollTop = scroll;
+        else {
+          plScrolledDay = plDay;
+          const focus = now >= from && now <= to ? now : items.length ? Math.min(...items.map(x => x.span[0])) : from;
+          el.scrollTop = Math.max(0, y(focus) - 80);
+        }
+      }
+
+      function renderPlannerList(rows, look) {
+        const table = document.getElementById('tt-table');
+        const now = Date.now();
+        const dayRows = rows.map((r, idx) => ({ r, idx })).filter(({ r }) => !r.error && r.start && dayKey(r.start) === plDay);
+        if (!dayRows.length) { table.innerHTML = `<tr><td class="pl-empty">Nothing planned on this day yet.</td></tr>`; return; }
+        table.innerHTML = `<tr><th></th><th>Time</th><th>What</th><th>Show on</th><th>Title</th><th>Content</th><th>Countdown</th><th>Bar</th><th>Transition</th><th></th></tr>` +
+          dayRows.map(({ r, idx }) => {
+            const it = ttItemFromRow(r, look);
+            const span = blockSpan(r, it);
+            const past = span[1] < now, live = span[0] <= now && now < span[1];
+            const edit = `<td><button class="tt-edit-btn" data-idx="${idx}" title="Edit" style="background:transparent; border:1px solid var(--border); color:var(--text); padding:4px 8px; font-size:0.8rem;">✏️</button></td>`;
+            const tr = `<td style="white-space:nowrap;">${r.transition ? '✨ ' + escHtml(transitionLabel(r.transition)) : '<span class="tt-muted">default</span>'}</td>`;
+            const status = `<td>${past ? '✓' : live ? '●' : ''}</td>`;
+            const cls = `${past ? 'tt-past' : ''}${live ? ' tt-live' : ''}`;
+            if (r.kind === 'content') {
+              const thumb = contentThumb(r.content);
+              return `<tr class="${cls}">${status}
+                <td style="white-space:nowrap;">${hm(r.start)}–${hm(r.until)}</td>
+                <td style="white-space:nowrap;">${CONTENT_TYPES[r.content.type] || ''}</td>
+                <td style="white-space:nowrap;">${escHtml(showOnLabel(r.showOn))}</td>
+                <td>${escHtml(r.title || '')}</td>
+                <td>${thumb ? `<img src="${escHtml(thumb)}" alt="" style="width:40px; height:23px; object-fit:cover; border-radius:3px; vertical-align:middle; margin-right:6px;">` : ''}${escHtml(contentLabel(r.content))}${it.show ? '' : ' <span style="color:var(--danger);">· not found</span>'}</td>
+                <td colspan="2" class="tt-muted">shows the whole time</td>${tr}${edit}</tr>`;
+            }
+            return `<tr class="${cls}">${status}
+              <td style="white-space:nowrap;">${hm(r.start)}</td>
+              <td style="white-space:nowrap;">⏱ Countdown</td>
+              <td style="white-space:nowrap;">${escHtml(showOnLabel(r.showOn))}</td>
+              <td>${escHtml(r.title || '')}${r.subtitle ? `<br><span class="tt-muted">${escHtml(r.subtitle)}</span>` : ''}</td>
+              <td class="tt-muted">on top of the content</td>
+              <td style="white-space:nowrap;">${it.clockFrom ? hm(it.clockFrom) + '–' + hm(it.clockUntil) : '<span class="tt-muted">none</span>'}</td>
+              <td>${it.barFrom ? `<span style="white-space:nowrap;">${hm(it.barFrom)}–${hm(it.barUntil)}</span><br><span class="tt-muted">${escHtml(it.text)}${it.doneText ? ' → ' + escHtml(it.doneText) : ''}</span>` : '<span class="tt-muted">no bar</span>'}</td>
+              ${tr}${edit}</tr>`;
+          }).join('');
+      }
+
+      function renderTimetable() {
+        const enabled = !!(timetable && timetable.enabled);
+        const badge = document.getElementById('tt-status-badge');
+        badge.textContent = enabled ? 'Running on the screens' : 'Off';
+        badge.classList.toggle('off', !enabled);
+        const toggle = document.getElementById('tt-toggle-btn');
+        toggle.textContent = enabled ? 'Turn off' : 'Turn on';
+        toggle.style.background = enabled ? 'var(--danger)' : '';
+        toggle.disabled = !timetable;
+
+        const rows = currentTtRows();
+        const look = readTtLook();
+        const now = Date.now();
+        const lookChanged = !!timetable && lookSig(look) !== lookSig(timetable.look);
+        const dirty = !!ttRows || lookChanged;
+        const info = document.getElementById('tt-info');
+        const bad = rows.filter(r => r.error);
+        const good = rows.length - bad.length;
+        if (ttRows) {
+          info.innerHTML = `<strong style="color:#f0a500;">Not saved yet</strong> · ${good} item${good === 1 ? '' : 's'} from ${escHtml(ttFileName)}` +
+            (bad.length ? ` · <span style="color:var(--danger);">${bad.length} row${bad.length > 1 ? 's' : ''} with errors will be skipped</span>` : '');
+        } else if (timetable) {
+          const next = rows.find(r => r.start > now);
+          info.innerHTML = (lookChanged ? `<strong style="color:#f0a500;">Defaults changed, not saved yet</strong> · ` : 'Saved · ') +
+            `${rows.length} item${rows.length === 1 ? '' : 's'}` +
+            escHtml(next ? ` · next: ${fmtTime(next.start)} ${next.title || (next.kind === 'content' ? contentLabel(next.content) : '')}` : ' · nothing upcoming');
+        } else {
+          info.textContent = 'Nothing planned yet. Add content or a countdown, or upload an Excel file.';
+        }
+        document.getElementById('pl-savebar').classList.toggle('dirty', dirty);
+        // Unsaved edits that removed every row can still be saved (= empty schedule)
+        document.getElementById('tt-save-btn').disabled = !(dirty || rows.some(r => !r.error)) || (!ttRows && !lookChanged);
+        const clear = document.getElementById('tt-clear-btn');
+        clear.textContent = ttRows ? '↶ Discard changes' : '🗑 Clear schedule';
+        clear.disabled = !ttRows && !timetable;
+
+        document.getElementById('tt-errors').innerHTML = bad.map(r =>
+          `<div>✗ Row ${r.line}: ${escHtml(r.error)}${r.title ? ' · ' + escHtml(r.title) : ''}` +
+          `<button class="tt-del-btn" data-idx="${rows.indexOf(r)}" title="Remove row">🗑 Remove</button></div>`).join('');
+
+        renderPlannerDays(rows);
+        document.querySelectorAll('#pl-view button').forEach(b => b.classList.toggle('active', b.dataset.view === plView));
+        document.getElementById('pl-timeline').style.display = plView === 'timeline' ? '' : 'none';
+        document.getElementById('pl-list').style.display = plView === 'list' ? '' : 'none';
+        document.getElementById('pl-zoom').style.display = plView === 'timeline' ? '' : 'none';
+        document.getElementById('pl-legend').style.display = plView === 'timeline' ? '' : 'none';
+        if (plView === 'timeline') renderTimeline(rows, look);
+        else renderPlannerList(rows, look);
+      }
+
+      // The old Schedule page (signage/schedule): daily slots that only ran while the controller was open
+      let oldSlots = {};
+      function renderOldSlots() {
+        const card = document.getElementById('pl-old-slots');
+        const n = Object.keys(oldSlots).length;
+        card.style.display = n ? '' : 'none';
+        if (!n) return;
+        const day = new Date(dayStart(plDay || dayKey(Date.now()))).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+        card.innerHTML = `<div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+          <span style="flex:1; min-width:260px; font-size:0.85rem; line-height:1.6;">🗂 There ${n === 1 ? 'is 1 time slot' : `are ${n} time slots`} from the old Schedule page.
+            Those only ran while the controller was open. Import them as content on <strong>${escHtml(day)}</strong> to let the screens run them by themselves.</span>
+          <button id="pl-old-import" class="btn-primary" style="padding:9px 16px; font-size:0.82rem;">Import</button>
+          <button id="pl-old-delete" class="pl-btn">Delete old slots</button></div>`;
+        document.getElementById('pl-old-import').addEventListener('click', () => {
+          const d0 = dayStart(plDay);
+          const at = hhmm => { const [h, m] = String(hhmm || '0:0').split(':').map(Number); return d0 + (h * 60 + m) * 60000; };
+          const imported = Object.values(oldSlots).filter(s => s.content).map(s => {
+            const start = at(s.startTime);
+            let until = at(s.endTime);
+            if (until <= start) until += 86400000;
+            return { kind: 'content', start, until, showOn: 'all', title: s.name || '', content: { type: s.type, value: s.content }, transition: null, error: null };
+          });
+          if (!imported.length) { showToast('The old slots have no content to import', true); return; }
+          ensureTtRows();
+          ttRows.push(...imported);
+          renderTimetable();
+          showToast(`${imported.length} slot${imported.length > 1 ? 's' : ''} imported. Check them and press Save to screens.`);
+        });
+        document.getElementById('pl-old-delete').addEventListener('click', () => {
+          if (!confirm('Delete the slots of the old Schedule page? Anything you imported stays.')) return;
+          db.ref('signage/schedule').remove().catch(err => showToast('Error: ' + err.message, true));
+        });
+      }
+
+      (() => {
+        document.getElementById('tt-template-btn').addEventListener('click', async () => {
+          try {
+            const XLSX = await loadXlsx();
+            const t = new Date(); t.setDate(t.getDate() + 1);
+            const day = (Date.UTC(t.getFullYear(), t.getMonth(), t.getDate()) - Date.UTC(1899, 11, 30)) / 86400000;
+            const D = { t: 'n', v: day, z: 'dd/mm/yyyy' };
+            const T = (h, m) => ({ t: 'n', v: (h * 60 + m) / 1440, z: 'hh:mm' });
+            const group = groupNames()[0] || 'Partners';
+            const screen = Object.keys(screens).sort()[0] || 'lobby-right';
+            const libImage = (Object.values(libraryItems).find(i => i.mediaType !== 'video') || {}).name || 'https://example.com/keynote.jpg';
+            const ws = XLSX.utils.aoa_to_sheet([
+              ['Date', 'Start', 'Show on', 'Title', 'Speaker / room', 'Countdown (min before)', 'Progress bar (min before)', 'Bar text',
+               'Starting now (min)', 'Bar when full (min)', 'Bar text when full', 'Transition'],
+              [D, T(9, 0), 'all', 'Keynote', 'Jane Doe · Hall A', 5, 30, 'Keynote starts in {countdown}', 2, 2, 'The keynote has started', 'black 1.5'],
+              [D, T(10, 30), group, 'Next sessions start', 'Room 3 · Room 5', 5, 15, '{title} in {countdown}', '', '', '', 'push 0.6'],
+              [D, T(10, 30), screen, 'Securing your APIs', 'Ann Peeters · Room 5', 5, '', ''],
+              [D, T(12, 30), 'all', 'Lunch', '', 0, 20, 'Lunch is served in {countdown}', '', 0, '']
+            ]);
+            ws['!cols'] = [12, 8, 16, 34, 26, 22, 24, 34, 18, 18, 28, 14].map(wch => ({ wch }));
+            const help = XLSX.utils.aoa_to_sheet([
+              ['Column', 'What to fill in'],
+              ['Date', 'Day of the session, e.g. 24/10/2026'],
+              ['Start', 'Start time of the session, e.g. 10:30'],
+              ['Show on', '"all", a group name (e.g. ' + group + ') or a screen name (e.g. ' + screen + '). Several: separate them with commas, e.g. "' + group + ', ' + screen + '". Write group:name or screen:name if the group or screen does not exist yet.'],
+              ['Title', 'Session title, shown in the countdown'],
+              ['Speaker / room', 'Shown under the title in the countdown (optional)'],
+              ['Countdown (min before)', 'How many minutes before the start the countdown appears on top of the content. Empty = 5, 0 = no countdown. It stays until "Starting now (min)" after the start.'],
+              ['Progress bar (min before)', 'How many minutes before the start the progress bar starts running. Empty or 0 = no bar.'],
+              ['Bar text', 'Text inside the bar (optional). {countdown} = time left, {title} = session title. Empty = "Next session starts in {countdown}".'],
+              ['Starting now (min)', 'Optional. How long the "Starting now" text stays after the start, then the countdown disappears. Empty = the default on the Schedule page (1), 0 = go back at once.'],
+              ['Bar when full (min)', 'Optional. How long the full bar stays after the start. Empty = the default on the Schedule page (1), 0 = remove it at once.'],
+              ['Bar text when full', 'Optional. Text in the bar once it is full, e.g. "The keynote has started". Empty = the default on the Schedule page.'],
+              ['Transition', 'Optional. Not used for countdowns (they sit on top of the content); kept for older files: fade, black (fade through black), push, up, wipe, zoom or none, optionally with seconds, e.g. "push 0.6". Empty = the default transition on the Schedule page.'],
+              [],
+              ['Tip', 'Keep the column names in row 1. Add as many rows as you like; the first sheet ("Sessions") is read. Uploading replaces the countdowns; content you added in the planner stays. Add the content itself (images, videos, slideshows, HTML…) in the planner.']
+            ]);
+            help['!cols'] = [{ wch: 26 }, { wch: 110 }];
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Sessions');
+            XLSX.utils.book_append_sheet(wb, help, 'Instructions');
+            XLSX.writeFile(wb, 'timetable-template.xlsx');
+          } catch (err) { showToast('Error: ' + err.message, true); }
+        });
+
+        document.querySelectorAll('#panel-timetable .cd-form input, #panel-timetable .cd-form select').forEach(i =>
+          i.addEventListener('change', renderTimetable));
+        document.getElementById('pl-days').addEventListener('click', e => {
+          const b = e.target.closest('.pl-day');
+          if (!b) return;
+          plDay = b.dataset.day;
+          renderTimetable();
+          renderOldSlots();
+        });
+        document.getElementById('pl-view').addEventListener('click', e => {
+          const b = e.target.closest('button');
+          if (!b) return;
+          plView = b.dataset.view;
+          renderTimetable();
+        });
+        document.getElementById('pl-zoom').addEventListener('change', () => { plScrolledDay = null; renderTimetable(); });
+        document.getElementById('pl-timeline').addEventListener('click', e => {
+          const block = e.target.closest('.pl-block');
+          if (block) { openTtEdit(Number(block.dataset.idx)); return; }
+          const lane = e.target.closest('.pl-lane');
+          if (!lane) return;
+          // Click in a column: add at that time (rounded to 5 minutes) for that target
+          const body = lane.closest('.pl-body');
+          const min = (e.clientY - lane.getBoundingClientRect().top) / Number(body.dataset.ppm);
+          const start = Number(body.dataset.from) + Math.round(min / 5) * 5 * 60000;
+          openTtEdit(null, { start, showOn: lane.dataset.lane });
+        });
+        document.getElementById('tt-table').addEventListener('click', e => {
+          const btn = e.target.closest('.tt-edit-btn');
+          if (btn) openTtEdit(Number(btn.dataset.idx));
+        });
+        document.getElementById('tt-errors').addEventListener('click', e => {
+          const btn = e.target.closest('.tt-del-btn');
+          if (!btn) return;
+          ensureTtRows();
+          ttRows.splice(Number(btn.dataset.idx), 1);
+          renderTimetable();
+        });
+
+        document.getElementById('tt-add-btn').addEventListener('click', () => openTtEdit(null, { kind: 'session' }));
+        document.getElementById('pl-add-content-btn').addEventListener('click', () => openTtEdit(null, { kind: 'content' }));
+        document.getElementById('tte-kind').addEventListener('click', e => {
+          const b = e.target.closest('button');
+          if (b) setTteKind(b.dataset.kind);
+        });
+        document.getElementById('tte-content-type').addEventListener('change', e => renderTteContent(e.target.value, ''));
+        document.getElementById('tte-content-picker').addEventListener('change', e => {
+          if (document.getElementById('tte-content-type').value === 'image') renderTteContent('image', e.target.value);
+        });
+        document.getElementById('tte-tr-type').addEventListener('change', syncTteTransition);
+        document.getElementById('tte-targets').addEventListener('change', syncTteTargets);
+        document.getElementById('tte-apply-btn').addEventListener('click', applyTtEdit);
+        document.getElementById('tte-cancel-btn').addEventListener('click', closeTtEdit);
+        document.getElementById('tte-close-btn').addEventListener('click', closeTtEdit);
+        document.getElementById('tte-delete-btn').addEventListener('click', () => {
+          if (tteIdx == null || !confirm('Remove this from the schedule?')) return;
+          ensureTtRows();
+          ttRows.splice(tteIdx, 1);
+          closeTtEdit();
+          renderTimetable();
+        });
+        document.getElementById('tt-tr-all-btn').addEventListener('click', () => {
+          const own = currentTtRows().filter(r => r.transition).length;
+          if (!own) { showToast('Every item already uses the default transition'); return; }
+          ensureTtRows();
+          ttRows.forEach(r => { r.transition = null; });
+          renderTimetable();
+          showToast(`${own} item${own > 1 ? 's' : ''} now use${own > 1 ? '' : 's'} the default transition. Press Save to screens.`);
+        });
+        document.getElementById('tt-upload-btn').addEventListener('click', () => document.getElementById('tt-file-input').click());
+        document.getElementById('tt-file-input').addEventListener('change', async e => {
+          const file = e.target.files[0];
+          e.target.value = '';
+          if (!file) return;
+          try {
+            const XLSX = await loadXlsx();
+            const parsed = parseTimetableSheet(XLSX, await file.arrayBuffer());
+            if (!parsed.length) { showToast('No sessions found in the file', true); return; }
+            // The file replaces the sessions; content planned here stays
+            const content = currentTtRows().filter(r => r.kind === 'content' && !r.error).map(r => Object.assign({}, r));
+            ttRows = parsed.concat(content);
+            ttFileName = file.name;
+            const first = parsed.find(r => !r.error && r.start);
+            if (first) plDay = dayKey(first.start);
+            showToast(`${parsed.length} row${parsed.length > 1 ? 's' : ''} read${content.length ? `, ${content.length} content item${content.length > 1 ? 's' : ''} kept` : ''}. Check them and press Save to screens.`);
+            renderTimetable();
+          } catch (err) { showToast('Could not read the file: ' + err.message, true); }
+        });
+
+        document.getElementById('tt-save-btn').addEventListener('click', () => {
+          const look = readTtLook();
+          const rows = currentTtRows().filter(r => !r.error);
+          const items = {};
+          const missing = [];
+          rows.forEach((r, i) => {
+            const item = ttItemFromRow(r, look);
+            if (item.kind === 'content' && !item.show) { missing.push(r.title || contentLabel(r.content)); return; }
+            items['s' + String(i).padStart(3, '0')] = item;
+          });
+          if (missing.length && !confirm(`${missing.length} content item${missing.length > 1 ? 's' : ''} can't be found any more (${missing.join(', ')}) and will be skipped. Save the rest?`)) return;
+          const n = Object.keys(items).length;
+          db.ref('signage/timetable').set({ enabled: timetable ? timetable.enabled !== false : true, look, items, updatedAt: Date.now() })
+            .then(() => { ttRows = null; showToast(`Schedule saved: ${n} item${n === 1 ? '' : 's'}`); })
+            .catch(err => showToast('Error: ' + err.message, true));
+        });
+
+        document.getElementById('tt-toggle-btn').addEventListener('click', () => {
+          if (!timetable) return;
+          const turnOn = !timetable.enabled;
+          db.ref('signage/timetable/enabled').set(turnOn)
+            .then(() => {
+              const n = overriddenScreens().length;
+              if (turnOn && n && confirm(`${n} screen${n > 1 ? 's show' : ' shows'} something that was sent by hand, which overrides the schedule. Switch every screen to the schedule now?`))
+                backToSchedule('all');
+            })
+            .catch(err => showToast('Error: ' + err.message, true));
+        });
+
+        document.getElementById('tt-clear-btn').addEventListener('click', () => {
+          if (ttRows) { ttRows = null; if (timetable) applyTtLook(timetable.look); renderTimetable(); return; }
+          if (!timetable || !confirm('Remove the whole schedule from all screens?')) return;
+          db.ref('signage/timetable').remove()
+            .then(() => showToast('Schedule removed'))
+            .catch(err => showToast('Error: ' + err.message, true));
+        });
+
+        db.ref('signage/timetable').on('value', snap => {
+          timetable = snap.val();
+          if (timetable && !ttRows) applyTtLook(timetable.look);
+          renderTimetable();
+          renderScreensOverview(true);
+        });
+        db.ref('signage/schedule').on('value', snap => {
+          oldSlots = snap.val() || {};
+          renderOldSlots();
+        });
+        // Keep the "now" line and the live/past markers current
+        setInterval(() => {
+          const panel = document.getElementById('panel-timetable');
+          if (panel.classList.contains('active') && !document.getElementById('pl-list').contains(document.activeElement)) renderTimetable();
+        }, 30000);
+      })();
+
       db.ref('signage/imageLibrary').on('value', snap => {
         const items = snap.val() || {};
+        fillLibrarySelect(document.getElementById('cd-bg-image'), items, 'No image');
         populateFallbackLibrarySelect(items);
         fillLibrarySelect(document.getElementById('bg-image-select'), items, '🖼 No BG image');
         fillLibrarySelect(document.getElementById('logo-library-select'), items, '— Pick logo from library —');
@@ -2384,41 +4515,109 @@
         return VIDEO_EXTS.includes(ext) ? 'video' : 'image';
       }
 
+      // Turns share links into links an <img>/<video> can load directly
+      function directUrl(url) {
+        try {
+          const u = new URL(url);
+          if (/(^|\.)dropbox\.com$/.test(u.hostname) && u.hostname !== 'dl.dropboxusercontent.com') {
+            u.searchParams.delete('dl');
+            u.searchParams.set('raw', '1');
+            return u.toString();
+          }
+        } catch (e) {}
+        return url;
+      }
+
       function addUrlToLibrary(url, name, folder) {
+        url = directUrl(url);
         const mediaType = mediaTypeOf(url);
         return db.ref('signage/imageLibrary').push().then(ref =>
           ref.set({ id: ref.key, name: name || url.split('/').pop().split('?')[0] || mediaType,
                     url, folder: folder || null, mediaType, createdAt: Date.now() }));
       }
 
-      // Adds every file listed in src/imgs/manifest.json (generated by GitHub Pages) that isn't in the library yet
-      function syncFromGitHub() {
-        const btn = document.getElementById('lib-sync-btn');
-        btn.disabled = true;
-        btn.textContent = '⏳ Syncing…';
-        fetch(IMAGES_BASE + 'manifest.json', { cache: 'no-store' })
-          .then(res => { if (!res.ok) throw new Error('manifest.json not found (HTTP ' + res.status + ')'); return res.json(); })
-          .then(files => {
-            const known = new Set(Object.values(libraryItems).map(i => i.url));
-            const added = files
-              .filter(f => MEDIA_EXTS.includes(f.path.split('.').pop().toLowerCase()))
-              .map(f => ({ ...f, url: IMAGES_BASE + f.path.split('/').map(encodeURIComponent).join('/') }))
-              .filter(f => !known.has(f.url));
-            return Promise.all(added.map(f => {
-              const parts = f.path.split('/');
-              const name = parts.pop();
-              return addUrlToLibrary(f.url, name, parts.join('/'));
-            })).then(() => added.length);
-          })
-          .then(count => showToast(count ? `${count} new file${count > 1 ? 's' : ''} added` : 'Library is up to date'))
-          .catch(err => showToast('Sync failed: ' + err.message, true))
-          .finally(() => { btn.disabled = false; btn.textContent = '🔄 Sync from GitHub'; });
+      function storageUrl(path) {
+        return SUPABASE_URL + '/storage/v1/object/' + path.split('/').map(encodeURIComponent).join('/');
       }
 
-      document.getElementById('lib-sync-btn').addEventListener('click', syncFromGitHub);
-      document.getElementById('lib-upload-link').href = GITHUB_UPLOAD_URL;
+      // Uploads one file to Supabase Storage (XHR for progress) and resolves with its storage path
+      function uploadToSupabase(file, folder, onProgress) {
+        const safeName = file.name.replace(/[^\w.\- ]+/g, '_');
+        const path = (folder ? folder + '/' : '') + Date.now() + '_' + safeName;
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', storageUrl(SUPABASE_BUCKET + '/' + path));
+          xhr.setRequestHeader('apikey', SUPABASE_KEY);
+          xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+          xhr.setRequestHeader('x-upsert', 'false');
+          xhr.upload.onprogress = e => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) return resolve(path);
+            let msg = 'HTTP ' + xhr.status;
+            try { msg = JSON.parse(xhr.responseText).message || msg; } catch (e) {}
+            reject(new Error(msg));
+          };
+          xhr.onerror = () => reject(new Error('Network error'));
+          xhr.send(file);
+        });
+      }
+
+      function deleteFromSupabase(paths) {
+        if (!paths.length) return Promise.resolve();
+        return fetch(storageUrl(SUPABASE_BUCKET), {
+          method: 'DELETE',
+          headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prefixes: paths })
+        }).catch(() => {});
+      }
+
+      async function uploadFilesToLibrary(files) {
+        files = [...files].filter(f => /^(image|video)\//.test(f.type));
+        if (!files.length) { showToast('Only images and videos can be uploaded', true); return; }
+        const zone = document.getElementById('lib-drop-zone');
+        const bar = document.getElementById('lib-progress-bar');
+        const fill = document.getElementById('lib-progress-fill');
+        const folder = document.getElementById('lib-upload-folder').value.trim().replace(/[^\w\- ]+/g, '-').replace(/^-+|-+$/g, '');
+        zone.classList.add('uploading');
+        bar.style.display = 'block';
+        let done = 0, failed = 0;
+        for (const file of files) {
+          zone.textContent = `Uploading ${done + failed + 1} of ${files.length}: ${file.name}`;
+          try {
+            const path = await uploadToSupabase(file, folder, p => fill.style.width = ((done + failed + p) / files.length * 100) + '%');
+            const ref = db.ref('signage/imageLibrary').push();
+            await ref.set({ id: ref.key, name: file.name, url: storageUrl('public/' + SUPABASE_BUCKET + '/' + path),
+                            storagePath: path, folder: folder || null,
+                            mediaType: file.type.startsWith('video/') ? 'video' : 'image', createdAt: Date.now() });
+            done++;
+          } catch (err) {
+            failed++;
+            showToast(`Upload failed (${file.name}): ${err.message}`, true);
+          }
+        }
+        zone.classList.remove('uploading');
+        zone.innerHTML = '⬆ Drop images or videos here, or click to upload<input type="file" id="lib-file-input" accept="image/*,video/*" multiple hidden>';
+        bar.style.display = 'none';
+        fill.style.width = '0';
+        if (done) showToast(`${done} file${done > 1 ? 's' : ''} uploaded` + (failed ? `, ${failed} failed` : ''));
+      }
+
+      (() => {
+        const zone = document.getElementById('lib-drop-zone');
+        zone.addEventListener('click', e => { if (e.target === zone && !zone.classList.contains('uploading')) document.getElementById('lib-file-input').click(); });
+        zone.addEventListener('change', e => { if (e.target.id === 'lib-file-input') { uploadFilesToLibrary(e.target.files); } });
+        zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+        zone.addEventListener('drop', e => {
+          e.preventDefault();
+          zone.classList.remove('drag-over');
+          if (!zone.classList.contains('uploading')) uploadFilesToLibrary(e.dataTransfer.files);
+        });
+      })();
 
       function deleteLibraryImage(id) {
+        const item = libraryItems[id];
+        if (item && item.storagePath) deleteFromSupabase([item.storagePath]);
         db.ref('signage/imageLibrary/' + id).remove();
         showToast('Image removed');
       }
@@ -2426,7 +4625,8 @@
       document.getElementById('lib-clear-all-btn').addEventListener('click', () => {
         const items = Object.values(libraryItems);
         if (items.length === 0) { showToast('Library is already empty', true); return; }
-        if (!confirm('Remove all ' + items.length + ' items from the library?\n(Files on GitHub are not deleted.)')) return;
+        if (!confirm('Remove all ' + items.length + ' items from the library?\n(Uploaded files are deleted too.)')) return;
+        deleteFromSupabase(items.map(i => i.storagePath).filter(Boolean));
         db.ref('signage/imageLibrary').remove()
           .then(() => showToast('Library cleared'))
           .catch(err => showToast('Error: ' + err.message, true));
@@ -2446,6 +4646,7 @@
         sel.innerHTML = '<option value="">📁 All folders</option>' +
           folders.map(f => `<option value="${escHtml(f)}">📁 ${escHtml(f)}</option>`).join('');
         sel.value = libFolderFilter;
+        document.getElementById('lib-folder-options').innerHTML = folders.map(f => `<option value="${escHtml(f)}">`).join('');
       }
 
       function renderLibraryGrid(items) {
@@ -2483,16 +4684,18 @@
       }
 
       document.getElementById('lib-url-add-btn').addEventListener('click', () => {
-        const url = document.getElementById('lib-url-input').value.trim();
-        if (!url) return;
-        addUrlToLibrary(url).then(() => showToast((mediaTypeOf(url) === 'video' ? 'Video' : 'Image') + ' added to library!'));
+        const urls = document.getElementById('lib-url-input').value.split(/\s+/).filter(u => /^https?:\/\//.test(u));
+        if (!urls.length) { showToast('Paste at least one http(s) link', true); return; }
+        Promise.all(urls.map(u => addUrlToLibrary(u)))
+          .then(() => showToast(urls.length === 1 ? 'Added to library!' : `${urls.length} items added to library!`))
+          .catch(err => showToast('Error: ' + err.message, true));
         document.getElementById('lib-url-input').value = '';
       });
 
       db.ref('signage/imageLibrary').on('value', snap => {
         libraryItems = snap.val() || {};
         renderLibraryGrid(libraryItems);
-        renderScheduleList(scheduleSlots);
+        renderTimetable();
       });
 
       // ─── SLIDESHOW ────────────────────────────────────────────────────────────
@@ -2629,272 +4832,15 @@
       db.ref('signage/slideshowPresets').on('value', snap => {
         snap_presets_cache = snap.val() || {};
         renderSlideshowPresets(snap_presets_cache);
-        renderScheduleList(scheduleSlots);
+        renderTimetable();
       });
-
-      // ─── SCHEDULE ─────────────────────────────────────────────────────────────
-
-      let scheduleSlots = {};
-      let scheduleActive = false;
-      let schedulePoller = null;
-      let lastPushedSlotId = null;
-
-      function startSchedulePoller() {
-        scheduleActive = true;
-        lastPushedSlotId = null;
-        document.getElementById('schedule-active-badge').classList.remove('off');
-        document.getElementById('schedule-active-label').textContent = 'Active';
-        document.getElementById('toggle-schedule-btn').textContent = 'Deactivate';
-        document.getElementById('toggle-schedule-btn').style.background = 'var(--danger)';
-        if (schedulePoller) clearInterval(schedulePoller);
-        checkScheduleNow();
-        schedulePoller = setInterval(checkScheduleNow, 30000);
-      }
-
-      function stopSchedulePoller() {
-        scheduleActive = false;
-        document.getElementById('schedule-active-badge').classList.add('off');
-        document.getElementById('schedule-active-label').textContent = 'Inactive';
-        document.getElementById('toggle-schedule-btn').textContent = 'Activate';
-        document.getElementById('toggle-schedule-btn').style.background = '';
-        if (schedulePoller) { clearInterval(schedulePoller); schedulePoller = null; }
-      }
-
-      // Stop schedule whenever anything is pushed manually
-      onManualPush = () => {
-        if (scheduleActive) {
-          stopSchedulePoller();
-          showToast('Schedule deactivated');
-        }
-      };
-
-      function timeToMinutes(hhmm) {
-        const [h, m] = hhmm.split(':').map(Number);
-        return h * 60 + m;
-      }
-
-      function checkScheduleNow() {
-        const now = new Date();
-        const currentMin = now.getHours() * 60 + now.getMinutes();
-        const slots = Object.values(scheduleSlots).filter(s => s.enabled);
-        const active = slots.find(s => {
-          const start = timeToMinutes(s.startTime);
-          const end = timeToMinutes(s.endTime);
-          return currentMin >= start && currentMin < end;
-        });
-        if (active && active.id !== lastPushedSlotId) {
-          lastPushedSlotId = active.id;
-          pushSlotContent(active);
-        }
-      }
-
-      function pushSlotContent(slot) {
-        if (!slot.content) { showToast('Schedule: "' + slot.name + '" has no content set', true); return; }
-
-        // The schedule always targets all screens, whatever "Send to" is set to
-        if (slot.type === 'image') {
-          pushImage(slot.content, 'all');
-          showToast('Schedule: ' + slot.name);
-        } else if (slot.type === 'video') {
-          pushVideo(slot.content, 'all');
-          showToast('Schedule: ' + slot.name);
-        } else if (slot.type === 'slideshow') {
-          const preset = snap_presets_cache[slot.content];
-          if (!preset) { showToast('Schedule: slideshow preset not found', true); return; }
-          if (onManualPush) onManualPush();
-          currentRef('all').set({ mode: 'slideshow', images: preset.images, interval: preset.interval, updatedAt: Date.now() })
-            .then(() => showToast('Schedule: ' + slot.name));
-        } else if (slot.type === 'url') {
-          push(slot.content, 'iframe', 'all');
-          showToast('Schedule: ' + slot.name);
-        } else if (slot.type === 'template') {
-          db.ref('signage/templates/' + slot.content).once('value').then(snap => {
-            const tpl = snap.val();
-            if (!tpl) { showToast('Schedule: template not found', true); return; }
-            currentRef('all').set({ mode: 'html', html: tpl.content, updatedAt: Date.now() })
-              .then(() => showToast('Schedule: ' + slot.name));
-          });
-        }
-      }
-
-      function buildContentPicker(type, content) {
-        if (type === 'image') {
-          const items = Object.values(libraryItems).filter(i => i.mediaType !== 'video').sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-          const opts = items.map(item =>
-            `<option value="${escHtml(item.url)}" ${content === item.url ? 'selected' : ''}>${escHtml(item.name)}</option>`
-          ).join('');
-          const selected = items.find(i => i.url === content);
-          const thumbSrc = selected ? escHtml(selected.url) : '';
-          return `
-            <img class="slot-thumb" src="${thumbSrc}" alt="">
-            <select class="slot-content-picker">
-              <option value="">— Select image from library —</option>
-              ${opts}
-            </select>
-          `;
-        } else if (type === 'video') {
-          const items = Object.values(libraryItems).filter(i => i.mediaType === 'video').sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-          const opts = items.map(item =>
-            `<option value="${escHtml(item.url)}" ${content === item.url ? 'selected' : ''}>${escHtml(item.name)}</option>`
-          ).join('');
-          return `
-            <select class="slot-content-picker" style="flex:1;">
-              <option value="">— Select video from library —</option>
-              ${opts}
-            </select>
-          `;
-        } else if (type === 'slideshow') {
-          const presets = Object.values(snap_presets_cache || {}).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-          const opts = presets.map(p =>
-            `<option value="${escHtml(p.id)}" ${content === p.id ? 'selected' : ''}>${escHtml(p.name)} (${p.images.length} imgs, ${p.interval/1000}s)</option>`
-          ).join('');
-          return `
-            <select class="slot-content-picker" style="flex:1;">
-              <option value="">— Select slideshow preset —</option>
-              ${opts}
-            </select>
-          `;
-        } else if (type === 'template') {
-          const tpls = Object.values(snap_templates_cache || {}).sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-          const opts = tpls.map(t =>
-            `<option value="${escHtml(t.id)}" ${content === t.id ? 'selected' : ''}>${escHtml(t.name)}</option>`
-          ).join('');
-          return `
-            <select class="slot-content-picker" style="flex:1;">
-              <option value="">— Select HTML template —</option>
-              ${opts}
-            </select>
-          `;
-        } else {
-          return `<input type="url" class="slot-content-picker" value="${escHtml(content)}" placeholder="https://...">`;
-        }
-      }
-
-      function renderScheduleList(slots) {
-        const list = document.getElementById('schedule-list');
-        const empty = document.getElementById('schedule-empty');
-        list.innerHTML = '';
-        const arr = Object.values(slots).sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
-        empty.style.display = arr.length === 0 ? '' : 'none';
-
-        arr.forEach(slot => {
-          const div = document.createElement('div');
-          div.className = 'schedule-slot' + (slot.enabled ? '' : ' disabled');
-
-          div.innerHTML = `
-            <div class="slot-top-row">
-              <div class="slot-time">
-                <input type="time" class="slot-start" value="${escHtml(slot.startTime)}">
-                <span class="slot-sep">→</span>
-                <input type="time" class="slot-end" value="${escHtml(slot.endTime)}">
-              </div>
-              <input type="text" class="slot-name-input" value="${escHtml(slot.name)}" placeholder="Slot name">
-              <select class="slot-type-select">
-                <option value="image"     ${slot.type==='image'     ?'selected':''}>🖼 Image</option>
-                <option value="video"     ${slot.type==='video'     ?'selected':''}>🎬 Video</option>
-                <option value="slideshow" ${slot.type==='slideshow' ?'selected':''}>▶ Slideshow</option>
-                <option value="template"  ${slot.type==='template'  ?'selected':''}>📝 Template</option>
-                <option value="url"       ${slot.type==='url'       ?'selected':''}>🔗 URL</option>
-              </select>
-              <label class="toggle-switch" style="flex-shrink:0; margin-left:auto;">
-                <input type="checkbox" class="slot-enable-toggle" ${slot.enabled ? 'checked' : ''}>
-                <span class="toggle-slider"></span>
-              </label>
-              <button class="slot-del-btn" title="Delete">🗑</button>
-            </div>
-            <div class="slot-content-row">${buildContentPicker(slot.type, slot.content)}</div>
-          `;
-
-          const save = () => {
-            const picker = div.querySelector('.slot-content-picker');
-            db.ref('signage/schedule/' + slot.id).set({
-              id: slot.id,
-              name: div.querySelector('.slot-name-input').value.trim() || 'Untitled',
-              startTime: div.querySelector('.slot-start').value,
-              endTime: div.querySelector('.slot-end').value,
-              type: div.querySelector('.slot-type-select').value,
-              content: picker ? picker.value.trim() : '',
-              enabled: div.querySelector('.slot-enable-toggle').checked
-            });
-          };
-
-          const wirePicker = () => {
-            const picker = div.querySelector('.slot-content-picker');
-            if (!picker) return;
-            if (picker.tagName === 'SELECT') {
-              picker.addEventListener('change', () => {
-                // Update thumbnail when image is selected
-                const thumb = div.querySelector('.slot-thumb');
-                if (thumb) thumb.src = picker.value;
-                save();
-              });
-            } else {
-              picker.addEventListener('blur', save);
-              picker.addEventListener('keydown', e => { if (e.key === 'Enter') save(); });
-            }
-          };
-
-          wirePicker();
-
-          div.querySelector('.slot-type-select').addEventListener('change', () => {
-            const newType = div.querySelector('.slot-type-select').value;
-            div.querySelector('.slot-content-row').innerHTML = buildContentPicker(newType, '');
-            wirePicker();
-            save();
-          });
-
-          div.querySelectorAll('input[type="time"], .slot-name-input').forEach(el =>
-            el.addEventListener('change', save));
-
-          div.querySelector('.slot-enable-toggle').addEventListener('change', e => {
-            div.classList.toggle('disabled', !e.target.checked);
-            save();
-          });
-
-          div.querySelector('.slot-del-btn').addEventListener('click', () => {
-            if (!confirm('Delete this slot?')) return;
-            db.ref('signage/schedule/' + slot.id).remove();
-          });
-
-          list.appendChild(div);
-        });
-      }
 
       let snap_templates_cache = {};
-
-      document.getElementById('add-slot-btn').addEventListener('click', () => {
-        const pad = n => String(n).padStart(2, '0');
-        const minsToHhmm = m => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
-
-        // Start after the latest end time; fall back to current time
-        const existing = Object.values(scheduleSlots);
-        let startMins;
-        if (existing.length > 0) {
-          startMins = Math.max(...existing.map(s => timeToMinutes(s.endTime)));
-        } else {
-          const now = new Date();
-          startMins = now.getHours() * 60 + now.getMinutes();
-        }
-        const endMins = Math.min(startMins + 60, 23 * 60 + 59);
-
-        db.ref('signage/schedule').push().then(ref => {
-          ref.set({ id: ref.key, name: 'New slot', startTime: minsToHhmm(startMins), endTime: minsToHhmm(endMins), type: 'url', content: '', enabled: false });
-        });
-      });
-
-      document.getElementById('toggle-schedule-btn').addEventListener('click', () => {
-        if (scheduleActive) stopSchedulePoller(); else startSchedulePoller();
-      });
-
-      db.ref('signage/schedule').on('value', snap => {
-        scheduleSlots = snap.val() || {};
-        renderScheduleList(scheduleSlots);
-      });
 
       db.ref('signage/templates').on('value', snap => {
         snap_templates_cache = snap.val() || {};
         renderTemplates(Object.values(snap_templates_cache));
-        renderScheduleList(scheduleSlots);
+        renderTimetable();
       });
     } else {
       renderRecent();
