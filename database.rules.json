@@ -1,0 +1,21 @@
+{
+  "rules": {
+    "signage": {
+      ".read": true,
+      ".write": "auth != null && root.child('signage_admins').child(auth.uid).val() === true",
+      "screens": {
+        "$screen": {
+          "presence": {
+            ".write": true,
+            ".validate": "newData.hasChildren(['online', 'lastSeen']) && newData.child('online').isBoolean() && newData.child('lastSeen').isNumber() && newData.child('lastSeen').val() <= now"
+          }
+        }
+      }
+    },
+    "signage_admins": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid"
+      }
+    }
+  }
+}

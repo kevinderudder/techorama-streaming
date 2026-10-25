@@ -1334,6 +1334,25 @@
     .tt-table tr:nth-child(even) td { background: var(--panel-2); }
     .tt-table tr:hover td { background: rgba(var(--tint),0.035); }
 
+    /* === LOGIN === */
+    #login { position: fixed; inset: 0; z-index: 2900; display: none; align-items: center; justify-content: center; padding: 16px; background: var(--bg); }
+    #login.show { display: flex; }
+    #login-form { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 10px; padding: 26px 24px;
+      background: var(--panel); border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 8px 30px rgba(var(--tint),0.08); }
+    #login-form h1 { font-size: 1.1rem; margin: 0; }
+    #login-form p { margin: 0 0 6px; color: var(--muted); font-size: 0.84rem; }
+    #login-form label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    #login-form input { width: 100%; margin-top: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text);
+      font: inherit; font-size: 0.92rem; padding: 9px 12px; outline: none; }
+    #login-form input:focus { border-color: var(--accent); }
+    #login-form button { margin-top: 6px; }
+    #login-error { color: var(--danger); font-size: 0.82rem; }
+    #login-error:empty { display: none; }
+    #account { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--muted); min-width: 0; }
+    #account-email { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #logout-btn { padding: 3px 8px; font-size: 0.75rem; font-weight: 500; background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    #logout-btn:hover { color: var(--text); }
+
     /* === RESPONSIVE === */
     @media (max-width: 768px) {
       #sidebar { width: 60px; }
@@ -1354,7 +1373,7 @@
 <body>
 
   <!-- LEFT SIDEBAR -->
-  <nav id="sidebar">
+  <nav id="sidebar" inert>
     <div id="sidebar-header">
       <span id="sidebar-logo">📺</span>
       <span id="sidebar-title">Signage</span>
@@ -1417,6 +1436,7 @@
         <button data-theme="">Auto</button><button data-theme="light">☀ Light</button><button data-theme="dark">☾ Dark</button>
       </div>
       <button id="blank-btn">⬛ Blank Screens</button>
+      <div id="account"><span id="account-email"></span><button id="logout-btn">Sign out</button></div>
       <div id="connection-badge">
         <div id="conn-dot"></div>
         <span id="conn-label">Connecting…</span>
@@ -1425,7 +1445,7 @@
   </nav>
 
   <!-- MAIN CONTENT -->
-  <div id="main-content">
+  <div id="main-content" inert>
     <div id="live-status">
       <span id="live-label">📺 Currently on screens:</span>
       <strong id="live-url">—</strong>
@@ -2179,8 +2199,21 @@
   <!-- TOAST NOTIFICATION -->
   <div id="toast">Pushed!</div>
 
+  <!-- Login: the database rules only accept changes from accounts listed under signage_admins -->
+  <div id="login" class="show">
+    <form id="login-form">
+      <h1>📺 Signage</h1>
+      <p>Sign in to control the screens.</p>
+      <label>E-mail<input id="login-email" type="email" autocomplete="username" required></label>
+      <label>Password<input id="login-password" type="password" autocomplete="current-password" required></label>
+      <div id="login-error"></div>
+      <button type="submit" id="login-btn" class="btn-primary">Sign in</button>
+    </form>
+  </div>
+
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <script>
@@ -2220,10 +2253,34 @@
     const warningEl = document.getElementById('setup-banner');
     let db = null;
     // Uploaded images & videos live in Supabase Storage (Firebase Storage needs a paid plan).
-    // Publishable key = safe in the browser; the bucket's policies only allow access to "signage".
+    // Publishable key = safe in the browser; uploading/deleting needs a signed-in Supabase user
+    // (same e-mail and password as the controller login, see supabase-signage.sql).
     const SUPABASE_URL = 'https://phyzrybcvlopamscplwo.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_uPp1YH3fd_4-lv7IKzv8Tg_-P5o8LmO';
     const SUPABASE_BUCKET = 'signage';
+
+    let supaSession = null;
+    try { supaSession = JSON.parse(localStorage.getItem('signage_supa') || 'null'); } catch (e) {}
+    function saveSupaSession(s) {
+      supaSession = s ? { access_token: s.access_token, refresh_token: s.refresh_token,
+                          expires_at: s.expires_at || Math.floor(Date.now() / 1000) + (s.expires_in || 3600) } : null;
+      try { s ? localStorage.setItem('signage_supa', JSON.stringify(supaSession)) : localStorage.removeItem('signage_supa'); } catch (e) {}
+    }
+    async function supaSignIn(grant, body) {
+      const res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=' + grant, {
+        method: 'POST', headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error_description || json.msg || json.message || 'HTTP ' + res.status);
+      saveSupaSession(json);
+    }
+    // Headers for Storage requests; refreshes the session when it (almost) expired
+    async function supaHeaders() {
+      if (supaSession && supaSession.expires_at - 60 < Date.now() / 1000) {
+        try { await supaSignIn('refresh_token', { refresh_token: supaSession.refresh_token }); } catch (e) { saveSupaSession(null); }
+      }
+      if (!supaSession) throw new Error('Not signed in to the media storage: sign out and sign in again');
+      return { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + supaSession.access_token };
+    }
 
     // Push target: 'all', 'group:<name>' or 'screen:<id>' (receiver.html?screen=<id>)
     let pushTarget = 'all';
@@ -2596,6 +2653,55 @@
       warningEl.classList.add('hidden');
       firebase.initializeApp(firebaseConfig);
       db = firebase.database();
+
+      // ─── LOGIN ────────────────────────────────────────────────────────────────
+      // The overlay only hides the app; the real protection is database.rules.json
+      // (writes need an account listed under signage_admins/<uid>).
+      (() => {
+        const auth = firebase.auth();
+        const loginEl = document.getElementById('login');
+        const errEl = document.getElementById('login-error');
+        const lock = locked => {
+          loginEl.classList.toggle('show', locked);
+          ['sidebar', 'main-content'].forEach(id => document.getElementById(id).inert = locked);
+        };
+
+        auth.onAuthStateChanged(async user => {
+          document.getElementById('account-email').textContent = user ? user.email : '';
+          if (!user) { saveSupaSession(null); lock(true); return; }
+          const allowed = await db.ref('signage_admins/' + user.uid).once('value').then(s => s.val() === true).catch(() => false);
+          if (!allowed) {
+            errEl.textContent = `${user.email} has no access yet. Add signage_admins/${user.uid} = true in the database.`;
+            auth.signOut();
+            return;
+          }
+          errEl.textContent = '';
+          lock(false);
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async e => {
+          e.preventDefault();
+          const btn = document.getElementById('login-btn');
+          const email = document.getElementById('login-email').value.trim();
+          const pwEl = document.getElementById('login-password');
+          const password = pwEl.value;
+          btn.disabled = true;
+          errEl.textContent = '';
+          try {
+            await auth.signInWithEmailAndPassword(email, password);
+            pwEl.value = '';
+            // Same account in Supabase for uploads; the controller still works without it
+            await supaSignIn('password', { email, password })
+              .catch(err => showToast('Uploads unavailable (media storage login: ' + err.message + ')', true));
+          } catch (err) {
+            errEl.textContent = /wrong-password|user-not-found|invalid-email|invalid-login/.test(err.code || '')
+              ? 'Wrong e-mail or password' : err.message;
+          }
+          btn.disabled = false;
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+      })();
 
       db.ref('.info/connected').on('value', snap => {
         const connDot = document.getElementById('conn-dot');
@@ -4541,13 +4647,14 @@ tick();setInterval(tick,250);
       }
 
       // Uploads one file to Supabase Storage (XHR for progress) and resolves with its storage path
-      function uploadToSupabase(file, folder, onProgress) {
+      async function uploadToSupabase(file, folder, onProgress) {
         const safeName = file.name.replace(/[^\w.\- ]+/g, '_');
         const path = (folder ? folder + '/' : '') + Date.now() + '_' + safeName;
+        const headers = await supaHeaders();
         return new Promise((resolve, reject) => {
           const xhr = new XMLHttpRequest();
           xhr.open('POST', storageUrl(SUPABASE_BUCKET + '/' + path));
-          xhr.setRequestHeader('apikey', SUPABASE_KEY);
+          Object.entries(headers).forEach(([k, v]) => xhr.setRequestHeader(k, v));
           xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
           xhr.setRequestHeader('x-upsert', 'false');
           xhr.upload.onprogress = e => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
@@ -4564,11 +4671,11 @@ tick();setInterval(tick,250);
 
       function deleteFromSupabase(paths) {
         if (!paths.length) return Promise.resolve();
-        return fetch(storageUrl(SUPABASE_BUCKET), {
+        return supaHeaders().then(headers => fetch(storageUrl(SUPABASE_BUCKET), {
           method: 'DELETE',
-          headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+          headers: { ...headers, 'Content-Type': 'application/json' },
           body: JSON.stringify({ prefixes: paths })
-        }).catch(() => {});
+        })).catch(() => {});
       }
 
       async function uploadFilesToLibrary(files) {
