@@ -162,6 +162,8 @@
     #clock-overlay.size-small  { font-size: 22px; }
     #clock-overlay.size-medium { font-size: 36px; }
     #clock-overlay.size-large  { font-size: 60px; }
+    /* A countdown replaces the clock while it is on screen */
+    body.has-countdown #clock-overlay { display: none !important; }
 
     /* Progress bar overlay */
     #progress-overlay {
@@ -513,11 +515,23 @@
         }
       }
 
+      // Seconds left as "4:32", or "5 min" when the schedule's look says minutes only (rounded up)
+      function formatLeft(secs) {
+        const pad = n => String(n).padStart(2, '0');
+        if (((timetable && timetable.look) || {}).countdownFormat === 'min') {
+          const mins = Math.ceil(secs / 60);
+          return mins >= 60 ? Math.floor(mins / 60) + ' h ' + pad(mins % 60) + ' min' : mins + ' min';
+        }
+        const h = Math.floor(secs / 3600), m = Math.floor(secs % 3600 / 60);
+        return (h ? h + ':' + pad(m) : m) + ':' + pad(secs % 60);
+      }
+
       const countdownEl = document.getElementById('countdown-overlay');
       let countdownTimer = null;
       function renderCountdown() {
         clearInterval(countdownTimer);
         const s = ttOverlay;
+        document.body.classList.toggle('has-countdown', !!s);
         if (!s) { countdownEl.style.display = 'none'; return; }
         const look = (timetable && timetable.look) || {};
         const ov = look.overlay || {};
@@ -526,13 +540,11 @@
         countdownEl.querySelector('.co-sub').textContent = s.subtitle || '';
         const timeEl = countdownEl.querySelector('.co-time');
         const done = look.doneText ?? 'Starting now';
-        const pad = n => String(n).padStart(2, '0');
         const tick = () => {
           const left = Math.ceil((s.start - Date.now()) / 1000);
           if (left <= 0) { timeEl.textContent = done; timeEl.style.display = done ? '' : 'none'; return; }
-          const h = Math.floor(left / 3600), m = Math.floor(left % 3600 / 60), sec = left % 60;
           timeEl.style.display = '';
-          timeEl.innerHTML = '<span class="co-in">Starts in</span>' + (h ? h + ':' + pad(m) : m) + ':' + pad(sec);
+          timeEl.innerHTML = '<span class="co-in">Starts in</span>' + formatLeft(left);
         };
         tick();
         countdownTimer = setInterval(tick, 250);
@@ -577,7 +589,6 @@
         countdownEl.style.setProperty('--bar', (p.position === 'top' ? 0 : height) + 'px');
         progressText.style.fontSize = Math.max(14, Math.round(height * 0.5)) + 'px';
         progressText.style.justifyContent = { center: 'center', right: 'flex-end' }[p.align] || 'flex-start';
-        const pad = n => String(n).padStart(2, '0');
         const tick = () => {
           const now = Date.now();
           // Keep the full bar for doneMin after the time is reached, then hide it
@@ -585,8 +596,7 @@
           const pct = Math.min(100, Math.max(0, (p.target > p.startedAt ? (now - p.startedAt) / (p.target - p.startedAt) : 1) * 100));
           progressFill.style.width = pct + '%';
           const s = Math.max(0, Math.ceil((p.target - now) / 1000));
-          const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
-          const left = (h ? h + ':' + pad(m) : m) + ':' + pad(sec);
+          const left = formatLeft(s);
           progressText.textContent = now >= p.target && p.doneText ? p.doneText : (p.text || '').replace(/\{countdown\}/g, left);
           progressEl.style.display = 'flex';
         };
@@ -710,7 +720,8 @@
             const wasShowing = curLayer === ssLayer;
             if (slideshowTimer) { clearInterval(slideshowTimer); slideshowTimer = null; }
             let idx = 1;
-            ssTransition = data.transition || null;
+            // Between the images: the slideshow's own transition, else the item's, else Settings
+            ssTransition = data.slideTransition || data.transition || null;
             if (wasShowing) showSlide(images[0]); // new slideshow: transition like any other image
             else {
               ssImgA.src = images[0];

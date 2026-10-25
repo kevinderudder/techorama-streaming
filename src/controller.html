@@ -1076,6 +1076,12 @@
     .lib-move-btn { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 7px; padding: 5px 14px; font-size: 0.78rem; cursor: pointer; width: 110px; }
     .lib-move-btn:hover { background: rgba(255,255,255,0.15); }
 
+    #ss-now-thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+    .ss-now-thumb { position: relative; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: #0a0c14; }
+    .ss-now-thumb img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+    .ss-now-thumb span { position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 5px; font-size: 0.66rem; color: #fff; background: rgba(0,0,0,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ss-now-thumb b { position: absolute; top: 4px; left: 4px; font-size: 0.65rem; color: #fff; background: rgba(0,0,0,0.7); border-radius: 4px; padding: 1px 5px; }
+
     #lib-folder-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 14px; }
     .lib-folder-chip { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 0.8rem; cursor: pointer; }
     .lib-folder-chip:hover { border-color: var(--accent); }
@@ -1544,6 +1550,14 @@
         <h1 class="panel-title">Slideshow</h1>
       </div>
 
+      <div class="card" id="ss-now-card" style="display:none;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+          <h2 style="margin-bottom:0; flex:1;">▶ Now playing <span id="ss-now-where" class="tt-muted" style="font-weight:400; font-size:0.8rem;"></span></h2>
+          <button id="ss-now-load-btn" style="padding:6px 12px; font-size:0.8rem;">✎ Edit these images</button>
+        </div>
+        <div id="ss-now-thumbs"></div>
+      </div>
+
       <div class="card">
         <h2>Interval</h2>
         <div style="display:flex; gap:8px;">
@@ -1552,6 +1566,21 @@
           <button class="interval-btn" data-ms="60000">1 min</button>
           <button class="interval-btn" data-ms="120000">2 min</button>
           <button class="interval-btn" data-ms="300000">5 min</button>
+        </div>
+        <h2 style="margin-top:16px;">Transition between images</h2>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <select id="ss-tr-type" style="max-width:240px;">
+            <option value="">Same as Settings</option>
+            <option value="fade">Fade</option>
+            <option value="black">Fade through black</option>
+            <option value="push">Push (from the right)</option>
+            <option value="up">Slide up</option>
+            <option value="wipe">Wipe</option>
+            <option value="zoom">Zoom</option>
+            <option value="none">None (cut)</option>
+          </select>
+          <input id="ss-tr-duration" type="number" min="0" max="10" step="0.1" value="0.8" title="Seconds" style="width:80px;">
+          <span class="tt-muted">seconds</span>
         </div>
       </div>
 
@@ -1809,6 +1838,12 @@
               </select>
             </div>
           </label>
+          <label>Countdown shows (overlay and {countdown} in bar texts)
+            <select id="tt-cd-format">
+              <option value="mmss">Minutes and seconds (4:32)</option>
+              <option value="min">Minutes only (5 min)</option>
+            </select>
+          </label>
           <label>Bar position &amp; colour
             <div style="display:flex; gap:6px;">
               <select id="tt-bar-position" style="flex:1;">
@@ -1948,7 +1983,7 @@
       <div class="card">
         <h2>Clock Overlay</h2>
         <div class="setting-row">
-          <span>Show clock on screens</span>
+          <span>Show clock on screens<br><span class="tt-muted" style="font-size:0.75rem;">A countdown from the schedule replaces it while it's on screen</span></span>
           <label class="toggle-switch">
             <input type="checkbox" id="clock-visible-toggle">
             <span class="toggle-slider"></span>
@@ -2732,6 +2767,11 @@
       // ─── SCREENS & GROUPS ─────────────────────────────────────────────────────
 
       let alerts = {}, alertSig = '';
+      let libraryItems = {};  // id → item, shared with slideshow picker
+      let slideshowMs = 30000;
+      let slideshowSelected = [];  // array of {url, name}
+      const trLabel = tr => { const o = tr && [...document.getElementById('ss-tr-type').options].find(o => o.value === tr.type); return o ? o.textContent.toLowerCase() : ''; };
+      let timetable = null; // signage/timetable: { enabled, look, items, updatedAt }
       let globalCurrent = null;
       let screens = {};       // id → { presence, group, current }
       let groupsCurrent = {}; // group → { current }
@@ -2764,6 +2804,7 @@
 
       // What the selected target is showing — same "newest wins" rule as the receiver
       function renderLiveStatus() {
+        renderNowPlaying();
         let data, label;
         if (pushTarget.startsWith('screen:')) {
           const id = pushTarget.slice(7);
@@ -2800,8 +2841,49 @@
           document.getElementById('live-mode').textContent = '';
           return;
         }
-        document.getElementById('live-url').textContent = data.mode === 'html' ? '(HTML slide)' : (data.url || '(blank)');
-        document.getElementById('live-mode').textContent = data.url || data.mode === 'html' ? `[${data.mode}]` : '';
+        document.getElementById('live-url').textContent = data.mode === 'html' ? '(HTML slide)'
+          : data.mode === 'slideshow' ? `(Slideshow · ${slideImages(data).length} images, ${(data.interval || 0) / 1000}s)` : (data.url || '(blank)');
+        document.getElementById('live-mode').textContent = data.url || data.mode === 'html' || data.mode === 'slideshow' ? `[${data.mode}]` : '';
+      }
+
+      const slideImages = d => Array.isArray(d.images) ? d.images : Object.values(d.images || {});
+
+      // What the target shows now: a push that's still live, else the schedule's content
+      function nowShowing(target) {
+        const m = manualFor(target), tt = targetSchedule(target);
+        if (pushLive(m, tt)) return { data: m, source: 'pushed' };
+        return tt.content && tt.content.show ? { data: tt.content.show, source: 'schedule · ' + (tt.content.title || 'content') } : null;
+      }
+
+      // Slideshow panel: the images of the slideshow that's running on the selected target
+      function renderNowPlaying() {
+        const card = document.getElementById('ss-now-card');
+        const now = nowShowing(pushTarget);
+        if (!now || now.data.mode !== 'slideshow') { card.style.display = 'none'; return; }
+        const images = slideImages(now.data);
+        const where = pushTarget === 'all' ? 'all screens' : pushTarget.replace(':', ' ');
+        const tr = now.data.slideTransition;
+        document.getElementById('ss-now-where').textContent = `on ${where} · ${now.source} · ${images.length} images, ${(now.data.interval || 0) / 1000}s` +
+          (tr ? ' · ' + trLabel(tr) : '');
+        const byUrl = {};
+        Object.values(libraryItems).forEach(i => byUrl[i.url] = i);
+        document.getElementById('ss-now-thumbs').innerHTML = images.map((url, i) => {
+          const item = byUrl[url];
+          const name = item ? (item.folder ? item.folder + '/' : '') + item.name : url.split('/').pop().split('?')[0];
+          return `<div class="ss-now-thumb" title="${escHtml(name)}"><img src="${escHtml(url)}" loading="lazy"><b>${i + 1}</b><span>${escHtml(name)}</span></div>`;
+        }).join('');
+        card.style.display = '';
+        document.getElementById('ss-now-load-btn').onclick = () => {
+          slideshowSelected = images.map(url => ({ url, name: byUrl[url] ? byUrl[url].name : url.split('/').pop().split('?')[0] }));
+          if (now.data.interval) {
+            slideshowMs = now.data.interval;
+            document.querySelectorAll('.interval-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.ms, 10) === slideshowMs));
+          }
+          applySlideTransition(tr);
+          renderSlideshowPicker(libraryItems);
+          updateSlideshowSelected();
+          showToast('Loaded: change the selection and push again');
+        };
       }
 
       // Is the target showing something that was pushed (an override), or following the schedule?
@@ -2905,8 +2987,13 @@
         return (p.doneMin == null ? 1 : p.doneMin) * 60000;
       }
 
+      // "4:32", or with the schedule's "minutes only" setting "5 min" (rounded up, so it never shows 0 min early)
       function formatLeft(ms) {
         const s = Math.max(0, Math.ceil(ms / 1000));
+        if (((timetable && timetable.look) || {}).countdownFormat === 'min') {
+          const mins = Math.ceil(s / 60);
+          return mins >= 60 ? Math.floor(mins / 60) + ' h ' + pad2(mins % 60) + ' min' : mins + ' min';
+        }
         const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60);
         return (h ? h + ':' + pad2(m) : m) + ':' + pad2(s % 60);
       }
@@ -3525,7 +3612,6 @@ tick();setInterval(tick,250);
       })();
 
       // ── Timetable: sessions from Excel; every receiver switches the clock slide / progress bar on by itself ──
-      let timetable = null; // signage/timetable: { enabled, look, items, updatedAt }
       let ttRows = null;    // rows from an uploaded file that aren't saved yet
       let ttFileName = '';
 
@@ -3580,6 +3666,7 @@ tick();setInterval(tick,250);
         return {
           transition: trType ? { type: trType, duration: trDuration(document.getElementById('tt-tr-duration').value) } : null,
           overlay: { position: document.getElementById('tt-ov-position').value, size: document.getElementById('tt-ov-size').value },
+          countdownFormat: document.getElementById('tt-cd-format').value === 'min' ? 'min' : null,
           doneText: document.getElementById('tt-done-text').value.trim(),
           doneMin: min('tt-done-min'),
           bar: {
@@ -3599,6 +3686,7 @@ tick();setInterval(tick,250);
         document.getElementById('tt-tr-duration').value = look.transition ? look.transition.duration ?? 0.8 : 0.8;
         document.getElementById('tt-ov-position').value = (look.overlay || {}).position || 'bottom-left';
         document.getElementById('tt-ov-size').value = (look.overlay || {}).size || 'medium';
+        document.getElementById('tt-cd-format').value = look.countdownFormat || 'mmss';
         document.getElementById('tt-done-text').value = look.doneText ?? 'Starting now';
         document.getElementById('tt-done-min').value = look.doneMin ?? 1;
         const bar = look.bar || {};
@@ -3764,7 +3852,7 @@ tick();setInterval(tick,250);
         if (c.type === 'url') return { mode: 'iframe', url: c.value };
         if (c.type === 'slideshow') {
           const p = snap_presets_cache[c.value];
-          return p ? { mode: 'slideshow', images: p.images, interval: p.interval } : null;
+          return p ? { mode: 'slideshow', images: p.images, interval: p.interval, slideTransition: p.slideTransition || null } : null;
         }
         if (c.type === 'template') {
           const t = snap_templates_cache[c.value];
@@ -4647,7 +4735,6 @@ tick();setInterval(tick,250);
 
       // ─── IMAGE LIBRARY ────────────────────────────────────────────────────────
 
-      let libraryItems = {};  // id → item, shared with slideshow picker
 
       const VIDEO_EXTS = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
       const MEDIA_EXTS = [...VIDEO_EXTS, 'jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif'];
@@ -4910,13 +4997,23 @@ tick();setInterval(tick,250);
         libraryItems = snap.val() || {};
         Object.keys(libraryItems).forEach(id => { if (!libraryItems[id].id) libraryItems[id].id = id; });
         renderLibraryGrid(libraryItems);
+        renderNowPlaying();
         renderTimetable();
       });
 
       // ─── SLIDESHOW ────────────────────────────────────────────────────────────
 
-      let slideshowMs = 30000;
-      let slideshowSelected = [];  // array of {url, name}
+
+      // Transition between the images (null = the one under Settings)
+      function readSlideTransition() {
+        const type = document.getElementById('ss-tr-type').value;
+        const duration = Math.min(10, Math.max(0, Number(document.getElementById('ss-tr-duration').value) || 0));
+        return type ? { type, duration } : null;
+      }
+      function applySlideTransition(tr) {
+        document.getElementById('ss-tr-type').value = (tr && tr.type) || '';
+        document.getElementById('ss-tr-duration').value = tr ? tr.duration : 0.8;
+      }
 
       document.querySelectorAll('.interval-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -4993,7 +5090,7 @@ tick();setInterval(tick,250);
         if (onManualPush) onManualPush();
         if (!db) { showToast('Not connected', true); return; }
         const images = slideshowSelected.map(s => s.url);
-        currentRef().set({ mode: 'slideshow', images, interval: slideshowMs, updatedAt: Date.now() })
+        currentRef().set({ mode: 'slideshow', images, interval: slideshowMs, slideTransition: readSlideTransition(), updatedAt: Date.now() })
           .then(() => {
             showToast('Slideshow pushed!' + untilNote(pushTarget));
             document.getElementById('live-url').textContent = `(Slideshow — ${images.length} images, ${slideshowMs/1000}s)`;
@@ -5012,13 +5109,14 @@ tick();setInterval(tick,250);
           const row = document.createElement('div');
           row.className = 'ss-preset';
           row.innerHTML = `
-            <span class="ss-preset-name">${escHtml(preset.name)} <span style="color:var(--muted); font-size:0.75rem;">(${preset.images.length} images, ${preset.interval/1000}s)</span></span>
+            <span class="ss-preset-name">${escHtml(preset.name)} <span style="color:var(--muted); font-size:0.75rem;">(${preset.images.length} images, ${preset.interval/1000}s${preset.slideTransition ? ', ' + escHtml(trLabel(preset.slideTransition)) : ''})</span></span>
             <button class="ss-preset-load">Load</button>
             <button class="ss-preset-del">🗑</button>
           `;
           row.querySelector('.ss-preset-load').addEventListener('click', () => {
             slideshowSelected = preset.images.map(url => ({ url, name: url.split('/').pop().split('?')[0] || url }));
             slideshowMs = preset.interval;
+            applySlideTransition(preset.slideTransition);
             document.querySelectorAll('.interval-btn').forEach(b =>
               b.classList.toggle('active', parseInt(b.dataset.ms, 10) === slideshowMs));
             renderSlideshowPicker(libraryItems);
@@ -5038,7 +5136,8 @@ tick();setInterval(tick,250);
         const name = prompt('Preset name:');
         if (!name) return;
         db.ref('signage/slideshowPresets').push().then(ref => {
-          ref.set({ id: ref.key, name, images: slideshowSelected.map(s => s.url), interval: slideshowMs, createdAt: Date.now() });
+          ref.set({ id: ref.key, name, images: slideshowSelected.map(s => s.url), interval: slideshowMs,
+                    slideTransition: readSlideTransition(), createdAt: Date.now() });
           showToast('Preset saved!');
         });
       });
