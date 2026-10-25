@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Techorama sessions</title>
+<!--
+  Animated "up next" screen from data/techorama-sessions.json (made by scripts/fetch-techorama-sessions.mjs).
+  Options (query string):
+    room=Room 7        only these rooms (comma list). One room: the session in that room now, else its next one
+    slot=2026-10-27T13:15  always this time slot (instead of the next one)
+    mode=both          both = overview of the next slot + a slide per session, slides, overview
+    sec=8              seconds per slide
+    grace=10           a slot stays "Starting now" for this many minutes after it started
+    now=2026-10-27T13:00  pretend it is this time (for testing; the clock keeps running from there)
+-->
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--accent:#e8b23a;--text:#f5f2ea;--muted:rgba(245,242,234,.62);--card:rgba(255,255,255,.06);--line:rgba(255,255,255,.12)}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0d0f17;color:var(--text);
+    font-family:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+  #bg{position:fixed;inset:-6%;background:center/cover no-repeat;filter:blur(60px) saturate(1.2);opacity:.35;transition:background-image 1s}
+  #bg::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%,transparent,#0d0f17 75%)}
+  #stage{position:fixed;inset:0}
+  .slide{position:absolute;inset:0;padding:6vh 6vw 9vh;display:flex;opacity:0;transition:opacity .7s ease}
+  .slide.in{opacity:1}
+  .slide.out{opacity:0}
+  .kicker{display:flex;align-items:center;gap:1.2vw;font-size:2.1vw;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+  .kicker .time{color:var(--text);background:var(--card);border:1px solid var(--line);padding:.25em .7em;border-radius:.5em;letter-spacing:.04em}
+  .rise{opacity:0;transform:translateY(4vh)}
+  .in .rise{animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards}
+  .in .rise:nth-child(2){animation-delay:.12s}.in .rise:nth-child(3){animation-delay:.24s}
+  .in .rise:nth-child(4){animation-delay:.36s}.in .rise:nth-child(5){animation-delay:.48s}
+  @keyframes rise{to{opacity:1;transform:none}}
+
+  /* One session */
+  .one{align-items:center;gap:5vw}
+  .one .photos{flex:0 0 34vw;height:34vw;max-height:72vh;position:relative}
+  .one .photos img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:2.4vw;
+    box-shadow:0 3vw 6vw rgba(0,0,0,.5);opacity:0;transform:scale(1.08)}
+  .one.in .photos img{animation:photo 1.1s cubic-bezier(.2,.7,.2,1) forwards}
+  .one .photos.n2 img{width:68%;height:68%}
+  .one .photos.n2 img:nth-child(2){inset:auto 0 0 auto;animation-delay:.2s}
+  .one .photos.n3 img{width:58%;height:58%}
+  .one .photos.n3 img:nth-child(2){left:42%;top:12%;animation-delay:.15s}
+  .one .photos.n3 img:nth-child(3){left:12%;top:42%;animation-delay:.3s}
+  @keyframes photo{to{opacity:1;transform:none}}
+  .one .info{flex:1;min-width:0;display:flex;flex-direction:column;gap:3vh}
+  .one h1{font-size:4.6vw;line-height:1.08;font-weight:800;letter-spacing:-.02em;text-wrap:balance}
+  .one h1.long{font-size:3.6vw}.one h1.longer{font-size:3vw}
+  .one .who{font-size:2.3vw;color:var(--muted);font-weight:500}
+  .one .meta{display:flex;flex-wrap:wrap;gap:1vw;align-items:center}
+  .room{display:inline-flex;align-items:center;gap:.5em;font-size:2.8vw;font-weight:800;background:var(--accent);color:#14110a;padding:.3em .8em;border-radius:.45em}
+  .room svg{width:.8em;height:.8em}
+  .chip{font-size:1.5vw;font-weight:600;padding:.4em .9em;border-radius:99px;border:1px solid var(--line);background:var(--card)}
+  .chip i{display:inline-block;width:.6em;height:.6em;border-radius:50%;background:var(--c);margin-right:.5em}
+
+  /* Overview of a slot */
+  .all{flex-direction:column;gap:3.5vh}
+  .all h2{font-size:3.6vw;font-weight:800;letter-spacing:-.02em}
+  .grid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:1.6vh 2vw}
+  .grid.single{grid-template-columns:1fr}
+  .row{display:flex;align-items:center;gap:1.4vw;background:var(--card);border:1px solid var(--line);border-radius:1vw;padding:0 1.2vw;min-height:0;overflow:hidden;border-left:.4vw solid var(--c,var(--line))}
+  .row img{width:6.4vh;height:6.4vh;border-radius:50%;object-fit:cover;flex-shrink:0}
+  .row .r{flex:0 0 8.5vw;font-size:1.25vw;font-weight:800;color:var(--accent);line-height:1.15}
+  .row .t{flex:1;min-width:0}
+  .row .t b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:1.3vw;line-height:1.25}
+  .row .t span{display:block;font-size:1vw;color:var(--muted);margin-top:.3vh;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* Nothing coming */
+  .msg{flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:3vh}
+  .msg h1{font-size:5vw;font-weight:800}
+  .msg p{font-size:2.2vw;color:var(--muted)}
+
+  #bar{position:fixed;left:6vw;right:6vw;bottom:4.5vh;display:flex;gap:.5vw}
+  #bar i{flex:1;height:.5vh;border-radius:9px;background:var(--line);overflow:hidden}
+  #bar i.done::after,#bar i.on::after{content:"";display:block;height:100%;background:var(--accent)}
+  #bar i.on::after{animation:fill var(--d) linear forwards;width:0}
+  @keyframes fill{to{width:100%}}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="stage"></div>
+<div id="bar"></div>
+<script>
+  const q = new URLSearchParams(location.search);
+  const rooms = (q.get('room') || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  const mode = ['slides', 'overview'].includes(q.get('mode')) ? q.get('mode') : 'both';
+  const slideMs = Math.max(3, Number(q.get('sec')) || 8) * 1000;
+  const slot = q.get('slot') ? new Date(q.get('slot')).getTime() : null;
+  const graceMs = (q.get('grace') != null ? Math.max(0, Number(q.get('grace'))) : 10) * 60000;
+  const fakeStart = q.get('now') ? new Date(q.get('now')).getTime() - Date.now() : 0;
+  const now = () => Date.now() + (isNaN(fakeStart) ? 0 : fakeStart);
+
+  const TRACKS = { 'AI & Agents': '#a78bfa', 'Architecture & Security': '#f87171', 'Cloud & DevOps': '#38bdf8',
+    'Data': '#34d399', 'Dev': '#fbbf24', 'Leadership & Productivity': '#fb923c' };
+  const PIN = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>';
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const at = (date, hm) => new Date(date + 'T' + hm).getTime();
+  const sameDay = (a, b) => new Date(a).toDateString() === new Date(b).toDateString();
+
+  let sessions = [];
+  async function load() {
+    try {
+      const res = await fetch('data/techorama-sessions.json?t=' + Math.floor(Date.now() / 600000), { cache: 'no-cache' });
+      const data = await res.json();
+      sessions = data.sessions.filter(s => s.kind === 'session')
+        .map(s => Object.assign({}, s, { from: at(s.date, s.start), until: at(s.date, s.end) }))
+        .filter(s => !rooms.length || rooms.includes(s.room.toLowerCase()));
+    } catch (e) { console.error('Could not load the sessions', e); }
+  }
+
+  // What to show now: per room the running session (else the next one); otherwise the next slot of sessions
+  function pick() {
+    const t = now();
+    const byRoom = (a, b) => a.room.localeCompare(b.room, undefined, { numeric: true });
+    if (slot) return sessions.filter(s => s.from === slot).sort(byRoom);
+    if (rooms.length) {
+      return rooms.map(r => {
+        const mine = sessions.filter(s => s.room.toLowerCase() === r && s.until > t).sort((a, b) => a.from - b.from);
+        return mine[0];
+      }).filter(Boolean).sort((a, b) => a.from - b.from);
+    }
+    const next = sessions.filter(s => s.from + graceMs > t).sort((a, b) => a.from - b.from)[0];
+    return next ? sessions.filter(s => s.from === next.from).sort(byRoom) : [];
+  }
+
+  function kicker(s) {
+    const t = now();
+    const weekday = () => new Date(s.from).toLocaleDateString('en-GB', { weekday: 'long' });
+    const label = s.until <= t ? weekday()
+      : s.from <= t ? (t > s.from + graceMs ? 'Now' : 'Starting now')
+      : sameDay(s.from, t) ? 'Up next' : sameDay(s.from, t + 86400000) ? 'Tomorrow'
+      : weekday();
+    return `<div class="kicker rise"><span class="time">${esc(s.start)}–${esc(s.end)}</span>${esc(label)}</div>`;
+  }
+  const names = s => s.speakers.map(p => p.name).join(' & ');
+  const photos = s => s.speakers.filter(p => p.photo).slice(0, 3);
+  const track = s => s.track ? `<span class="chip rise" style="--c:${TRACKS[s.track] || '#999'}"><i></i>${esc(s.track)}</span>` : '';
+
+  function slideOne(s) {
+    const ph = photos(s);
+    const cls = s.title.length > 70 ? 'longer' : s.title.length > 45 ? 'long' : '';
+    return {
+      bg: ph[0] && ph[0].photo,
+      html: `<div class="slide one">
+        ${ph.length ? `<div class="photos n${ph.length}">${ph.map(p => `<img src="${esc(p.photo)}" alt="">`).join('')}</div>` : ''}
+        <div class="info">
+          ${kicker(s)}
+          <h1 class="rise ${cls}">${esc(s.title)}</h1>
+          <div class="who rise">${esc(names(s))}</div>
+          <div class="meta rise"><span class="room">${PIN}${esc(s.room)}</span>${track(s)}</div>
+        </div></div>`
+    };
+  }
+
+  function slideAll(list) {
+    const s = list[0];
+    return {
+      bg: null,
+      html: `<div class="slide all">
+        ${kicker(s)}
+        <h2 class="rise">Upcoming sessions</h2>
+        <div class="grid rise${list.length <= 5 ? ' single' : ''}">${list.map(x => {
+          const p = photos(x)[0];
+          return `<div class="row" style="--c:${TRACKS[x.track] || 'var(--line)'}">
+            ${p ? `<img src="${esc(p.photo)}" alt="">` : ''}
+            <div class="r">${esc(x.room)}</div>
+            <div class="t"><b>${esc(x.title)}</b><span>${esc(names(x))}</span></div></div>`;
+        }).join('')}</div></div>`
+    };
+  }
+
+  function slideNothing() {
+    return { bg: null, html: `<div class="slide msg"><h1 class="rise">That's a wrap!</h1><p class="rise">No more sessions${rooms.length ? ' in ' + esc(q.get('room')) : ''}. Thanks for coming to Techorama.</p></div>` };
+  }
+
+  function buildDeck() {
+    const list = pick();
+    if (!list.length) return [slideNothing()];
+    if (rooms.length || list.length === 1) return list.map(slideOne);
+    return (mode !== 'slides' ? [slideAll(list)] : []).concat(mode !== 'overview' ? list.map(slideOne) : []);
+  }
+
+  const stage = document.getElementById('stage'), bgEl = document.getElementById('bg'), barEl = document.getElementById('bar');
+  const preload = src => new Promise(r => { if (!src) return r(); const i = new Image(); i.onload = i.onerror = r; i.src = src; setTimeout(r, 4000); });
+  let deck = [], idx = 0, sig = '';
+
+  async function show() {
+    if (idx >= deck.length) { idx = 0; deck = buildDeck(); }
+    const slide = deck[idx];
+    const html = slide.html;
+    await Promise.all([...html.matchAll(/<img src="([^"]+)"/g)].map(m => preload(m[1].replace(/&amp;/g, '&'))));
+    const old = stage.querySelector('.slide.in');
+    // A single slide that didn't change stays as it is
+    if (!(deck.length === 1 && html === sig && old)) {
+      stage.insertAdjacentHTML('beforeend', html);
+      const el = stage.lastElementChild;
+      // Force a layout instead of waiting for animation frames: a frame that loads hidden gets none
+      void el.offsetWidth;
+      el.classList.add('in');
+      if (old) { old.classList.replace('in', 'out'); setTimeout(() => old.remove(), 800); }
+      bgEl.style.backgroundImage = slide.bg ? `url("${slide.bg}")` : 'none';
+    }
+    sig = html;
+    barEl.innerHTML = deck.length > 1 ? deck.map((_, i) => `<i class="${i < idx ? 'done' : i === idx ? 'on' : ''}"></i>`).join('') : '';
+    barEl.style.setProperty('--d', slideMs + 'ms');
+    idx++;
+    setTimeout(show, slideMs);
+  }
+
+  load().then(() => { deck = buildDeck(); show(); });
+  setInterval(load, 10 * 60000); // pick up a new JSON after a redeploy
+</script>
+</body>
+</html>

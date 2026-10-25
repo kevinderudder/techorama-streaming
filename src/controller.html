@@ -1415,6 +1415,10 @@
         <span class="nav-icon">🎞</span>
         <span class="nav-label">Slideshow</span>
       </button></li>
+      <li><button class="nav-btn" data-panel="sessions">
+        <span class="nav-icon">🎤</span>
+        <span class="nav-label">Upcoming sessions</span>
+      </button></li>
       <li><button class="nav-btn" data-panel="countdown">
         <span class="nav-icon">⏱</span>
         <span class="nav-label">Clock &amp; Countdown</span>
@@ -1608,6 +1612,46 @@
         <h2>Saved presets</h2>
         <div id="ss-presets-empty" class="empty-state" style="padding:20px 0;">No saved presets.</div>
         <div id="ss-presets-list"></div>
+      </div>
+    </div>
+
+    <!-- UPCOMING SESSIONS PANEL -->
+    <div id="panel-sessions" class="panel">
+      <div class="panel-header">
+        <h1 class="panel-title">Upcoming sessions</h1>
+      </div>
+      <div class="card">
+        <p class="tt-muted" style="margin-bottom:12px; line-height:1.6;">
+          A slideshow of the next Techorama sessions: title, speaker photo and room. It moves on to the next time slot by itself,
+          so you can show it now or put it in the <strong>Schedule</strong> (🎤 Upcoming sessions) for the breaks.
+          <span id="sx-fetched"></span>
+        </p>
+        <div style="display:grid; grid-template-columns:1fr 150px; gap:10px;">
+          <label style="display:flex; flex-direction:column; gap:4px;">What to show<select id="sx-view"></select></label>
+          <label style="display:flex; flex-direction:column; gap:4px;">Each slide<select id="sx-sec">
+            <option value="6">6 seconds</option><option value="8" selected>8 seconds</option>
+            <option value="10">10 seconds</option><option value="15">15 seconds</option><option value="20">20 seconds</option>
+          </select></label>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:14px;">
+          <button id="sx-push-btn" class="btn-primary">▶ Show now</button>
+          <button id="sx-schedule-btn">＋ Add to schedule</button>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; margin-top:14px; padding-top:14px; border-top:1px solid var(--border);">
+          <span class="tt-muted">Or plan them all: each time slot shows in the break before it, until 5 min after it starts.</span>
+          <select id="sx-day" style="width:auto; margin-left:auto;"></select>
+          <button id="sx-schedule-all-btn">＋ Add every time slot</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+          <h2 style="margin-bottom:0; flex:1;">Preview</h2>
+          <label style="display:flex; flex-direction:row; align-items:center; gap:8px; text-transform:none; letter-spacing:normal; font-weight:400;">as if it is
+            <input id="sx-preview-time" type="datetime-local" style="width:auto;"></label>
+        </div>
+        <div style="position:relative; width:100%; aspect-ratio:16/9; border-radius:8px; overflow:hidden; background:#000;">
+          <iframe id="sx-preview" title="Preview" style="position:absolute; left:0; top:0; width:1920px; height:1080px; border:0; transform-origin:0 0;"></iframe>
+        </div>
       </div>
     </div>
 
@@ -2203,6 +2247,7 @@
               <option value="html">&lt;/&gt; HTML</option>
               <option value="url">🔗 Website / URL</option>
               <option value="color">🎨 Colour</option>
+              <option value="sessions">🎤 Upcoming sessions</option>
             </select>
             <div id="tte-content-picker" style="flex:1; display:flex; gap:6px; align-items:center; min-width:0;"></div>
           </div>
@@ -3839,7 +3884,107 @@ tick();setInterval(tick,250);
           });
       }
 
-      const CONTENT_TYPES = { image: '🖼 Image', video: '🎬 Video', slideshow: '🎞 Slideshow', template: '📋 Template', html: '</> HTML', url: '🔗 Website', color: '🎨 Colour' };
+      const CONTENT_TYPES = { image: '🖼 Image', video: '🎬 Video', slideshow: '🎞 Slideshow', template: '📋 Template', html: '</> HTML', url: '🔗 Website', color: '🎨 Colour', sessions: '🎤 Upcoming sessions' };
+
+      // "Upcoming sessions": sessions.html next to this page, from data/techorama-sessions.json
+      // (scripts/fetch-techorama-sessions.mjs). Value: all | overview | slides | room:<room>, optionally "@<seconds per slide>"
+      const SESSION_VIEWS = { all: 'Next slot: overview + a slide per session', overview: 'Next slot: overview only', slides: 'Next slot: a slide per session' };
+      let sessionRooms = null, sessionSlots = [], sessionsFetchedAt = null;
+      const slotDay = start => new Date(start).toLocaleDateString('en-GB', { weekday: 'long' });
+      function loadSessionRooms() {
+        if (sessionRooms) return;
+        sessionRooms = [];
+        fetch('data/techorama-sessions.json', { cache: 'no-cache' }).then(r => r.json()).then(d => {
+          const talks = d.sessions.filter(x => x.kind === 'session');
+          sessionRooms = [...new Set(talks.map(x => x.room))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+          // Time slots: every start time with its sessions (date + 'T' + start, the same as sessions.html?slot=)
+          const slots = {};
+          talks.forEach(x => {
+            const k = x.date + 'T' + x.start;
+            (slots[k] = slots[k] || { key: k, start: new Date(k).getTime(), until: new Date(x.date + 'T' + x.end).getTime(), end: x.end, count: 0 }).count++;
+          });
+          sessionSlots = Object.values(slots).sort((a, b) => a.start - b.start);
+          sessionsFetchedAt = d.fetchedAt;
+          const box = document.getElementById('tte-content-value');
+          if (box && document.getElementById('tte-content-type').value === 'sessions') renderTteContent('sessions', box.value);
+          renderSessionsPanel();
+        }).catch(() => {
+          // Try again next time the panel or the schedule editor opens
+          sessionRooms = null;
+          document.getElementById('sx-fetched').textContent = 'Could not load the sessions (data/techorama-sessions.json): is the site or the local server running?';
+        });
+      }
+      const slotLabel = sl => `${slotDay(sl.start)} ${sl.key.slice(11)}–${sl.end} (${sl.count} session${sl.count === 1 ? '' : 's'})`;
+      const sessionViewOptions = () => Object.entries(SESSION_VIEWS)
+        .concat(sessionSlots.map(sl => ['slot:' + sl.key, 'Time slot: ' + slotLabel(sl)]))
+        .concat((sessionRooms || []).map(r => ['room:' + r, r + ': the session now, else the next one']));
+      function sessionsUrl(v, now) {
+        const [view, sec] = v.split('@');
+        const u = new URL('sessions.html', location.href);
+        if (view.startsWith('room:')) u.searchParams.set('room', view.slice(5));
+        else if (view.startsWith('slot:')) u.searchParams.set('slot', view.slice(5));
+        else if (view !== 'all') u.searchParams.set('mode', view);
+        if (sec) u.searchParams.set('sec', sec);
+        if (now) u.searchParams.set('now', now);
+        // Screens get a relative link, so it works whether the controller runs locally or on the live site
+        return now ? u.href : 'sessions.html' + u.search;
+      }
+
+      // Upcoming sessions page: show now, add to the schedule, preview
+      const sxView = document.getElementById('sx-view'), sxSec = document.getElementById('sx-sec');
+      const sxPreview = document.getElementById('sx-preview'), sxTime = document.getElementById('sx-preview-time');
+      const sxValue = () => (sxView.value || 'all') + (sxSec.value !== '8' ? '@' + sxSec.value : '');
+      function renderSessionsPanel() {
+        const cur = sxView.value || 'all';
+        const opts = list => list.map(([v, label]) => `<option value="${escHtml(v)}"${v === cur ? ' selected' : ''}>${escHtml(label)}</option>`).join('');
+        const groups = { 'Always the next time slot': [], 'One time slot': [], 'One room': [] };
+        sessionViewOptions().forEach(o => groups[o[0].startsWith('slot:') ? 'One time slot' : o[0].startsWith('room:') ? 'One room' : 'Always the next time slot'].push(o));
+        sxView.innerHTML = Object.entries(groups).map(([g, list]) => `<optgroup label="${g}">${opts(list.map(([v, l]) => [v, l.replace(/^Time slot: |^Next slot: /, '')]))}</optgroup>`).join('');
+        const days = [...new Set(sessionSlots.map(sl => sl.key.slice(0, 10)))];
+        const curDay = document.getElementById('sx-day').value;
+        document.getElementById('sx-day').innerHTML = days.map(d => `<option value="${d}"${d === curDay ? ' selected' : ''}>${slotDay(d + 'T12:00')}</option>`).join('') +
+          (days.length > 1 ? `<option value="all"${curDay === 'all' ? ' selected' : ''}>All days</option>` : '');
+        document.getElementById('sx-fetched').textContent = sessionsFetchedAt
+          ? `Schedule from techorama.nl, fetched ${new Date(sessionsFetchedAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}.` : '';
+        updateSessionsPreview();
+      }
+      function updateSessionsPreview() {
+        const url = sessionsUrl(sxValue(), sxTime.value);
+        if (sxPreview.dataset.url !== url) { sxPreview.dataset.url = url; sxPreview.src = url; }
+        sxPreview.style.transform = `scale(${sxPreview.parentElement.clientWidth / 1920})`;
+      }
+      [sxView, sxSec, sxTime].forEach(el => el.addEventListener('change', updateSessionsPreview));
+      window.addEventListener('resize', updateSessionsPreview);
+      document.querySelector('.nav-btn[data-panel="sessions"]').addEventListener('click', () => { loadSessionRooms(); renderSessionsPanel(); });
+      document.getElementById('sx-push-btn').addEventListener('click', () => push(sessionsUrl(sxValue()), 'iframe'));
+      // Every time slot of a day: its sessions from the end of the slot before it (the break) until 5 minutes after it starts
+      document.getElementById('sx-schedule-all-btn').addEventListener('click', () => {
+        const day = document.getElementById('sx-day').value;
+        const slots = sessionSlots.filter(sl => day === 'all' || sl.key.startsWith(day));
+        if (!slots.length) return;
+        ensureTtRows();
+        const sec = sxSec.value !== '8' ? '@' + sxSec.value : '';
+        let added = 0;
+        slots.forEach(sl => {
+          const value = 'slot:' + sl.key + sec;
+          if (ttRows.some(r => r.kind === 'content' && r.content && r.content.type === 'sessions' && r.content.value.split('@')[0] === 'slot:' + sl.key)) return;
+          const before = sessionSlots.filter(o => dayKey(o.start) === dayKey(sl.start) && o.until <= sl.start).map(o => o.until);
+          const start = before.length ? Math.max(...before) : sl.start - 3600000;
+          ttRows.push({ kind: 'content', start, until: sl.start + 5 * 60000, showOn: pushTarget, title: null,
+            content: { type: 'sessions', value }, transition: null, error: null });
+          added++;
+        });
+        ttRows.sort((a, b) => (a.start || 0) - (b.start || 0));
+        plDay = dayKey(slots[0].start);
+        switchPanel('timetable');
+        renderTimetable();
+        showToast(added ? `${added} time slot${added === 1 ? '' : 's'} added: check them and press Save to screens` : 'These time slots are already in the schedule', !added);
+      });
+
+      document.getElementById('sx-schedule-btn').addEventListener('click', () => {
+        switchPanel('timetable');
+        openTtEdit(null, { kind: 'content', content: { type: 'sessions', value: sxValue() } });
+      });
 
       // What a content item shows, as receiver data; null when it can't be found (any more)
       function contentShow(c) {
@@ -3850,6 +3995,7 @@ tick();setInterval(tick,250);
         if (c.type === 'video') return { mode: 'video', url: c.value };
         if (c.type === 'html') return { mode: 'html', html: c.value };
         if (c.type === 'url') return { mode: 'iframe', url: c.value };
+        if (c.type === 'sessions') return { mode: 'iframe', url: sessionsUrl(c.value) };
         if (c.type === 'slideshow') {
           const p = snap_presets_cache[c.value];
           return p ? { mode: 'slideshow', images: p.images, interval: p.interval, slideTransition: p.slideTransition || null } : null;
@@ -3871,6 +4017,13 @@ tick();setInterval(tick,250);
         if (c.type === 'slideshow') { const p = snap_presets_cache[c.value]; return p ? `${p.name} (${p.images.length} images)` : 'slideshow (deleted)'; }
         if (c.type === 'template') { const t = snap_templates_cache[c.value]; return t ? t.name : 'template (deleted)'; }
         if (c.type === 'color') return c.value;
+        if (c.type === 'sessions') {
+          const [view, sec] = c.value.split('@');
+          const label = view.startsWith('room:') ? 'Sessions in ' + view.slice(5)
+            : view.startsWith('slot:') ? `Sessions ${slotDay(view.slice(5)).slice(0, 3)} ${view.slice(16)}`
+            : 'Upcoming sessions' + (view !== 'all' ? ` (${view})` : '');
+          return label + (sec ? `, ${sec}s` : '');
+        }
         if (c.type === 'html') {
           const t = c.value.match(/<title>([^<]*)<\/title>/i);
           const text = (t ? t[1] : c.value.replace(/<(style|script)[\s\S]*?<\/\1>/gi, '').replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
@@ -3986,6 +4139,10 @@ tick();setInterval(tick,250);
           box.innerHTML = select(tpls, tpls.length ? '— Pick a template —' : 'No templates yet');
         } else if (type === 'html') {
           box.innerHTML = `<textarea id="tte-content-value" rows="7" spellcheck="false" placeholder="<!DOCTYPE html>… or paste a snippet; it fills the whole screen" style="flex:1; min-width:0; font-family:ui-monospace,Menlo,monospace; font-size:0.78rem;">${escHtml(value || '')}</textarea>`;
+        } else if (type === 'sessions') {
+          loadSessionRooms();
+          value = value || 'all';
+          box.innerHTML = select(keep(sessionViewOptions()), '— What to show —');
         } else if (type === 'color') {
           box.innerHTML = `<input id="tte-content-value" type="color" value="${escHtml(value || '#14162a')}" style="width:70px; height:40px; padding:2px;">`;
         } else {
@@ -4024,7 +4181,7 @@ tick();setInterval(tick,250);
         document.getElementById('tte-starting-min').value = r && r.startingMin != null ? r.startingMin : '';
         document.getElementById('tte-bar-done-min').value = r && r.barDoneMin != null ? r.barDoneMin : '';
         document.getElementById('tte-bar-done-text').value = (r && r.barDoneText) || '';
-        const content = (r && r.content) || { type: 'image', value: '' };
+        const content = (r && r.content) || preset.content || { type: 'image', value: '' };
         document.getElementById('tte-content-type').value = content.type;
         renderTteContent(content.type, content.value);
         const tr = r && r.transition;

@@ -685,7 +685,10 @@
         const tr = data.transition || (prev && prev.scheduled && prev.transition) || null;
 
         hasReceivedContent = true;
-        const { url, mode } = data;
+        const { mode } = data;
+        // Relative links (like sessions.html?…) point to this site, wherever the controller ran
+        let url = data.url;
+        try { if (url) url = new URL(url, location.href).href; } catch (e) {}
         const kind = ['html', 'slideshow', 'video'].includes(mode) ? mode
           : mode === 'blank' || !url ? 'blank' : mode === 'redirect' ? 'redirect' : 'url';
         // Coming out of blank: everything under it is already cleared, so the new content comes in over black

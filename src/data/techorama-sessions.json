@@ -1,0 +1,2420 @@
+{
+ "source": "https://techorama.nl/schedule",
+ "fetchedAt": "2026-10-25T12:20:08.014Z",
+ "sessions": [
+  {
+   "id": "2026-10-27-07-30-registration-breakfast",
+   "kind": "break",
+   "date": "2026-10-27",
+   "start": "07:30",
+   "end": "08:30",
+   "room": "Partner Area",
+   "title": "Registration & breakfast",
+   "track": null,
+   "level": null,
+   "speakers": [],
+   "url": null
+  },
+  {
+   "id": "1327742",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "08:30",
+   "end": "09:30",
+   "room": "Room 12",
+   "title": "Scale vs Soul",
+   "track": "AI & Agents",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Dado Van Peteghem",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/698b44e5-6ab7-4164-986d-9c2279d04331.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1327742"
+  },
+  {
+   "id": "2026-10-27-09-30-break",
+   "kind": "break",
+   "date": "2026-10-27",
+   "start": "09:30",
+   "end": "09:45",
+   "room": "Partner Area",
+   "title": "Break",
+   "track": null,
+   "level": null,
+   "speakers": [],
+   "url": null
+  },
+  {
+   "id": "1235596",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Mission 1 (JB)",
+   "title": "Who's in Charge? Taking Control of Coding Agents with OpenCode and OpenSpec",
+   "track": "AI & Agents",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Geert van der Cruijsen",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/a1bae1a4-f4fe-4113-8d4f-cd0f363eb48a.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1235596"
+  },
+  {
+   "id": "1195296",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Mission 2 (JB)",
+   "title": "One Size Fits None: Make Azure best practices work for your organization",
+   "track": "Architecture & Security",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Barbara Forbes",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/66cca930-ed56-41bb-a954-264c681b6bd8.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1195296"
+  },
+  {
+   "id": "1196856",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Progress (JB)",
+   "title": "Scrum to Swarm: Rethinking Software Delivery for the Age of Agents",
+   "track": "AI & Agents",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Colin Dembovsky",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/ff325265-e97c-4cd7-a3e6-5963f08afd84.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1196856"
+  },
+  {
+   "id": "1246271",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Room 10",
+   "title": "MITRE ATT&CK for Developers",
+   "track": "Architecture & Security",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Chris Ayers",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/2ebd8578-298f-45ae-b71b-dc076037b080.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1246271"
+  },
+  {
+   "id": "1321242",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Room 11",
+   "title": "Inside the Agent Loop: build a .NET Flight Recorder for Github Copilot, Cursor and Claude",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Christophe Nasarre",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/62706aaf-aadc-4538-9f39-70f5afb4cf0b.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1321242"
+  },
+  {
+   "id": "1216344",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Room 12",
+   "title": "Weird C# features you (don't) need to know about",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Jiří Činčura",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/a024a68e-18cb-4f09-acf7-8a8adc41a0ac.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1216344"
+  },
+  {
+   "id": "1233066",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Room 13",
+   "title": "Aspireify your app in an hour",
+   "track": "Dev",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Maddy Montaquila",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/a0dc3822-2379-40ff-8ba4-08f28269c4c5.jpg"
+    },
+    {
+     "name": "Tommaso Stocchi",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/46ccfc69-2489-47ba-9930-fee4b8d587b3.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1233066"
+  },
+  {
+   "id": "1187364",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Room 7",
+   "title": "Application Performance Optimisation in Practice",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Steve Gordon",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/26b7e78d-aa31-4d7f-b2ea-90fef14d1087.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1187364"
+  },
+  {
+   "id": "1151769",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Room 8",
+   "title": "Mastering Multi-Agent Madness With Microsoft Agent Framework",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Matthijs van der Veer",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/91cd00ff-7972-4f90-bbc7-223c5eace824.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1151769"
+  },
+  {
+   "id": "1192213",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Room 9",
+   "title": "Thread by Thread: Lessons from Migrating to Fabric",
+   "track": "Data",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Sam Debruyn",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/c902c592-329d-444d-bc05-04f4495e9224.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1192213"
+  },
+  {
+   "id": "2026-10-27-10-45-break",
+   "kind": "break",
+   "date": "2026-10-27",
+   "start": "10:45",
+   "end": "11:15",
+   "room": "Partner Area",
+   "title": "Break",
+   "track": null,
+   "level": null,
+   "speakers": [],
+   "url": null
+  },
+  {
+   "id": "1211675",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Mission 1 (JB)",
+   "title": "10 things you didn't know EF Core can do",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Hannes Lowette",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/497f9bfb-7e28-4773-81e3-e853ca09ccde.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1211675"
+  },
+  {
+   "id": "1207641",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Mission 2 (JB)",
+   "title": "Agents Don't Sleep: How AI Turns a 3 AM Incident into a Reviewable Fix",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Jurre Brandsen",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/3121f841-92b2-442c-999c-a607117112e7.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1207641"
+  },
+  {
+   "id": "1244217",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Progress (JB)",
+   "title": "Modular Code with Examples in C#",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Ian Cooper",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/84ffe422-5bc6-4075-9903-d9ad3526cf86.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1244217"
+  },
+  {
+   "id": "1320606",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Room 10",
+   "title": "Fabric FinOps - Cost Optimization for Fabric",
+   "track": "Data",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Alexander Arvidsson",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/3c2dccea-d68a-425d-ac21-4086496d06cd.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1320606"
+  },
+  {
+   "id": "1324527",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Room 12",
+   "title": "What's New In .NET 11",
+   "track": "Dev",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Jon Galloway",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/c6f0ebfe-4c60-421c-b791-1aad49a18005.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1324527"
+  },
+  {
+   "id": "1246903",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Room 13",
+   "title": "Beat the Clock: Building a Production-Ready Agentic App in 60 Minutes",
+   "track": "AI & Agents",
+   "level": "Advanced",
+   "speakers": [
+    {
+     "name": "Jeff Prosise",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/fb9addc2-3131-4573-a19b-6df1f3064ac4.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1246903"
+  },
+  {
+   "id": "1320836",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Room 7",
+   "title": "Do It With Style: Rethinking CSS",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Dylan Beattie",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/1d7dcbfc-1de6-4228-8bd6-04f4ba1c4267.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1320836"
+  },
+  {
+   "id": "1245628",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Room 8",
+   "title": "What’s New for Developers in SQL Server 2025",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Leonard Lobel",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/3a3a3916-00c0-4ec2-b993-a914ee3a5ad6.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1245628"
+  },
+  {
+   "id": "1316134",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Room 9",
+   "title": "Building an Application with Copilot and Lovable: The Easy, the Hard, and the Unexpected",
+   "track": "AI & Agents",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Juliana Smith",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/1007d395-07aa-413d-848a-d0537844aa32.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1316134"
+  },
+  {
+   "id": "2026-10-27-12-15-break",
+   "kind": "break",
+   "date": "2026-10-27",
+   "start": "12:15",
+   "end": "13:15",
+   "room": "Partner Area",
+   "title": "Break",
+   "track": null,
+   "level": null,
+   "speakers": [],
+   "url": null
+  },
+  {
+   "id": "1309018",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "12:30",
+   "end": "13:00",
+   "room": "Room 12",
+   "title": "Ask and You Shall Generate: Building and Answering Questions at Cito with AI",
+   "track": "AI & Agents",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Christian van Dijk",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/50369e18-2b89-4852-b67d-56a135267322.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1309018"
+  },
+  {
+   "id": "1185098",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Mission 1 (JB)",
+   "title": "The Myth of Message Ordering: What Message Brokers Actually Guarantee",
+   "track": "Architecture & Security",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Poornima Nayar",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/d9a9dde1-cb0c-4b98-913f-9caccf5181bd.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1185098"
+  },
+  {
+   "id": "1245634",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Mission 2 (JB)",
+   "title": "Developer’s Guide to AI in SQL Server 2025 and Azure SQL",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Leonard Lobel",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/3a3a3916-00c0-4ec2-b993-a914ee3a5ad6.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1245634"
+  },
+  {
+   "id": "1317875",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Progress (JB)",
+   "title": "Developer Workflows in AI Age - Local or Cloud 🧠🤖",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Sam Basu",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/fc1d0cd3-9675-4188-aa98-e0088069f1a4.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1317875"
+  },
+  {
+   "id": "1245292",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Room 10",
+   "title": "Gatekeeping the API Azure-native vs Open-source on Kubernetes",
+   "track": "Cloud & DevOps",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Filip Verlee",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/fe43db50-4489-43bb-9b35-088898920539.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1245292"
+  },
+  {
+   "id": "1226286",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Room 11",
+   "title": "How I Migrated a Production Blazor App in Under 40 Hours Using AI",
+   "track": "Dev",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Hans Muns",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/c3c152a7-494c-412e-9580-1ea415e4411c.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1226286"
+  },
+  {
+   "id": "1207969",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Room 12",
+   "title": "Antipatterns, Smells, and Worst Practices 💩😱",
+   "track": "Dev",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Ardalis .",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/a5d50f4e-f021-4983-97a9-73f9415b3d5b.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1207969"
+  },
+  {
+   "id": "1190251",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Room 13",
+   "title": "Build an Enterprise-Grade MCP Server",
+   "track": "AI & Agents",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Rockford Lhotka",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/dbecbfd2-0bc3-4dd8-8557-8f1bfcc6e313.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1190251"
+  },
+  {
+   "id": "1173528",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Room 7",
+   "title": "Are you sure your access tokens are really secure?",
+   "track": "Architecture & Security",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Wesley Cabus",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/36a0edaf-4f66-4f54-a522-94a92e6a7f3a.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1173528"
+  },
+  {
+   "id": "1228359",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Room 8",
+   "title": "Mission Copilot Autofix: Securing the World’s Code with AI and GitHub Advanced Security",
+   "track": "Architecture & Security",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Randy Pagels",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/1891b260-8833-46ec-b5bc-907c0105f730.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1228359"
+  },
+  {
+   "id": "1205255",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Room 9",
+   "title": "Doctor, my agent keeps acting up",
+   "track": "AI & Agents",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Ruben Scheedler",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/5328c6c8-8bd7-4781-a61d-9cd467c65b35.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1205255"
+  },
+  {
+   "id": "2026-10-27-14-15-break",
+   "kind": "break",
+   "date": "2026-10-27",
+   "start": "14:15",
+   "end": "14:30",
+   "room": "Partner Area",
+   "title": "Break",
+   "track": null,
+   "level": null,
+   "speakers": [],
+   "url": null
+  },
+  {
+   "id": "1151925",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Mission 1 (JB)",
+   "title": "Change is inevitable: versioning event-driven systems",
+   "track": "Architecture & Security",
+   "level": "Advanced",
+   "speakers": [
+    {
+     "name": "Laila Bougria",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/5e960a81-cd86-4e4f-8bb2-d888611e8929.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1151925"
+  },
+  {
+   "id": "1187368",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Mission 2 (JB)",
+   "title": "Unveiling .NET Secrets with the World's Smallest C# Program",
+   "track": "Dev",
+   "level": "Advanced",
+   "speakers": [
+    {
+     "name": "Steve Gordon",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/26b7e78d-aa31-4d7f-b2ea-90fef14d1087.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1187368"
+  },
+  {
+   "id": "1252440",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Progress (JB)",
+   "title": "Your Pipeline Is the Target: A DevOps Field Guide to Modern Supply Chain Security",
+   "track": "Cloud & DevOps",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Brian Randell",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/19708ee8-dea1-4e01-887e-0f8e4e8b09ff.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1252440"
+  },
+  {
+   "id": "1175301",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Room 10",
+   "title": "Building AI-Ready Data Infrastructure at Terabyte Scale with Terraform and Azure",
+   "track": "Data",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Florian Lenz",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/7b78e12b-cc15-416c-8c6c-899e64265d07.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1175301"
+  },
+  {
+   "id": "1246988",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Room 11",
+   "title": "One arrow, multiple breaches: what I've learned jailbreaking AI chatbots",
+   "track": "Architecture & Security",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Yianna Paris",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/1f23328e-aaeb-4f40-b261-1fbf1a0233af.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1246988"
+  },
+  {
+   "id": "1216224",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Room 12",
+   "title": "POC Prison: Why agentic systems never escape the lab and how to fix that in 90 days",
+   "track": "AI & Agents",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Luise Freese",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/f6040a22-1580-4ca3-b201-5b59f013c242.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1216224"
+  },
+  {
+   "id": "1275951",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Room 13",
+   "title": "From Code Health to Quality Gates with GitHub Code Quality",
+   "track": "Dev",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Josh Johanning",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/aac0f195-4abd-4967-8688-b7f71f9803b3.png"
+    },
+    {
+     "name": "Tiago Pascoal",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/e3a1f1ed-2c50-4174-bdfe-9a9d2b4a6553.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1275951"
+  },
+  {
+   "id": "1241958",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Room 7",
+   "title": "Above the Cloud: Building Data Centers in Space",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Richard Campbell",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/d4d7850a-526e-4959-aab1-36460081fcf5.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1241958"
+  },
+  {
+   "id": "1247289",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Room 8",
+   "title": "Blazor, MAUI, WPF, or WinForms? Picking the Right .NET UI Framework in the AI Coding Era",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Mark Allibone",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/df2bc5ca-5a6b-48a9-87ac-71c817d7b240.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1247289"
+  },
+  {
+   "id": "1210579",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Room 9",
+   "title": "Doing Agentic Micro UI Right — User Experience Rules",
+   "track": "AI & Agents",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Dean Schuster",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/7bff5191-9df6-42a2-8e4d-308df6a6695c.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1210579"
+  },
+  {
+   "id": "2026-10-27-15-30-break",
+   "kind": "break",
+   "date": "2026-10-27",
+   "start": "15:30",
+   "end": "16:00",
+   "room": "Partner Area",
+   "title": "Break",
+   "track": null,
+   "level": null,
+   "speakers": [],
+   "url": null
+  },
+  {
+   "id": "1247138",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Mission 1 (JB)",
+   "title": "The Developers Guide to Azure SQL Hyperscale",
+   "track": "Data",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Bob Ward",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/e7a1974e-4b3d-4283-a6f9-2e432eefe3fa.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1247138"
+  },
+  {
+   "id": "1246663",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Mission 2 (JB)",
+   "title": "Securing ASP.NET Core Today: Lessons from the New OWASP Top 10",
+   "track": "Architecture & Security",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Christian Wenz",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/a083f154-f182-49e9-9612-9767faac03aa.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1246663"
+  },
+  {
+   "id": "1152280",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Progress (JB)",
+   "title": "Telemetry in .NET",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Stephen Cleary",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/d89757e0-5589-4400-935e-b57bdef01799.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1152280"
+  },
+  {
+   "id": "1330095",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Room 10",
+   "title": "When Abstractions Leak: Optimizing Message Queuing on SQL Server",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Tomasz Masternak",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/4b093124-bf7d-467d-a338-0b8d8dc26170.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1330095"
+  },
+  {
+   "id": "1232821",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Room 11",
+   "title": "It's a trap! Stuff a developer needs to know about Azure networking",
+   "track": "Cloud & DevOps",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Rik Hepworth",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/0d377ccb-8b39-455c-bc19-aa685c1d3cf9.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1232821"
+  },
+  {
+   "id": "1208113",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Room 12",
+   "title": "You’re Not Just Tired: The Psychology of Burnout",
+   "track": "Leadership & Productivity",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Arthur Doler",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/fdf3c776-f100-41f5-bb22-7a1f16710740.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1208113"
+  },
+  {
+   "id": "1177277",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Room 13",
+   "title": "Using Microsoft Kiota to go from OpenAPI to first-class .NET client SDKs",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Alex Thissen",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/223d2b9d-a582-4e14-bebb-d636fb030bda.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1177277"
+  },
+  {
+   "id": "1241884",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Room 7",
+   "title": "Trust Fall: Building UX for Apps that work on their own",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "David Ortinau",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/9fd10a46-6e2a-4eae-9b6d-9cf8ff0ecf15.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1241884"
+  },
+  {
+   "id": "1246312",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Room 8",
+   "title": "Copilot Studio for Developers: What You Need to Unlearn",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Christina Wheeler",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/542c10c0-65b3-4b57-a99a-623ea3f17f8e.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1246312"
+  },
+  {
+   "id": "1155333",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Room 9",
+   "title": "Building AI solutions using Azure AI Foundry",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Tomaž Kaštrun",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/04a77511-bb63-4b2a-9d0b-fc6a1a633191.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1155333"
+  },
+  {
+   "id": "2026-10-27-17-00-break",
+   "kind": "break",
+   "date": "2026-10-27",
+   "start": "17:00",
+   "end": "17:15",
+   "room": "Partner Area",
+   "title": "Break",
+   "track": null,
+   "level": null,
+   "speakers": [],
+   "url": null
+  },
+  {
+   "id": "1153820",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "17:15",
+   "end": "18:15",
+   "room": "Mission 1 (JB)",
+   "title": "Reliable Agentic Systems need Durable Execution",
+   "track": "AI & Agents",
+   "level": "Advanced",
+   "speakers": [
+    {
+     "name": "Marc Duiker",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/a8f6d7b9-dd7f-40fd-9cbf-cc2abcb6cd6a.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1153820"
+  },
+  {
+   "id": "1329755",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "17:15",
+   "end": "18:15",
+   "room": "Mission 2 (JB)",
+   "title": "Problems scale faster with AI",
+   "track": "Leadership & Productivity",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Liuba Gonta",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/55d68526-7ff1-421d-9e9b-b42853281c57.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1329755"
+  },
+  {
+   "id": "1246091",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "17:15",
+   "end": "18:15",
+   "room": "Progress (JB)",
+   "title": "Azure Service Bus - Behind the scenes",
+   "track": "Architecture & Security",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Clemens Vasters",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/ea08aeb6-43f0-40d1-a571-4140e932dfb4.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1246091"
+  },
+  {
+   "id": "1193663",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "17:15",
+   "end": "18:15",
+   "room": "Room 10",
+   "title": "Modern cross-platform applications with .NET and Avalonia UI",
+   "track": "Dev",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Roland König",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/05d0cc35-2822-4804-a812-c873640b9849.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1193663"
+  },
+  {
+   "id": "1241602",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "17:15",
+   "end": "18:15",
+   "room": "Room 11",
+   "title": "Optimizing data for agentic use",
+   "track": "Data",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Jelle Fremery",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/6df90c74-6729-46e2-99e7-6eb94ef9695c.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1241602"
+  },
+  {
+   "id": "1246376",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "17:15",
+   "end": "18:15",
+   "room": "Room 12",
+   "title": "C# 14 and Beyond",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Bart De Smet",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/9f469be8-3494-4f8f-a5ee-424c19955d1b.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1246376"
+  },
+  {
+   "id": "1228368",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "17:15",
+   "end": "18:15",
+   "room": "Room 13",
+   "title": "Test Smarter with AI: Playwright Automation at Scale on Azure",
+   "track": "Dev",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Randy Pagels",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/1891b260-8833-46ec-b5bc-907c0105f730.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1228368"
+  },
+  {
+   "id": "1250681",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "17:15",
+   "end": "18:15",
+   "room": "Room 7",
+   "title": "Kindness in tech",
+   "track": "Leadership & Productivity",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Kathleen Dollard",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/537df6ae-bc10-40cb-a34c-ee99cad387ec.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1250681"
+  },
+  {
+   "id": "1207790",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "17:15",
+   "end": "18:15",
+   "room": "Room 8",
+   "title": "When AI meets your database: Securing sensitive data in Azure SQL in an AI-driven world",
+   "track": "Data",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Pieter Vanhove",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/dd1c302c-8103-4735-ac59-ddfedead6601.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1207790"
+  },
+  {
+   "id": "1175298",
+   "kind": "session",
+   "date": "2026-10-27",
+   "start": "17:15",
+   "end": "18:15",
+   "room": "Room 9",
+   "title": "Azure Landing Zones Without the Overwhelm: A Simple Platform Foundation for .NET Teams",
+   "track": "Architecture & Security",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Florian Lenz",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/7b78e12b-cc15-416c-8c6c-899e64265d07.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1175298"
+  },
+  {
+   "id": "2026-10-28-07-30-registration-breakfast",
+   "kind": "break",
+   "date": "2026-10-28",
+   "start": "07:30",
+   "end": "08:30",
+   "room": "Partner Area",
+   "title": "Registration & breakfast",
+   "track": null,
+   "level": null,
+   "speakers": [],
+   "url": null
+  },
+  {
+   "id": "1352040",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "08:30",
+   "end": "09:30",
+   "room": "Mission 1 (JB)",
+   "title": "Five things every developer should know about building mission-critical systems",
+   "track": "Dev",
+   "level": "Advanced",
+   "speakers": [
+    {
+     "name": "Loek Duys",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/32249d51-53d2-46cd-92d0-4c2ee9ffdb08.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1352040"
+  },
+  {
+   "id": "1318364",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "08:30",
+   "end": "09:30",
+   "room": "Mission 2 (JB)",
+   "title": "Let's build our own coding agent",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Max Gfeller",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/b6fbfb2a-3c25-4674-b248-6b588ac8009d.jpeg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1318364"
+  },
+  {
+   "id": "1202445",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "08:30",
+   "end": "09:30",
+   "room": "Progress (JB)",
+   "title": "Death by Tool Calls: Using CodeGen Agents to Solve the Biggest Problem with Agentic AI",
+   "track": "AI & Agents",
+   "level": "Advanced",
+   "speakers": [
+    {
+     "name": "Jeff Prosise",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/fb9addc2-3131-4573-a19b-6df1f3064ac4.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1202445"
+  },
+  {
+   "id": "1181517",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "08:30",
+   "end": "09:30",
+   "room": "Room 10",
+   "title": "Don’t talk to me like I’m a computer scientist.",
+   "track": "Dev",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Dean Schuster",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/7bff5191-9df6-42a2-8e4d-308df6a6695c.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1181517"
+  },
+  {
+   "id": "1233691",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "08:30",
+   "end": "09:30",
+   "room": "Room 11",
+   "title": "What I learned from modernizing a microservices architecture",
+   "track": "Architecture & Security",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Dennis Doomen",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/ab01a796-ecbb-4d51-ba4a-cdd8b86ea6a7.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1233691"
+  },
+  {
+   "id": "1320835",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "08:30",
+   "end": "09:30",
+   "room": "Room 12",
+   "title": "OK, Code Is Worthless... Now What?",
+   "track": "AI & Agents",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Dylan Beattie",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/1d7dcbfc-1de6-4228-8bd6-04f4ba1c4267.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1320835"
+  },
+  {
+   "id": "1177275",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "08:30",
+   "end": "09:30",
+   "room": "Room 13",
+   "title": "Run locally, call from anywhere: Debugging cloud apps with Dev Tunnels",
+   "track": "Cloud & DevOps",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Alex Thissen",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/223d2b9d-a582-4e14-bebb-d636fb030bda.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1177275"
+  },
+  {
+   "id": "1317872",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "08:30",
+   "end": "09:30",
+   "room": "Room 7",
+   "title": "Interoperability of .NET",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Sam Basu",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/fc1d0cd3-9675-4188-aa98-e0088069f1a4.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1317872"
+  },
+  {
+   "id": "1176719",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "08:30",
+   "end": "09:30",
+   "room": "Room 8",
+   "title": "Slaying the Password Dragon with Passkeys and .NET 10",
+   "track": "Architecture & Security",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Andrew Clymer",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/c465df65-cc9b-4f2d-9c54-a0d699c8fe46.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1176719"
+  },
+  {
+   "id": "1200815",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "08:30",
+   "end": "09:30",
+   "room": "Room 9",
+   "title": "Cognitive Shift: How Agentic AI Changes the Way We Think",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Thijs Baan",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/24f99163-eea8-424c-a350-27fa29821d0f.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1200815"
+  },
+  {
+   "id": "2026-10-28-09-30-break",
+   "kind": "break",
+   "date": "2026-10-28",
+   "start": "09:30",
+   "end": "09:45",
+   "room": "Partner Area",
+   "title": "Break",
+   "track": null,
+   "level": null,
+   "speakers": [],
+   "url": null
+  },
+  {
+   "id": "1248478",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Mission 1 (JB)",
+   "title": "Reimagining PostgreSQL for AI Apps: Inside Azure HorizonDB",
+   "track": "Data",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Bob Ward",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/e7a1974e-4b3d-4283-a6f9-2e432eefe3fa.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1248478"
+  },
+  {
+   "id": "1324526",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Mission 2 (JB)",
+   "title": "Tokenomics: Writing Better Code with Fewer Tokens in GitHub Copilot",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Jon Galloway",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/c6f0ebfe-4c60-421c-b791-1aad49a18005.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1324526"
+  },
+  {
+   "id": "1216334",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Progress (JB)",
+   "title": "Azure Spot instances as your secret weapon",
+   "track": "Cloud & DevOps",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Jiří Činčura",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/a024a68e-18cb-4f09-acf7-8a8adc41a0ac.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1216334"
+  },
+  {
+   "id": "1153288",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Room 10",
+   "title": "CRAcking Compliance - The EU Cyber Resilience Act",
+   "track": "Architecture & Security",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Christian Schabetsberger",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/8c159868-7bac-46db-afe8-7f76e6b494b6.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1153288"
+  },
+  {
+   "id": "1213522",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Room 11",
+   "title": "Shipping AI with confidence using ASSERT and evaluations in Microsoft Foundry",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Arne De Proft",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/ba5b1ebe-9a60-4c2e-88ba-f7edbbab34be.jpg"
+    },
+    {
+     "name": "Laura Verghote",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/de74d2eb-cf0f-4e08-9551-9f530136c78e.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1213522"
+  },
+  {
+   "id": "1275945",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Room 12",
+   "title": "Quality in the Agentic Era: Keeping Engineering Standards at AI Speed",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Josh Johanning",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/aac0f195-4abd-4967-8688-b7f71f9803b3.png"
+    },
+    {
+     "name": "Tiago Pascoal",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/e3a1f1ed-2c50-4174-bdfe-9a9d2b4a6553.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1275945"
+  },
+  {
+   "id": "1241959",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Room 13",
+   "title": "The Future of Energy",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Richard Campbell",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/d4d7850a-526e-4959-aab1-36460081fcf5.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1241959"
+  },
+  {
+   "id": "1317798",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Room 7",
+   "title": "Model Context Protocol (MCP) version 2",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Rockford Lhotka",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/dbecbfd2-0bc3-4dd8-8557-8f1bfcc6e313.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1317798"
+  },
+  {
+   "id": "1152273",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Room 8",
+   "title": "Async Masterclass",
+   "track": "Dev",
+   "level": "Advanced",
+   "speakers": [
+    {
+     "name": "Stephen Cleary",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/d89757e0-5589-4400-935e-b57bdef01799.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1152273"
+  },
+  {
+   "id": "1312362",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "09:45",
+   "end": "10:45",
+   "room": "Room 9",
+   "title": "From APIs to Agents: Building Governed AI Workflows",
+   "track": "Dev",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Zinat Farhang",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/133a32de-a124-4d15-97a3-bf5fda75d3b4.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1312362"
+  },
+  {
+   "id": "2026-10-28-10-45-break",
+   "kind": "break",
+   "date": "2026-10-28",
+   "start": "10:45",
+   "end": "11:15",
+   "room": "Partner Area",
+   "title": "Break",
+   "track": null,
+   "level": null,
+   "speakers": [],
+   "url": null
+  },
+  {
+   "id": "1322115",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Mission 1 (JB)",
+   "title": "Dark Factories - From Science Fiction to Production",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Andreas Wänqvist",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/12993a76-5716-4de3-a7c4-71d01ab38c7e.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1322115"
+  },
+  {
+   "id": "1313715",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Mission 2 (JB)",
+   "title": "Combining Azure DevOps with GitHub: what to expect",
+   "track": "Cloud & DevOps",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Jacco Rademaker",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/c46b527e-63ea-4e08-bf1a-0fd0a5e1a463.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1313715"
+  },
+  {
+   "id": "1246095",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Progress (JB)",
+   "title": "What time is it? The mysterious clocks of sports and other things we do.",
+   "track": "Data",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Clemens Vasters",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/ea08aeb6-43f0-40d1-a571-4140e932dfb4.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1246095"
+  },
+  {
+   "id": "1256156",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Room 10",
+   "title": "Beyond DDD vs EA: Architecting Autonomous Landscapes That Actually Scale",
+   "track": "Architecture & Security",
+   "level": "Advanced",
+   "speakers": [
+    {
+     "name": "Dwight Matthys",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/1f77130c-7192-423c-a97c-5492c5a63d72.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1256156"
+  },
+  {
+   "id": "1202282",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Room 11",
+   "title": "Continuous Evaluation & Monitoring for AI Applications",
+   "track": "Architecture & Security",
+   "level": "Advanced",
+   "speakers": [
+    {
+     "name": "Soham Dasgupta",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/fa7fcfe7-6f2d-4ba0-9c10-95b8b242d134.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1202282"
+  },
+  {
+   "id": "1219379",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Room 12",
+   "title": "C#shenanigans",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Eva Ditzelmüller",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/19e574b0-eabe-454b-b591-59965637b1ee.jpg"
+    },
+    {
+     "name": "Stefan Pölz",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/1a8eb8cc-fa0f-401e-b10b-843de142ad69.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1219379"
+  },
+  {
+   "id": "1242813",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Room 13",
+   "title": "From 10 to 10,000 Agents: Engineering a Governed AI Platform on Azure with Citadel",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Jesse Wellenberg",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/4d97d723-7703-4de6-9e43-37df9a73b5fe.png"
+    },
+    {
+     "name": "Patrick de Kruijf",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/1d5a0dde-3522-4e90-bce0-cbf6f0c822cb.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1242813"
+  },
+  {
+   "id": "1240554",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Room 7",
+   "title": "Build Next-Gen AI Apps with .NET",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "David Ortinau",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/9fd10a46-6e2a-4eae-9b6d-9cf8ff0ecf15.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1240554"
+  },
+  {
+   "id": "1319474",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Room 8",
+   "title": "Reviving a Legacy Codebase with AI",
+   "track": "AI & Agents",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Mark Heath",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/5f779e7a-6806-46f7-8991-defbcf3e6fd4.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1319474"
+  },
+  {
+   "id": "1246845",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "11:15",
+   "end": "12:15",
+   "room": "Room 9",
+   "title": "The Web Platform Caught Up, but .NET Devs Didn't Notice",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Glenn F. Henriksen",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/fb75b901-4842-4858-ba35-8c370db0af14.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1246845"
+  },
+  {
+   "id": "2026-10-28-12-15-break",
+   "kind": "break",
+   "date": "2026-10-28",
+   "start": "12:15",
+   "end": "13:15",
+   "room": "Partner Area",
+   "title": "Break",
+   "track": null,
+   "level": null,
+   "speakers": [],
+   "url": null
+  },
+  {
+   "id": "1319115",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "12:30",
+   "end": "13:00",
+   "room": "Room 12",
+   "title": "Can I Make Myself Obsolete? Two AI Agents in Security Operations",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Ömer Zülaloğlu",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/16293046-e3e9-4f19-ab8a-a1fcdae1bbd1.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1319115"
+  },
+  {
+   "id": "1341135",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Mission 1 (JB)",
+   "title": "From Fabric to Fantastic: How dbt Makes Your Lakehouses and Warehouses Shine",
+   "track": "Data",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Sam Debruyn",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/c902c592-329d-444d-bc05-04f4495e9224.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1341135"
+  },
+  {
+   "id": "1207611",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Mission 2 (JB)",
+   "title": "From Assistant to Actor: The New Security Risks of Coding Agents",
+   "track": "Architecture & Security",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Maxim Salnikov",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/fdde781e-b198-49ca-9147-8fec90eef254.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1207611"
+  },
+  {
+   "id": "1252426",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Progress (JB)",
+   "title": "Local-First AI Development: Sovereignty, Silicon, and the Private Dev Loop",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Brian Randell",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/19708ee8-dea1-4e01-887e-0f8e4e8b09ff.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1252426"
+  },
+  {
+   "id": "1176932",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Room 10",
+   "title": "Bearer of Good News",
+   "track": "Architecture & Security",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Sam Bellen",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/82477ce3-dbc0-486a-a08f-b9df9dba927f.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1176932"
+  },
+  {
+   "id": "1174189",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Room 11",
+   "title": "Digital Sovereignty on the Azure Cloud",
+   "track": "Cloud & DevOps",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Erwin Staal",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/b67647dc-8ec0-4bb0-b1a2-7c4b603830f8.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1174189"
+  },
+  {
+   "id": "1237073",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Room 12",
+   "title": "Beyond HybridCache: FusionCache",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Jody Donetti",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/98061d79-1126-4c3a-bf24-071cabe7c0af.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1237073"
+  },
+  {
+   "id": "1250676",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Room 13",
+   "title": "Creating great CLIs",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Kathleen Dollard",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/537df6ae-bc10-40cb-a34c-ee99cad387ec.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1250676"
+  },
+  {
+   "id": "1207930",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Room 7",
+   "title": "Designing Software for Agentic Development",
+   "track": "AI & Agents",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Ardalis .",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/a5d50f4e-f021-4983-97a9-73f9415b3d5b.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1207930"
+  },
+  {
+   "id": "1175918",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Room 8",
+   "title": "LLMs in the Event-Sourced World: Commands, Projections and Sagas",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Oliver Sturm",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/3c7a1341-6c5f-4448-884c-9dd5b3394782.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1175918"
+  },
+  {
+   "id": "1306442",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "13:15",
+   "end": "14:15",
+   "room": "Room 9",
+   "title": "Agentic Refactoring at Scale: From Loosely Typed VB.NET to Modern C#",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Gerrit van den Geest",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/bb663c88-0f99-41d0-a887-cb77bea402a1.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1306442"
+  },
+  {
+   "id": "2026-10-28-14-15-break",
+   "kind": "break",
+   "date": "2026-10-28",
+   "start": "14:15",
+   "end": "14:30",
+   "room": "Partner Area",
+   "title": "Break",
+   "track": null,
+   "level": null,
+   "speakers": [],
+   "url": null
+  },
+  {
+   "id": "1329465",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Mission 1 (JB)",
+   "title": "Making AI Useful: Structuring Data Through a Semantic Layer",
+   "track": "AI & Agents",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Arnoud Boere",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/140a8e49-cb8a-4ac3-81db-e476d504b17e.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1329465"
+  },
+  {
+   "id": "1194187",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Mission 2 (JB)",
+   "title": "Building a Hybrid AI Platform for Agent-Heavy Engineering",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Willem Meints",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/b884760a-5bc9-4417-9b66-604cc0a89264.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1194187"
+  },
+  {
+   "id": "1247314",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Progress (JB)",
+   "title": "Lessons Learnt: What Really Happens When You Give AI to Low-Code/No-Code Developers",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Mark Allibone",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/df2bc5ca-5a6b-48a9-87ac-71c817d7b240.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1247314"
+  },
+  {
+   "id": "1230041",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Room 10",
+   "title": "SRE practices in an agentic world",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Tom van den Berg",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/04d09f55-4c37-4e17-b42e-06916b854b3e.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1230041"
+  },
+  {
+   "id": "1207578",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Room 11",
+   "title": "Beyond the Hyperscalers: How to build a sovereign tech stack with what you already know",
+   "track": "Cloud & DevOps",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Bas van de Sande",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/44c8ade6-78fc-4b3b-aee4-f4de6d154cdb.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1207578"
+  },
+  {
+   "id": "1233053",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Room 12",
+   "title": "Use Agents to Build Agents with Aspire + Microsoft Agent Framework",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Maddy Montaquila",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/a0dc3822-2379-40ff-8ba4-08f28269c4c5.jpg"
+    },
+    {
+     "name": "Tommaso Stocchi",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/46ccfc69-2489-47ba-9930-fee4b8d587b3.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1233053"
+  },
+  {
+   "id": "1219377",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Room 13",
+   "title": "Pattern-based C#: if it quacks like a duck…",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Eva Ditzelmüller",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/19e574b0-eabe-454b-b591-59965637b1ee.jpg"
+    },
+    {
+     "name": "Stefan Pölz",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/1a8eb8cc-fa0f-401e-b10b-843de142ad69.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1219377"
+  },
+  {
+   "id": "1236348",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Room 7",
+   "title": "Data Platform Bingo: Deployment Edition",
+   "track": "Data",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Danny Kruge",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/cc663af1-7c0d-429a-9ba5-0a81e3056389.png"
+    },
+    {
+     "name": "Tonie Huizer",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/2628c74d-b81e-4ae0-8adf-eba684fbf945.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1236348"
+  },
+  {
+   "id": "1246316",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Room 8",
+   "title": "Copilot Studio Tools Deep Dive: From Connectors to MCP",
+   "track": "AI & Agents",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Christina Wheeler",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/542c10c0-65b3-4b57-a99a-623ea3f17f8e.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1246316"
+  },
+  {
+   "id": "1176888",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "14:30",
+   "end": "15:30",
+   "room": "Room 9",
+   "title": "Build your own CLI tools or how to allow AI agents to troubleshoot production issues",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Christophe Nasarre",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/62706aaf-aadc-4538-9f39-70f5afb4cf0b.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1176888"
+  },
+  {
+   "id": "2026-10-28-15-30-break",
+   "kind": "break",
+   "date": "2026-10-28",
+   "start": "15:30",
+   "end": "16:00",
+   "room": "Partner Area",
+   "title": "Break",
+   "track": null,
+   "level": null,
+   "speakers": [],
+   "url": null
+  },
+  {
+   "id": "1328428",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Mission 1 (JB)",
+   "title": "GitHub Agents of Camelot: Building and Defending the Cloud Kingdom",
+   "track": "Cloud & DevOps",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Wesley Haakman",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/4bdc6f55-66c0-440b-bf8c-e824f6ab450b.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1328428"
+  },
+  {
+   "id": "1208747",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Mission 2 (JB)",
+   "title": "How I built my own intelligent Robot Arm from Scratch",
+   "track": "AI & Agents",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Iulia Feroli",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/38309a6e-59f3-4270-9ccf-68962752d54f.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1208747"
+  },
+  {
+   "id": "1208116",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Progress (JB)",
+   "title": "How To Not Strangle Your Coworkers: Resolving Conflict with Collaboration",
+   "track": "Leadership & Productivity",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Arthur Doler",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/fdf3c776-f100-41f5-bb22-7a1f16710740.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1208116"
+  },
+  {
+   "id": "1235784",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Room 10",
+   "title": "The Fun Side of Advanced TypeScript: A Live Coding Session",
+   "track": "Dev",
+   "level": "Advanced",
+   "speakers": [
+    {
+     "name": "Dante De Ruwe",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/16fa8ecc-2a57-45f2-9bcf-fc068711c9d3.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1235784"
+  },
+  {
+   "id": "1320771",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Room 11",
+   "title": "Out with Entity Framework, In with Copilot",
+   "track": "Dev",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Robert Hartskeerl",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/3b374a4b-c9c2-4de9-abe5-5378a16059fd.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1320771"
+  },
+  {
+   "id": "1152476",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Room 13",
+   "title": "From \"Trust Me\" to \"Verify Me\"",
+   "track": "Architecture & Security",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Tom van den Berg",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/04d09f55-4c37-4e17-b42e-06916b854b3e.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1152476"
+  },
+  {
+   "id": "1246448",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Room 7",
+   "title": "Building an LLM from scratch in 60 minutes",
+   "track": "AI & Agents",
+   "level": "Advanced",
+   "speakers": [
+    {
+     "name": "Bart De Smet",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/9f469be8-3494-4f8f-a5ee-424c19955d1b.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1246448"
+  },
+  {
+   "id": "1246287",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Room 8",
+   "title": "The Well-Architected Architect - Building Secure, Reliable, Cost-efficient Solutions on Azure",
+   "track": "Architecture & Security",
+   "level": "Intermediate",
+   "speakers": [
+    {
+     "name": "Chris Ayers",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/2ebd8578-298f-45ae-b71b-dc076037b080.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1246287"
+  },
+  {
+   "id": "1320725",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "16:00",
+   "end": "17:00",
+   "room": "Room 9",
+   "title": "Your AI Agent Needs a Kill Switch: Engineering Agents for Production",
+   "track": "AI & Agents",
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Luca Berton",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/34f90620-e37f-445a-8415-842764329197.jpg"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1320725"
+  },
+  {
+   "id": "2026-10-28-17-00-break",
+   "kind": "break",
+   "date": "2026-10-28",
+   "start": "17:00",
+   "end": "17:15",
+   "room": "Partner Area",
+   "title": "Break",
+   "track": null,
+   "level": null,
+   "speakers": [],
+   "url": null
+  },
+  {
+   "id": "1327743",
+   "kind": "session",
+   "date": "2026-10-28",
+   "start": "17:15",
+   "end": "18:15",
+   "room": "Room 12",
+   "title": "A Fresh Perspective on Behaviour, Change and the Brain",
+   "track": null,
+   "level": "Introductory and overview",
+   "speakers": [
+    {
+     "name": "Paul Smit",
+     "photo": "https://oganizeprod.blob.core.windows.net/speakerimages/d52a989e-f456-46c9-b675-262282a3f28c.png"
+    }
+   ],
+   "url": "https://techorama.nl/schedule/sessions/1327743"
+  }
+ ]
+}
