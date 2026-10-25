@@ -1073,6 +1073,18 @@
       width: 110px;
     }
     .lib-del-btn:hover { background: var(--danger); border-color: var(--danger); }
+    .lib-move-btn { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 7px; padding: 5px 14px; font-size: 0.78rem; cursor: pointer; width: 110px; }
+    .lib-move-btn:hover { background: rgba(255,255,255,0.15); }
+
+    #lib-folder-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 14px; }
+    .lib-folder-chip { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; font-size: 0.8rem; cursor: pointer; }
+    .lib-folder-chip:hover { border-color: var(--accent); }
+    .lib-folder-chip.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+    .lib-folder-chip .n { opacity: 0.65; margin-left: 4px; font-size: 0.72rem; }
+    .lib-folder-chip.add { border-style: dashed; color: var(--muted); }
+    .lib-folder-tools { margin-left: auto; display: flex; gap: 6px; }
+    .lib-folder-tools button { padding: 4px 10px; font-size: 0.78rem; }
+    .lib-folder-empty { border: 1px dashed var(--border); border-radius: var(--radius); padding: 26px; text-align: center; color: var(--muted); font-size: 0.85rem; }
 
     .lib-checkbox {
       position: absolute;
@@ -1518,9 +1530,9 @@
       <div class="card">
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
           <h2 style="margin-bottom:0; flex:1;">Your images</h2>
-          <select id="lib-folder-filter" style="padding:6px 10px; font-size:0.85rem; display:none;"></select>
           <button id="lib-clear-all-btn" style="display:none; background:var(--danger); color:#fff; padding:7px 14px; font-size:0.82rem;">🗑 Remove all</button>
         </div>
+        <div id="lib-folder-bar"></div>
         <div id="library-empty" class="empty-state" style="padding:30px 0;">No images yet. Click <strong>Sync from GitHub</strong> above.</div>
         <div id="library-grid" class="library-grid"></div>
       </div>
@@ -2386,13 +2398,15 @@
 
     // Called before any manual push to stop an active schedule/slideshow
     let onManualPush = null;
+    // Toast suffix: when the schedule takes over again from a push (set once the schedule is loaded)
+    let untilNote = () => '';
 
     function push(url, mode, target = pushTarget) {
       if (onManualPush) onManualPush();
       if (!db) { showToast('Not connected to Firebase', true); return; }
       currentRef(target).set({ url, mode, updatedAt: Date.now() })
         .then(() => {
-          showToast('Pushed!');
+          showToast('Pushed!' + untilNote(target));
           if (url !== '') addRecent(url, mode);
           document.getElementById('live-url').textContent = url || '(blank)';
           document.getElementById('live-mode').textContent = url ? `[${mode}]` : '';
@@ -2418,7 +2432,7 @@
       const html = imagePageHtml(url);
       currentRef(target).set({ mode: 'html', html, updatedAt: Date.now() })
         .then(() => {
-          showToast('Image pushed!');
+          showToast('Image pushed!' + untilNote(target));
           document.getElementById('live-url').textContent = url;
           document.getElementById('live-mode').textContent = '[image]';
         })
@@ -2430,7 +2444,7 @@
       if (!db) { showToast('Not connected to Firebase', true); return; }
       currentRef(target).set({ url, mode: 'video', updatedAt: Date.now() })
         .then(() => {
-          showToast('Video pushed!');
+          showToast('Video pushed!' + untilNote(target));
           document.getElementById('live-url').textContent = url;
           document.getElementById('live-mode').textContent = '[video]';
         })
@@ -2552,7 +2566,7 @@
         : generateHtmlDocument();
       currentRef().set({ mode: 'html', html, updatedAt: Date.now() })
         .then(() => {
-          showToast('HTML slide pushed!');
+          showToast('HTML slide pushed!' + untilNote(pushTarget));
           document.getElementById('live-url').textContent = '(HTML slide)';
           document.getElementById('live-mode').textContent = '[html]';
         })
@@ -2727,6 +2741,19 @@
           .reduce((n, d) => !n || (d.updatedAt || 0) > (n.updatedAt || 0) ? d : n, null);
       }
 
+      // Schedule as seen by a target ("all", "group:x", "screen:y")
+      function targetSchedule(target) {
+        if (target.startsWith('screen:')) { const id = target.slice(7); return timetableActive(id, (screens[id] || {}).group); }
+        return timetableActive(null, target.startsWith('group:') ? target.slice(6) : null);
+      }
+      // A push overrides until the next scheduled content starts, or until "Back to schedule"
+      const pushLive = (m, tt) => !!m && !m.followSchedule && (m.updatedAt || 0) >= (tt.lastStart || 0);
+      const clockText = ts => new Date(ts).toTimeString().slice(0, 5);
+      untilNote = target => {
+        const next = targetSchedule(target).nextStart;
+        return next < Infinity ? ' The schedule takes over again at ' + clockText(next) + '.' : '';
+      };
+
       function sanitizeKey(str) {
         return (str || '').trim().replace(/[.#$\[\]\/]/g, '-');
       }
@@ -2754,8 +2781,10 @@
         document.getElementById('live-label').textContent = label;
         const sched = document.getElementById('live-sched');
         const others = pushTarget === 'all' ? overriddenScreens().length : 0;
+        if (data && !pushLive(data, targetSchedule(pushTarget))) data = null;
         if (data && !data.followSchedule) {
-          sched.innerHTML = `<span class="ls-chip override">✋ Override</span><button class="ls-back" data-target="${escHtml(pushTarget)}">↩ Back to schedule</button>`;
+          const next = targetSchedule(pushTarget).nextStart;
+          sched.innerHTML = `<span class="ls-chip override">✋ Override${next < Infinity ? ' until ' + clockText(next) : ''}</span><button class="ls-back" data-target="${escHtml(pushTarget)}">↩ Back to schedule</button>`;
         } else {
           sched.innerHTML = `<span class="ls-chip">🗓 Following the schedule</span>` +
             (others ? `<span class="tt-muted">${others} screen${others > 1 ? 's' : ''} overridden</span><button class="ls-back" data-target="all">↩ All back to schedule</button>` : '');
@@ -2784,7 +2813,7 @@
         if (target.startsWith('group:')) return newest(globalCurrent, (groupsCurrent[target.slice(6)] || {}).current);
         return globalCurrent;
       }
-      const isOverride = target => { const m = manualFor(target); return !!m && !m.followSchedule; };
+      const isOverride = target => pushLive(manualFor(target), targetSchedule(target));
       const overriddenScreens = () => Object.keys(screens).filter(id => isOverride('screen:' + id));
 
       function backToSchedule(target = pushTarget) {
@@ -2886,7 +2915,7 @@
       function progressBarHtml(p) {
         if (!p) return '';
         const cq = px => (px / 19.2).toFixed(3) + 'cqw';
-        const pct = Math.min(100, Math.max(0, (Date.now() - p.startedAt) / (p.target - p.startedAt) * 100));
+        const pct = Math.min(100, Math.max(0, (p.target > p.startedAt ? (Date.now() - p.startedAt) / (p.target - p.startedAt) : 1) * 100));
         const height = p.text ? Math.max(p.height || 48, 28) : (p.height || 12);
         const justify = { center: 'center', right: 'flex-end' }[p.align] || 'flex-start';
         const text = Date.now() >= p.target && p.doneText ? p.doneText : (p.text || '').replace(/\{countdown\}/g, formatLeft(p.target - Date.now()));
@@ -2978,7 +3007,7 @@
         const tt = timetableActive(id, s.group);
         const ttData = tt.content && tt.content.show ? Object.assign({}, tt.content.show, { updatedAt: tt.content.clockFrom }) : null;
         const manual = newest(globalCurrent, groupData, s.current);
-        const override = !!manual && !manual.followSchedule;
+        const override = pushLive(manual, tt);
         const data = override ? manual : ttData;
         let source;
         if (override) source = '✋ Override · ' + (manual === s.current ? 'sent to this screen' : manual === groupData ? 'sent to group ' + s.group : 'sent to all screens');
@@ -3089,7 +3118,8 @@
         renderScreensOverview();
       });
       // Refresh tiles now and then so bar previews advance and expired bars disappear
-      setInterval(() => renderScreensOverview(true), 30000);
+      // also flips "Override" back to "Following the schedule" once scheduled content takes over
+      setInterval(() => { renderScreensOverview(true); renderLiveStatus(); }, 30000);
 
       document.getElementById('live-sched').addEventListener('click', e => {
         const b = e.target.closest('.ls-back');
@@ -3430,7 +3460,7 @@ tick();setInterval(tick,250);
           if (isNaN(f.target) && !f.showClock) { showToast('Pick a start time', true); return; }
           if (onManualPush) onManualPush();
           currentRef().set({ mode: 'html', html: countdownHtml(f), updatedAt: Date.now() })
-            .then(() => showToast('Pushed to screens!'))
+            .then(() => showToast('Pushed to screens!' + untilNote(pushTarget)))
             .catch(err => showToast('Error: ' + err.message, true));
         });
         renderCountdownPreview();
@@ -3523,7 +3553,11 @@ tick();setInterval(tick,250);
         // Same rules as the receiver: content of the most specific target (then the latest start);
         // the countdown of the first session goes on top of it
         const clocks = active('clockFrom', 'clockUntil');
+        const starts = items.filter(i => i.kind === 'content' && i.clockFrom).map(i => i.clockFrom);
         return {
+          // A push lasts until the next scheduled content starts (receiver rule)
+          lastStart: Math.max(0, ...starts.filter(t => t <= now)),
+          nextStart: Math.min(Infinity, ...starts.filter(t => t > now)),
           content: clocks.filter(i => i.kind === 'content').sort((a, b) => rank(b) - rank(a) || b.start - a.start)[0],
           overlay: clocks.filter(i => i.kind !== 'content').sort((a, b) => a.start - b.start)[0],
           bar: active('barFrom', 'barUntil').sort((a, b) => a.start - b.start)[0]
@@ -3779,9 +3813,10 @@ tick();setInterval(tick,250);
           };
         }
         const clockFrom = r.clockMin > 0 ? r.start - r.clockMin * 60000 : null;
-        const barFrom = r.barMin > 0 ? r.start - r.barMin * 60000 : null;
         const startingMin = r.startingMin ?? look.doneMin ?? 1;
         const barDoneMin = r.barDoneMin ?? (look.bar || {}).doneMin ?? 1;
+        // No bar before the start but a "when full" text: only that message, from the start (e.g. "Enjoy your lunch!")
+        const barFrom = r.barMin > 0 ? r.start - r.barMin * 60000 : r.barDoneText && barDoneMin > 0 ? r.start : null;
         return {
           kind: 'session',
           start: r.start, showOn: r.showOn, title: r.title || null, subtitle: r.subtitle || null,
@@ -4449,6 +4484,7 @@ tick();setInterval(tick,250);
           if (timetable && !ttRows) applyTtLook(timetable.look);
           renderTimetable();
           renderScreensOverview(true);
+          renderLiveStatus();
         });
         db.ref('signage/schedule').on('value', snap => {
           oldSlots = snap.val() || {};
@@ -4570,7 +4606,7 @@ tick();setInterval(tick,250);
         if (tpl.type === 'html') {
           if (!db) { showToast('Not connected', true); return; }
           currentRef().set({ mode: 'html', html: tpl.content, updatedAt: Date.now() })
-            .then(() => showToast('Template pushed!'))
+            .then(() => showToast('Template pushed!' + untilNote(pushTarget)))
             .catch(err => showToast('Error: ' + err.message, true));
         } else if (tpl.type === 'image') {
           pushImage(tpl.content);
@@ -4739,20 +4775,81 @@ tick();setInterval(tick,250);
           .catch(err => showToast('Error: ' + err.message, true));
       });
 
+      // Folders are the union of signage/libraryFolders (so a folder can exist while empty) and item.folder values
       let libFolderFilter = '';
-      document.getElementById('lib-folder-filter').addEventListener('change', e => {
-        libFolderFilter = e.target.value;
+      let libraryFolders = {};
+      const cleanFolderName = s => (s || '').trim().replace(/[^\w\- ]+/g, '-').replace(/^-+|-+$/g, '');
+
+      function allFolders() {
+        return [...new Set([...Object.keys(libraryFolders),
+          ...Object.values(libraryItems).map(i => i.folder).filter(Boolean)])].sort((a, b) => a.localeCompare(b));
+      }
+
+      function selectFolder(f) {
+        libFolderFilter = f;
+        document.getElementById('lib-upload-folder').value = f;
         renderLibraryGrid(libraryItems);
-      });
+      }
+
+      function createFolder() {
+        const name = cleanFolderName(prompt('New folder name:'));
+        if (!name) return;
+        db.ref('signage/libraryFolders/' + name).set({ createdAt: Date.now() })
+          .then(() => { libraryFolders[name] = { createdAt: Date.now() }; selectFolder(name); showToast('Folder "' + name + '" created'); })
+          .catch(err => showToast('Error: ' + err.message, true));
+      }
+
+      function renameFolder(from) {
+        const to = cleanFolderName(prompt('Rename folder "' + from + '" to:', from));
+        if (!to || to === from) return;
+        const upd = { ['signage/libraryFolders/' + from]: null, ['signage/libraryFolders/' + to]: { createdAt: Date.now() } };
+        Object.entries(libraryItems).forEach(([id, i]) => { if (i.folder === from) upd['signage/imageLibrary/' + id + '/folder'] = to; });
+        db.ref().update(upd)
+          .then(() => { delete libraryFolders[from]; libraryFolders[to] = { createdAt: Date.now() }; selectFolder(to); showToast('Folder renamed'); })
+          .catch(err => showToast('Error: ' + err.message, true));
+      }
+
+      function deleteFolder(f) {
+        const n = Object.values(libraryItems).filter(i => i.folder === f).length;
+        if (!confirm(n ? `Delete folder "${f}"? Its ${n} item${n > 1 ? 's' : ''} move to no folder (nothing is deleted).` : `Delete empty folder "${f}"?`)) return;
+        const upd = { ['signage/libraryFolders/' + f]: null };
+        Object.entries(libraryItems).forEach(([id, i]) => { if (i.folder === f) upd['signage/imageLibrary/' + id + '/folder'] = null; });
+        db.ref().update(upd)
+          .then(() => { selectFolder(''); showToast('Folder deleted'); })
+          .catch(err => showToast('Error: ' + err.message, true));
+      }
+
+      function moveToFolder(item) {
+        const folders = allFolders();
+        const answer = prompt('Move "' + item.name + '" to folder' + (folders.length ? ' (' + folders.join(', ') + ')' : '') +
+          ':\nLeave empty for no folder. A new name creates the folder.', item.folder || '');
+        if (answer === null) return;
+        const to = cleanFolderName(answer);
+        if ((item.folder || '') === to) return;
+        const upd = { ['signage/imageLibrary/' + item.id + '/folder']: to || null };
+        // keep both folders explicit, so moving the last image out doesn't make a folder vanish
+        [item.folder, to].forEach(f => { if (f && !libraryFolders[f]) upd['signage/libraryFolders/' + f] = { createdAt: Date.now() }; });
+        db.ref().update(upd)
+          .then(() => showToast(to ? 'Moved to "' + to + '"' : 'Moved out of folder'))
+          .catch(err => showToast('Error: ' + err.message, true));
+      }
 
       function renderFolderFilter(arr) {
-        const sel = document.getElementById('lib-folder-filter');
-        const folders = [...new Set(arr.map(i => i.folder).filter(Boolean))].sort();
+        const bar = document.getElementById('lib-folder-bar');
+        const folders = allFolders();
         if (libFolderFilter && !folders.includes(libFolderFilter)) libFolderFilter = '';
-        sel.style.display = folders.length ? '' : 'none';
-        sel.innerHTML = '<option value="">📁 All folders</option>' +
-          folders.map(f => `<option value="${escHtml(f)}">📁 ${escHtml(f)}</option>`).join('');
-        sel.value = libFolderFilter;
+        const count = f => arr.filter(i => i.folder === f).length;
+        bar.innerHTML =
+          `<button class="lib-folder-chip${libFolderFilter ? '' : ' active'}" data-f="">All<span class="n">${arr.length}</span></button>` +
+          folders.map(f => `<button class="lib-folder-chip${f === libFolderFilter ? ' active' : ''}" data-f="${escHtml(f)}">📁 ${escHtml(f)}<span class="n">${count(f)}</span></button>`).join('') +
+          `<button class="lib-folder-chip add" id="lib-new-folder-btn">+ New folder</button>` +
+          (libFolderFilter ? `<span class="lib-folder-tools"><button id="lib-rename-folder-btn">✎ Rename</button><button id="lib-delete-folder-btn">🗑 Delete folder</button></span>` : '');
+        bar.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => selectFolder(b.dataset.f)));
+        bar.querySelector('#lib-new-folder-btn').addEventListener('click', createFolder);
+        if (libFolderFilter) {
+          bar.querySelector('#lib-rename-folder-btn').addEventListener('click', () => renameFolder(libFolderFilter));
+          bar.querySelector('#lib-delete-folder-btn').addEventListener('click', () => deleteFolder(libFolderFilter));
+        }
         document.getElementById('lib-folder-options').innerHTML = folders.map(f => `<option value="${escHtml(f)}">`).join('');
       }
 
@@ -4763,8 +4860,11 @@ tick();setInterval(tick,250);
         const all = Object.values(items).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         renderFolderFilter(all);
         const arr = libFolderFilter ? all.filter(i => i.folder === libFolderFilter) : all;
-        empty.style.display = all.length === 0 ? '' : 'none';
+        empty.style.display = all.length === 0 && !allFolders().length ? '' : 'none';
         document.getElementById('lib-clear-all-btn').style.display = all.length === 0 ? 'none' : '';
+        if (libFolderFilter && !arr.length) {
+          grid.innerHTML = `<div class="lib-folder-empty" style="grid-column:1/-1">📁 <strong>${escHtml(libFolderFilter)}</strong> is empty. Uploads above now go into this folder, or use <strong>📁 Move</strong> on an image.</div>`;
+        }
         arr.forEach(item => {
           const isVideo = item.mediaType === 'video';
           const div = document.createElement('div');
@@ -4777,9 +4877,11 @@ tick();setInterval(tick,250);
             <div class="lib-item-name" title="${escHtml((item.folder ? item.folder + '/' : '') + item.name)}">${item.folder && !libFolderFilter ? `<span style="color:var(--muted)">${escHtml(item.folder)}/</span>` : ''}${escHtml(item.name)}</div>
             <div class="lib-item-actions">
               <button class="lib-push-btn">▶ Push</button>
+              <button class="lib-move-btn">📁 Move</button>
               <button class="lib-del-btn">🗑 Remove</button>
             </div>
           `;
+          div.querySelector('.lib-move-btn').addEventListener('click', () => moveToFolder(item));
           div.querySelector('.lib-push-btn').addEventListener('click', () => isVideo ? pushVideo(item.url) : pushImage(item.url));
           div.querySelector('.lib-del-btn').addEventListener('click', () => {
             if (!confirm('Remove "' + item.name + '" from library?')) return;
@@ -4799,8 +4901,14 @@ tick();setInterval(tick,250);
         document.getElementById('lib-url-input').value = '';
       });
 
+      db.ref('signage/libraryFolders').on('value', snap => {
+        libraryFolders = snap.val() || {};
+        renderLibraryGrid(libraryItems);
+      });
+
       db.ref('signage/imageLibrary').on('value', snap => {
         libraryItems = snap.val() || {};
+        Object.keys(libraryItems).forEach(id => { if (!libraryItems[id].id) libraryItems[id].id = id; });
         renderLibraryGrid(libraryItems);
         renderTimetable();
       });
@@ -4887,7 +4995,7 @@ tick();setInterval(tick,250);
         const images = slideshowSelected.map(s => s.url);
         currentRef().set({ mode: 'slideshow', images, interval: slideshowMs, updatedAt: Date.now() })
           .then(() => {
-            showToast('Slideshow pushed!');
+            showToast('Slideshow pushed!' + untilNote(pushTarget));
             document.getElementById('live-url').textContent = `(Slideshow — ${images.length} images, ${slideshowMs/1000}s)`;
             document.getElementById('live-mode').textContent = '[slideshow]';
           })

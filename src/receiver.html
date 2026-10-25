@@ -468,7 +468,7 @@
 
       // Schedule content (ttClockData) is what the screens show unless someone overrides it with a push.
       // Sessions don't replace the content: their countdown is an overlay on top (ttOverlay).
-      let ttOverlay = null, ttOverlayKey;
+      let ttOverlay = null, ttOverlayKey, ttLastStart = 0;
       function ttCheck() {
         const now = Date.now();
         const items = timetable && timetable.enabled
@@ -483,6 +483,9 @@
         const c = active('clockFrom', 'clockUntil').filter(([, i]) => i.kind === 'content')
           .sort((a, b) => b[2] - a[2] || b[1].start - a[1].start)[0];
         const cKey = c ? c[0] + '@' + version : null;
+        // A push only lasts until the next scheduled content starts: remember the latest content start so far
+        const lastStart = Math.max(0, ...items.filter(([, i]) => i.kind === 'content' && i.clockFrom && i.clockFrom <= now).map(([, i]) => i.clockFrom));
+        if (lastStart !== ttLastStart) { ttLastStart = lastStart; pickAndRender(); }
         if (cKey !== ttClockKey) {
           ttClockKey = cKey;
           ttClockData = c && c[1].show ? Object.assign({}, c[1].show,
@@ -536,12 +539,12 @@
         countdownEl.style.display = 'block';
       }
 
-      // A push from the controller overrides the schedule until someone presses "Back to schedule",
-      // which pushes { followSchedule: true }. The newest push (all / group / screen) decides.
+      // A push from the controller overrides the schedule until the next scheduled content starts, or until
+      // someone presses "Back to schedule" ({ followSchedule: true }). The newest push (all / group / screen) decides.
       function pickAndRender() {
         const manual = [globalData, groupData, screenData].filter(Boolean)
           .reduce((newest, d) => !newest || (d.updatedAt || 0) > (newest.updatedAt || 0) ? d : newest, null);
-        const data = manual && !manual.followSchedule ? manual : ttClockData;
+        const data = manual && !manual.followSchedule && (manual.updatedAt || 0) >= ttLastStart ? manual : ttClockData;
         if (data === rendered) return;
         const prev = rendered;
         rendered = data;
@@ -579,7 +582,7 @@
           const now = Date.now();
           // Keep the full bar for doneMin after the time is reached, then hide it
           if (now >= p.target + barHold(p)) { progressEl.style.display = 'none'; countdownEl.style.setProperty('--bar', '0px'); clearInterval(progressTimer); return; }
-          const pct = Math.min(100, Math.max(0, (now - p.startedAt) / (p.target - p.startedAt) * 100));
+          const pct = Math.min(100, Math.max(0, (p.target > p.startedAt ? (now - p.startedAt) / (p.target - p.startedAt) : 1) * 100));
           progressFill.style.width = pct + '%';
           const s = Math.max(0, Math.ceil((p.target - now) / 1000));
           const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
