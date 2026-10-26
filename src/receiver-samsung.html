@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Signage Receiver (Samsung)</title>
+  <script>
+    // ?debug=1: collect script errors from the start, the badge shows them
+    if (/[?&]debug=1\b/.test(location.search)) {
+      window.__early = [];
+      window.addEventListener('error', function (e) { var t = 'error: ' + e.message + ' (' + (e.filename || '').split('/').pop() + ':' + e.lineno + ')'; window.__debug ? window.__debug(t) : window.__early.push(t); });
+      window.addEventListener('unhandledrejection', function (e) { var t = 'promise: ' + (e.reason && e.reason.message || e.reason); window.__debug ? window.__debug(t) : window.__early.push(t); });
+    }
+  </script>
   <!-- Samsung/Tizen copy of receiver.html (old Chromium, 63+) — keep in sync, no inset/flex gap/??; shows sessions-samsung.html instead of sessions.html -->
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -88,7 +96,7 @@
     }
     #fallback-screen.visible { display: block; }
     #setup-warning > * + * { margin-top: 16px; }
-    #debug-badge { position: fixed; right: 1vw; bottom: 1vh; z-index: 999; background: rgba(0,0,0,.75); color: #0f0; font: 600 14px/1.3 monospace; padding: 6px 10px; border-radius: 6px; pointer-events: none; }
+    #debug-badge { position: fixed; right: 1vw; bottom: 1vh; z-index: 999; background: rgba(0,0,0,.75); color: #0f0; font: 600 14px/1.3 monospace; padding: 6px 10px; border-radius: 6px; pointer-events: none; white-space: pre-wrap; max-width: 60vw; }
 
     /* Setup warning shown when Firebase is not yet configured */
     #setup-warning {
@@ -350,6 +358,16 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
 
+      // Samsung screens often have a clock that is off (set by hand, wrong time zone). Pushes are stamped with the
+      // controller's clock and the schedule is in real time, so this receiver works with Firebase server time instead.
+      let clockOffset = 0;
+      const nowMs = () => Date.now() + clockOffset;
+      db.ref('.info/serverTimeOffset').on('value', snap => {
+        clockOffset = Number(snap.val()) || 0;
+        if (window.__debug) window.__debug('clock: this screen is ' + Math.round(Math.abs(clockOffset) / 1000) + ' s ' + (clockOffset > 0 ? 'behind' : 'ahead'));
+        if (typeof ttCheck === 'function') ttCheck();
+      });
+
       // Connection indicator + fallback on disconnect
       db.ref('.info/connected').on('value', snap => {
         const connected = !!snap.val();
@@ -475,7 +493,7 @@
       // Sessions don't replace the content: their countdown is an overlay on top (ttOverlay).
       let ttOverlay = null, ttOverlayKey, ttLastStart = 0;
       function ttCheck() {
-        const now = Date.now();
+        const now = nowMs();
         const items = timetable && timetable.enabled
           ? Object.entries(timetable.items || {}).map(([k, i]) => [k, i, targetRank(i.showOn)]).filter(x => x[2] >= 0)
           : [];
@@ -544,7 +562,7 @@
         const timeEl = countdownEl.querySelector('.co-time');
         const done = look.doneText != null ? look.doneText : 'Starting now';
         const tick = () => {
-          const left = Math.ceil((s.start - Date.now()) / 1000);
+          const left = Math.ceil((s.start - nowMs()) / 1000);
           if (left <= 0) { timeEl.textContent = done; timeEl.style.display = done ? '' : 'none'; return; }
           timeEl.style.display = '';
           timeEl.innerHTML = '<span class="co-in">Starts in</span>' + formatLeft(left);
@@ -580,7 +598,7 @@
       function pickProgress() {
         // Bars whose time is over don't take part, so an older (timetable) bar can still show
         const p = [progGlobal, progGroup, progScreen, ttBarData]
-          .filter(d => d && !(d.target && Date.now() >= d.target + barHold(d)))
+          .filter(d => d && !(d.target && nowMs() >= d.target + barHold(d)))
           .reduce((newest, d) => !newest || (d.updatedAt || 0) > (newest.updatedAt || 0) ? d : newest, null);
         clearInterval(progressTimer);
         if (!p || p.off || !p.target) { progressEl.style.display = 'none'; countdownEl.style.setProperty('--bar', '0px'); return; }
@@ -593,7 +611,7 @@
         progressText.style.fontSize = Math.max(14, Math.round(height * 0.5)) + 'px';
         progressText.style.justifyContent = { center: 'center', right: 'flex-end' }[p.align] || 'flex-start';
         const tick = () => {
-          const now = Date.now();
+          const now = nowMs();
           // Keep the full bar for doneMin after the time is reached, then hide it
           if (now >= p.target + barHold(p)) { progressEl.style.display = 'none'; countdownEl.style.setProperty('--bar', '0px'); clearInterval(progressTimer); return; }
           const pct = Math.min(100, Math.max(0, (p.target > p.startedAt ? (now - p.startedAt) / (p.target - p.startedAt) : 1) * 100));
@@ -694,6 +712,12 @@
         try { if (url) url = new URL(url, location.href).href; } catch (e) {}
         // Samsung: the sessions page has its own old-browser copy
         if (url) url = url.replace(/\/sessions\.html(?=[?#]|$)/, '/sessions-samsung.html');
+        if (url && Math.abs(clockOffset) > 60000 && /\/sessions-samsung\.html/.test(url) && !/[?&]now=/.test(url)) {
+          const d = new Date(nowMs()), p2 = n => (n < 10 ? '0' : '') + n;
+          const real = d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate()) + 'T' + p2(d.getHours()) + ':' + p2(d.getMinutes()) + ':' + p2(d.getSeconds());
+          url += (url.indexOf('?') < 0 ? '?' : '&') + 'now=' + real;
+        }
+        if (window.__debug) { if (url) url = url.replace(/\/sessions-samsung\.html(\?|#|$)/, (m, c) => '/sessions-samsung.html' + (c === '?' ? '?debug=1&' : '?debug=1' + c)); window.__debug('content: ' + mode + ' ' + (url || '')); }
         const kind = ['html', 'slideshow', 'video'].includes(mode) ? mode
           : mode === 'blank' || !url ? 'blank' : mode === 'redirect' ? 'redirect' : 'url';
         // Coming out of blank: everything under it is already cleared, so the new content comes in over black
@@ -775,7 +799,7 @@
       const alertBanners = document.getElementById('alert-banners');
       const alertFull = document.getElementById('alert-full');
       function alertCheck() {
-        const now = Date.now();
+        const now = nowMs();
         const mine = Object.values(alerts).filter(a => a && a.text && targetRank(a.showOn) >= 0 && !(a.until && now >= a.until))
           .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
         const sig = JSON.stringify(mine);
@@ -836,7 +860,7 @@
         if (!clock || !clock.visible) { clockEl.style.display = 'none'; return; }
         const pad = n => (n < 10 ? '0' : '') + n;
         const tick = () => {
-          const d = new Date();
+          const d = new Date(nowMs());
           clockEl.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + (clock.seconds ? ':' + pad(d.getSeconds()) : '');
         };
         tick();
@@ -847,11 +871,15 @@
     }
   </script>
 <script>
-  // ?debug=1: show which browser engine this screen runs (Samsung: the Chromium version tells the Tizen year)
+  // ?debug=1: show which browser engine this screen runs (Samsung: the Chromium version tells the Tizen year),
+  // what content came in and any script errors
   if (/[?&]debug=1\b/.test(location.search)) {
     var m = navigator.userAgent.match(/Chrom(?:e|ium)\/([\d.]+)/), t = navigator.userAgent.match(/Tizen ?([\d.]+)/);
     var d = document.createElement('div'); d.id = 'debug-badge';
-    d.textContent = (m ? 'Chromium ' + m[1] : navigator.userAgent) + (t ? ' · Tizen ' + t[1] : '') + ' · ' + innerWidth + '×' + innerHeight;
+    var head = (m ? 'Chromium ' + m[1] : navigator.userAgent) + (t ? ' · Tizen ' + t[1] : '') + ' · ' + innerWidth + '×' + innerHeight, lines = [];
+    window.__debug = function (msg) { lines.push(msg); lines = lines.slice(-6); d.textContent = [head].concat(lines).join('\n'); };
+    (window.__early || []).forEach(window.__debug);
+    window.__debug('waiting for content');
     document.body.appendChild(d);
   }
 </script>
