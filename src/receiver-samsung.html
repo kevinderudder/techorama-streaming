@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signage Receiver (Samsung)</title>
+  <!-- Samsung/Tizen copy of receiver.html (old Chromium, 63+) — keep in sync, no inset/flex gap/??; shows sessions-samsung.html instead of sessions.html -->
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #000;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    #blank-screen {
+      position: fixed;
+      top: 0; right: 0; bottom: 0; left: 0;
+      background: #000;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #blank-screen.hidden { display: none; }
+
+    /* Two frames: new content loads in the hidden one and transitions in over the old one */
+    #frame, #frame-b {
+      position: fixed;
+      top: 0; right: 0; bottom: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      border: none;
+      display: block;
+    }
+    #frame-b { display: none; }
+
+    /* Small status dot in the corner — visible only to crew, not audience */
+    #status-dot {
+      position: fixed;
+      bottom: 12px;
+      right: 12px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #c00;
+      opacity: 0.6;
+      z-index: 100;
+      transition: background 0.4s;
+    }
+    #status-dot.connected { background: #0c0; }
+
+    /* Slideshow layer — double-buffered, sits above iframe, below overlays */
+    #slideshow-layer {
+      position: fixed;
+      top: 0; right: 0; bottom: 0; left: 0;
+      z-index: 8;
+      background: #000;
+      display: none;
+    }
+    #slideshow-layer.active { display: block; }
+    #slideshow-layer img {
+      position: absolute;
+      top: 0; right: 0; bottom: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #ss-img-a { opacity: 1; z-index: 1; }
+    #ss-img-b { opacity: 0; z-index: 0; }
+
+    /* Fallback image — shown when no content or connection lost */
+    #fallback-screen {
+      position: fixed;
+      top: 0; right: 0; bottom: 0; left: 0;
+      z-index: 10;
+      background: #000;
+      display: none;
+    }
+    #fallback-screen img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #fallback-screen.visible { display: block; }
+    #setup-warning > * + * { margin-top: 16px; }
+    #debug-badge { position: fixed; right: 1vw; bottom: 1vh; z-index: 999; background: rgba(0,0,0,.75); color: #0f0; font: 600 14px/1.3 monospace; padding: 6px 10px; border-radius: 6px; pointer-events: none; }
+
+    /* Setup warning shown when Firebase is not yet configured */
+    #setup-warning {
+      position: fixed;
+      top: 0; right: 0; bottom: 0; left: 0;
+      background: #111;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      font-size: 1.1rem;
+      text-align: center;
+      padding: 32px;
+    }
+    #setup-warning h1 { font-size: 2rem; color: #f0a500; }
+    #setup-warning code {
+      background: #222;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+    #setup-warning.hidden { display: none; }
+
+    /* Video layer */
+    #video-player {
+      position: fixed;
+      top: 0; right: 0; bottom: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+      z-index: 9;
+      display: none;
+    }
+    #video-player.active { display: block; }
+
+    /* Logo overlay */
+    #logo-overlay {
+      position: fixed;
+      z-index: 15;
+      pointer-events: none;
+      display: none;
+    }
+    #logo-overlay.pos-top-left     { top: 20px; left: 20px; }
+    #logo-overlay.pos-top-right    { top: 20px; right: 20px; }
+    #logo-overlay.pos-bottom-left  { bottom: 20px; left: 20px; }
+    #logo-overlay.pos-bottom-right { bottom: 20px; right: 20px; }
+    #logo-overlay.size-small  { height: 40px; }
+    #logo-overlay.size-medium { height: 70px; }
+    #logo-overlay.size-large  { height: 110px; }
+
+    /* Clock overlay */
+    #clock-overlay {
+      position: fixed;
+      z-index: 16;
+      pointer-events: none;
+      display: none;
+      padding: 0.25em 0.6em;
+      border-radius: 0.4em;
+      background: rgba(0, 0, 0, 0.55);
+      color: #fff;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+    }
+    #clock-overlay.pos-top-left     { top: 20px; left: 20px; }
+    #clock-overlay.pos-top-right    { top: 20px; right: 20px; }
+    #clock-overlay.pos-bottom-left  { bottom: 20px; left: 20px; }
+    #clock-overlay.pos-bottom-right { bottom: 20px; right: 20px; }
+    #clock-overlay.size-small  { font-size: 22px; }
+    #clock-overlay.size-medium { font-size: 36px; }
+    #clock-overlay.size-large  { font-size: 60px; }
+    /* A countdown replaces the clock while it is on screen */
+    body.has-countdown #clock-overlay { display: none !important; }
+
+    /* Progress bar overlay */
+    #progress-overlay {
+      position: fixed;
+      left: 0;
+      right: 0;
+      z-index: 17;
+      pointer-events: none;
+      display: none;
+    }
+    #progress-overlay.pos-bottom { bottom: 0; }
+    #progress-overlay.pos-top    { top: 0; }
+    #progress-track { position: relative; width: 100%; height: 48px; background: rgba(255, 255, 255, 0.14); }
+    #progress-fill  { height: 100%; width: 0; transition: width 1s linear; }
+    /* Text sits inside the bar, aligned left / center / right */
+    #progress-text {
+      position: absolute;
+      top: 0; right: 0; bottom: 0; left: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      color: #fff;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Session countdown from the schedule: no background, it sits on top of whatever content shows */
+    #countdown-overlay {
+      position: fixed;
+      z-index: 15;
+      pointer-events: none;
+      display: none;
+      max-width: 80vw;
+      color: #fff;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.15;
+      text-shadow: 0 0 2px rgba(0, 0, 0, 0.85), 0 2px 14px rgba(0, 0, 0, 0.75);
+      --bar: 0px;
+    }
+    #countdown-overlay.pos-center       { top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+    #countdown-overlay.pos-top-left     { top: 4vh; left: 4vw; }
+    #countdown-overlay.pos-top-right    { top: 4vh; right: 4vw; text-align: right; }
+    #countdown-overlay.pos-bottom-left  { bottom: calc(4vh + var(--bar)); left: 4vw; }
+    #countdown-overlay.pos-bottom-right { bottom: calc(4vh + var(--bar)); right: 4vw; text-align: right; }
+    #countdown-overlay .co-title { font-weight: 700; font-size: 1em; }
+    #countdown-overlay .co-sub   { font-size: 0.55em; opacity: 0.9; margin-top: 0.2em; }
+    #countdown-overlay .co-time  { font-weight: 800; font-size: 1.9em; font-variant-numeric: tabular-nums; margin-top: 0.15em; }
+    #countdown-overlay .co-in    { font-size: 0.3em; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.85; margin-right: 0.5em; vertical-align: middle; }
+    #countdown-overlay.size-small  { font-size: 3.4vh; }
+    #countdown-overlay.size-medium { font-size: 5vh; }
+    #countdown-overlay.size-large  { font-size: 7.5vh; }
+
+    /* Alerts: banner at the top or the whole screen, on top of everything */
+    #alert-banners { position: fixed; top: 0; left: 0; right: 0; z-index: 40; pointer-events: none; display: flex; flex-direction: column; }
+    .alert-banner {
+      padding: 1.6vh 4vw; font: 600 3.4vh/1.3 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      display: flex; align-items: center; box-shadow: 0 0.5vh 2vh rgba(0, 0, 0, 0.35);
+    }
+    .alert-banner > * + * { margin-left: 1.5vw; }
+    #alert-full {
+      position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 41; display: none; align-items: center; justify-content: center;
+      padding: 8vh 8vw; text-align: center; font: 700 8vh/1.2 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    .alert-info    { background: #18181b; color: #fff; }
+    .alert-warning { background: #f0a500; color: #111; }
+    .alert-urgent  { background: #d92d32; color: #fff; }
+    .alert-urgent.alert-banner, #alert-full.alert-urgent { animation: alert-pulse 1.6s ease-in-out infinite; }
+    @keyframes alert-pulse { 50% { filter: brightness(1.25); } }
+  </style>
+</head>
+<body>
+
+  <!-- Slideshow layer — double-buffered crossfade, no iframe reload -->
+  <div id="slideshow-layer">
+    <img id="ss-img-a" src="" alt="">
+    <img id="ss-img-b" src="" alt="">
+  </div>
+
+  <!-- Fallback image — shown when no content is set or connection is lost -->
+  <div id="fallback-screen"><img id="fallback-img" src="" alt=""></div>
+
+  <!-- Shown when the controller sets mode to "blank" -->
+  <div id="blank-screen"></div>
+
+  <!-- Logo overlay — controlled via Firebase settings -->
+  <img id="logo-overlay" src="" alt="">
+
+  <!-- Clock overlay — controlled via Firebase settings -->
+  <div id="clock-overlay"></div>
+
+  <!-- Progress bar overlay — pushed from the controller (all / group / screen) -->
+  <div id="progress-overlay">
+    <div id="progress-track"><div id="progress-fill"></div><div id="progress-text"></div></div>
+  </div>
+
+  <!-- Session countdown (schedule) and alerts -->
+  <div id="countdown-overlay"><div class="co-title"></div><div class="co-sub"></div><div class="co-time"></div></div>
+  <div id="alert-banners"></div>
+  <div id="alert-full"></div>
+
+  <!-- Video player layer -->
+  <video id="video-player" autoplay loop muted playsinline></video>
+
+  <!-- Main content frame -->
+  <iframe
+    id="frame"
+    allowfullscreen
+    allow="autoplay; fullscreen; picture-in-picture"
+    src="about:blank"
+  ></iframe>
+  <iframe
+    id="frame-b"
+    allowfullscreen
+    allow="autoplay; fullscreen; picture-in-picture"
+    src="about:blank"
+  ></iframe>
+
+  <!-- Firebase connection indicator (tiny, bottom-right) -->
+  <div id="status-dot" title="Firebase connection"></div>
+
+  <!-- Shown if Firebase config is still the placeholder -->
+  <div id="setup-warning">
+    <h1>⚙ Setup needed</h1>
+    <p>Open <code>receiver.html</code> in a text editor and replace the<br>
+       <code>firebaseConfig</code> placeholder with your Firebase project details.</p>
+    <p>See <code>controller.html</code> for full setup instructions.</p>
+  </div>
+
+  <!-- Firebase SDK (hosted by Google, no bandwidth cost) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <script>
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 1 — Replace this block with your Firebase project config.
+    //          Get it from: Firebase Console → Project Settings → Your apps → SDK setup
+    // ─────────────────────────────────────────────────────────────────────────
+  const firebaseConfig = {
+    apiKey: "AIzaSyCFD9jf5dzh_-mlFiHXvgSl5QZle_QEKt8",
+    authDomain: "techorama-stream.firebaseapp.com",
+    databaseURL: "https://techorama-stream-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "techorama-stream",
+    storageBucket: "techorama-stream.firebasestorage.app",
+    messagingSenderId: "482767979960",
+    appId: "1:482767979960:web:ed592092560f57a0853b4d",
+    measurementId: "G-ZNMTEEV8X9"
+  };
+    // ─────────────────────────────────────────────────────────────────────────
+
+    const isConfigured = !firebaseConfig.apiKey.startsWith("PASTE");
+    const warningEl    = document.getElementById('setup-warning');
+    const blankEl      = document.getElementById('blank-screen');
+    const frameEl      = document.getElementById('frame');
+    const dotEl        = document.getElementById('status-dot');
+    const fallbackEl   = document.getElementById('fallback-screen');
+    const fallbackImg  = document.getElementById('fallback-img');
+
+    let fallbackUrl = null;
+    let hasReceivedContent = false;
+    let disconnectTimer = null;
+
+    // Optional ?screen=<name> — lets the controller target this screen individually
+    const screenId = (new URLSearchParams(location.search).get('screen') || '').trim().replace(/[.#$\[\]\/]/g, '-') || null;
+
+    function showFallback() {
+      if (!fallbackUrl) return;
+      fallbackEl.classList.add('visible');
+    }
+
+    function hideFallback() {
+      fallbackEl.classList.remove('visible');
+    }
+
+    if (!isConfigured) {
+      // Leave the setup warning visible, do nothing else.
+    } else {
+      warningEl.classList.add('hidden');
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      // Connection indicator + fallback on disconnect
+      db.ref('.info/connected').on('value', snap => {
+        const connected = !!snap.val();
+        dotEl.classList.toggle('connected', connected);
+        if (connected) {
+          if (screenId) {
+            // Presence — lets the controller list this screen and show it as online
+            const presenceRef = db.ref('signage/screens/' + screenId + '/presence');
+            presenceRef.onDisconnect().set({ online: false, lastSeen: firebase.database.ServerValue.TIMESTAMP });
+            presenceRef.set({ online: true, lastSeen: firebase.database.ServerValue.TIMESTAMP });
+          }
+          clearTimeout(disconnectTimer);
+          disconnectTimer = null;
+          // Only hide fallback if we've received real content since page load
+          if (hasReceivedContent) hideFallback();
+        } else {
+          // Show fallback after 15 seconds of being disconnected
+          disconnectTimer = setTimeout(showFallback, 15000);
+        }
+      });
+
+      let slideshowTimer = null;
+      const ssLayer = document.getElementById('slideshow-layer');
+      const ssImgA  = document.getElementById('ss-img-a');
+      const ssImgB  = document.getElementById('ss-img-b');
+      let ssSlot = 'a';  // which img is currently visible
+      let ssTransition = null; // transition between this slideshow's images (null = Settings)
+
+      // Transition between contents and between slideshow images (signage/settings/transition)
+      let transition = { type: 'fade', duration: 0.8 };
+      const TRANSITIONS = {
+        fade:  [{ opacity: 0 }, { opacity: 1 }],
+        push:  [{ transform: 'translateX(100%)' }, { transform: 'translateX(0)' }],
+        up:    [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }],
+        wipe:  [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)' }],
+        zoom:  [{ opacity: 0, transform: 'scale(1.15)' }, { opacity: 1, transform: 'scale(1)' }],
+        black: [{ opacity: 0, offset: 0 }, { opacity: 0, offset: 0.5 }, { opacity: 1, offset: 1 }]
+      };
+      // "black": the old content fades to black first, then the new one fades in
+      const blackEl = document.createElement('div');
+      blackEl.style.cssText = 'position:fixed;top:0;right:0;bottom:0;left:0;background:#000;z-index:11;opacity:0;pointer-events:none;';
+      document.body.appendChild(blackEl);
+
+      // Animate el in on top (z-index 12: above content and fallback, below logo/clock/bar), then done().
+      // tr = the transition of this content (from the schedule), else the one under Settings.
+      function animateIn(el, done, zIndex, tr) {
+        tr = tr || transition;
+        const ms = Math.max(0, Number(tr.duration) || 0) * 1000;
+        const frames = TRANSITIONS[tr.type];
+        if (!frames || !ms || !el.animate) { done(); return; }
+        const z = el.style.zIndex;
+        el.style.zIndex = zIndex || '12';
+        if (tr.type === 'black')
+          blackEl.animate([{ opacity: 0 }, { opacity: 1, offset: 0.5 }, { opacity: 0 }], { duration: ms, easing: 'ease-in-out' });
+        const anim = el.animate(frames, { duration: ms, easing: 'ease-in-out' });
+        anim.onfinish = anim.oncancel = () => { el.style.zIndex = z; done(); };
+      }
+
+      function clearSlideshow() {
+        if (slideshowTimer) { clearInterval(slideshowTimer); slideshowTimer = null; }
+        ssLayer.classList.remove('active');
+        ssImgA.removeAttribute('src');
+        ssImgB.removeAttribute('src');
+        ssImgA.style.opacity = '1';
+        ssImgB.style.opacity = '0';
+        ssSlot = 'a';
+      }
+
+      const videoEl = document.getElementById('video-player');
+      function clearVideo() {
+        try {
+          videoEl.classList.remove('active');
+          videoEl.pause();
+          videoEl.removeAttribute('src');
+        } catch(e) {}
+      }
+
+      function preloadImage(url) {
+        return new Promise(resolve => {
+          const img = new Image();
+          img.onload = img.onerror = () => resolve();
+          img.src = url;
+        });
+      }
+
+      function showSlide(url) {
+        // Preload into the hidden image, then bring it in on top of the visible one
+        const [from, to] = ssSlot === 'a' ? [ssImgA, ssImgB] : [ssImgB, ssImgA];
+        to.src = url;
+        preloadImage(url).then(() => {
+          from.style.zIndex = '0';
+          to.style.zIndex = '1';
+          to.style.opacity = '1';
+          ssSlot = ssSlot === 'a' ? 'b' : 'a';
+          animateIn(to, () => { if (to.style.opacity === '1') from.style.opacity = '0'; }, '1', ssTransition);
+        });
+      }
+
+      function imageHtml(url) {
+        return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{width:100vw;height:100vh;overflow:hidden;background:#000}img{width:100%;height:100%;object-fit:cover}</style></head><body><img src="${url}"></body></html>`;
+      }
+
+      // Listen for display changes on the global channel (all screens) and,
+      // with ?screen=, on this screen's group channel and own channel — the newest push wins
+      let globalData = null;
+      let groupData = null;
+      let screenData = null;
+      let rendered;
+
+      // Timetable (from the controller's Excel upload): this screen switches the clock slide and
+      // progress bar on by itself. They join "newest wins" with updatedAt = the moment they start.
+      let timetable = null, myGroup = null;
+      let ttClockData = null, ttBarData = null, ttClockKey, ttBarKey;
+
+      // showOn: "all" or a comma list of "group:x" / "screen:y". How specific it is for this screen:
+      // -1 = not for this screen, 0 = all screens, 1 = my group, 2 = me
+      function targetRank(showOn) {
+        return Math.max(-1, ...String(showOn || '').split(',').map(t =>
+          t === 'all' ? 0 : myGroup && t === 'group:' + myGroup ? 1 : screenId && t === 'screen:' + screenId ? 2 : -1));
+      }
+
+      // Schedule content (ttClockData) is what the screens show unless someone overrides it with a push.
+      // Sessions don't replace the content: their countdown is an overlay on top (ttOverlay).
+      let ttOverlay = null, ttOverlayKey, ttLastStart = 0;
+      function ttCheck() {
+        const now = Date.now();
+        const items = timetable && timetable.enabled
+          ? Object.entries(timetable.items || {}).map(([k, i]) => [k, i, targetRank(i.showOn)]).filter(x => x[2] >= 0)
+          : [];
+        const active = (from, until) => items
+          .filter(([, i]) => i[from] && i[from] <= now && now < (i[until] || i.start + 60000));
+        const pick = (from, until) => active(from, until).sort((a, b) => a[1].start - b[1].start)[0];
+        const version = timetable ? timetable.updatedAt : 0;
+
+        // Content: the most specific target wins (screen > group > all), then the one that started last
+        const c = active('clockFrom', 'clockUntil').filter(([, i]) => i.kind === 'content')
+          .sort((a, b) => b[2] - a[2] || b[1].start - a[1].start)[0];
+        const cKey = c ? c[0] + '@' + version : null;
+        // A push only lasts until the next scheduled content starts: remember the latest content start so far
+        const lastStart = Math.max(0, ...items.filter(([, i]) => i.kind === 'content' && i.clockFrom && i.clockFrom <= now).map(([, i]) => i.clockFrom));
+        if (lastStart !== ttLastStart) { ttLastStart = lastStart; pickAndRender(); }
+        if (cKey !== ttClockKey) {
+          ttClockKey = cKey;
+          ttClockData = c && c[1].show ? Object.assign({}, c[1].show,
+            { updatedAt: c[1].clockFrom, transition: c[1].effectiveTransition || null, scheduled: true }) : null;
+          pickAndRender();
+        }
+        // Countdown overlay: the session that starts first
+        const o = active('clockFrom', 'clockUntil').filter(([, i]) => i.kind !== 'content')
+          .sort((a, b) => a[1].start - b[1].start)[0];
+        const oKey = o ? o[0] + '@' + version : null;
+        if (oKey !== ttOverlayKey) {
+          ttOverlayKey = oKey;
+          ttOverlay = o ? o[1] : null;
+          renderCountdown();
+        }
+        const b = pick('barFrom', 'barUntil');
+        const bKey = b ? b[0] + '@' + version : null;
+        if (bKey !== ttBarKey) {
+          ttBarKey = bKey;
+          ttBarData = b ? Object.assign({}, (timetable.look || {}).bar, {
+            target: b[1].start, startedAt: b[1].barFrom, text: b[1].text,
+            doneText: b[1].doneText || null, doneMin: b[1].doneMin, updatedAt: b[1].barFrom
+          }) : null;
+          pickProgress();
+        }
+      }
+
+      // Seconds left as "4:32", or "5 min" when the schedule's look says minutes only (rounded up)
+      function formatLeft(secs) {
+        const pad = n => (n < 10 ? '0' : '') + n;
+        if (((timetable && timetable.look) || {}).countdownFormat === 'min') {
+          const mins = Math.ceil(secs / 60);
+          return mins >= 60 ? Math.floor(mins / 60) + ' h ' + pad(mins % 60) + ' min' : mins + ' min';
+        }
+        const h = Math.floor(secs / 3600), m = Math.floor(secs % 3600 / 60);
+        return (h ? h + ':' + pad(m) : m) + ':' + pad(secs % 60);
+      }
+
+      const countdownEl = document.getElementById('countdown-overlay');
+      let countdownTimer = null;
+      function renderCountdown() {
+        clearInterval(countdownTimer);
+        const s = ttOverlay;
+        document.body.classList.toggle('has-countdown', !!s);
+        if (!s) { countdownEl.style.display = 'none'; return; }
+        const look = (timetable && timetable.look) || {};
+        const ov = look.overlay || {};
+        countdownEl.className = 'pos-' + (ov.position || 'bottom-left') + ' size-' + (ov.size || 'medium');
+        countdownEl.querySelector('.co-title').textContent = s.title || '';
+        countdownEl.querySelector('.co-sub').textContent = s.subtitle || '';
+        const timeEl = countdownEl.querySelector('.co-time');
+        const done = look.doneText != null ? look.doneText : 'Starting now';
+        const tick = () => {
+          const left = Math.ceil((s.start - Date.now()) / 1000);
+          if (left <= 0) { timeEl.textContent = done; timeEl.style.display = done ? '' : 'none'; return; }
+          timeEl.style.display = '';
+          timeEl.innerHTML = '<span class="co-in">Starts in</span>' + formatLeft(left);
+        };
+        tick();
+        countdownTimer = setInterval(tick, 250);
+        countdownEl.style.display = 'block';
+      }
+
+      // A push from the controller overrides the schedule until the next scheduled content starts, or until
+      // someone presses "Back to schedule" ({ followSchedule: true }). The newest push (all / group / screen) decides.
+      function pickAndRender() {
+        const manual = [globalData, groupData, screenData].filter(Boolean)
+          .reduce((newest, d) => !newest || (d.updatedAt || 0) > (newest.updatedAt || 0) ? d : newest, null);
+        const data = manual && !manual.followSchedule && (manual.updatedAt || 0) >= ttLastStart ? manual : ttClockData;
+        if (data === rendered) return;
+        const prev = rendered;
+        rendered = data;
+        render(data, prev);
+      }
+
+      // Progress bar overlay — same "newest wins" rule as the content
+      let progGlobal = null, progGroup = null, progScreen = null;
+      const progressEl = document.getElementById('progress-overlay');
+      const progressText = document.getElementById('progress-text');
+      const progressFill = document.getElementById('progress-fill');
+      const progressTrack = document.getElementById('progress-track');
+      let progressTimer = null;
+
+      // How long a full bar stays (older bars: 1 minute)
+      const barHold = p => (p.doneMin == null ? 1 : p.doneMin) * 60000;
+
+      function pickProgress() {
+        // Bars whose time is over don't take part, so an older (timetable) bar can still show
+        const p = [progGlobal, progGroup, progScreen, ttBarData]
+          .filter(d => d && !(d.target && Date.now() >= d.target + barHold(d)))
+          .reduce((newest, d) => !newest || (d.updatedAt || 0) > (newest.updatedAt || 0) ? d : newest, null);
+        clearInterval(progressTimer);
+        if (!p || p.off || !p.target) { progressEl.style.display = 'none'; countdownEl.style.setProperty('--bar', '0px'); return; }
+        progressEl.className = 'pos-' + (p.position || 'bottom');
+        progressFill.style.background = p.color || '#5b6af0';
+        // Older bars have no height/align: 12px bar, text left
+        const height = p.text ? Math.max(p.height || 48, 28) : (p.height || 12);
+        progressTrack.style.height = height + 'px';
+        countdownEl.style.setProperty('--bar', (p.position === 'top' ? 0 : height) + 'px');
+        progressText.style.fontSize = Math.max(14, Math.round(height * 0.5)) + 'px';
+        progressText.style.justifyContent = { center: 'center', right: 'flex-end' }[p.align] || 'flex-start';
+        const tick = () => {
+          const now = Date.now();
+          // Keep the full bar for doneMin after the time is reached, then hide it
+          if (now >= p.target + barHold(p)) { progressEl.style.display = 'none'; countdownEl.style.setProperty('--bar', '0px'); clearInterval(progressTimer); return; }
+          const pct = Math.min(100, Math.max(0, (p.target > p.startedAt ? (now - p.startedAt) / (p.target - p.startedAt) : 1) * 100));
+          progressFill.style.width = pct + '%';
+          const s = Math.max(0, Math.ceil((p.target - now) / 1000));
+          const left = formatLeft(s);
+          progressText.textContent = now >= p.target && p.doneText ? p.doneText : (p.text || '').replace(/\{countdown\}/g, left);
+          progressEl.style.display = 'flex';
+        };
+        tick();
+        // Same rate as the countdown on the clock slide, so both change on the same second
+        progressTimer = setInterval(tick, 250);
+      }
+
+      db.ref('signage/current').on('value', snap => { globalData = snap.val(); pickAndRender(); });
+      db.ref('signage/progress').on('value', snap => { progGlobal = snap.val(); pickProgress(); });
+      db.ref('signage/timetable').on('value', snap => {
+        timetable = snap.val();
+        ttClockKey = ttBarKey = ttOverlayKey = undefined;
+        ttCheck();
+      });
+      setInterval(ttCheck, 1000);
+      if (screenId) {
+        db.ref('signage/screens/' + screenId + '/current').on('value', snap => { screenData = snap.val(); pickAndRender(); });
+        db.ref('signage/screens/' + screenId + '/progress').on('value', snap => { progScreen = snap.val(); pickProgress(); });
+
+        // Group membership is set from the controller — re-subscribe when it changes
+        let groupRef = null, groupProgRef = null;
+        const onGroupValue = snap => { groupData = snap.val(); pickAndRender(); };
+        const onGroupProgress = snap => { progGroup = snap.val(); pickProgress(); };
+        db.ref('signage/screens/' + screenId + '/group').on('value', snap => {
+          if (groupRef) groupRef.off('value', onGroupValue);
+          if (groupProgRef) groupProgRef.off('value', onGroupProgress);
+          groupRef = groupProgRef = null;
+          groupData = progGroup = null;
+          const group = snap.val();
+          myGroup = group;
+          ttClockKey = ttBarKey = ttOverlayKey = undefined;
+          ttCheck();
+          alertCheck();
+          if (group) {
+            groupRef = db.ref('signage/groups/' + group + '/current');
+            groupRef.on('value', onGroupValue);
+            groupProgRef = db.ref('signage/groups/' + group + '/progress');
+            groupProgRef.on('value', onGroupProgress);
+          } else {
+            pickAndRender();
+            pickProgress();
+          }
+        });
+      }
+
+      // Which layer shows the content now: a frame, the slideshow, the video or blank
+      const frames = [frameEl, document.getElementById('frame-b')];
+      let curFrame = frameEl, curLayer = frameEl, renderSeq = 0;
+
+      function clearFrame(f) {
+        f.onload = null;
+        f.removeAttribute('srcdoc');
+        f.src = 'about:blank';
+        f.style.display = 'none';
+      }
+
+      // Everything except the layer that just came in goes away
+      function cleanupExcept(keep) {
+        if (keep !== ssLayer) clearSlideshow();
+        if (keep !== videoEl) clearVideo();
+        if (keep !== blankEl) blankEl.classList.add('hidden');
+        frames.forEach(f => { if (f !== keep) clearFrame(f); });
+        if (frames.includes(keep)) curFrame = keep;
+        curLayer = keep;
+        hideFallback();
+      }
+
+      // Wait for an element to be ready, but never longer than 5 s
+      function whenReady(el, event, start) {
+        return new Promise(resolve => {
+          const t = setTimeout(resolve, 5000);
+          el.addEventListener(event, () => { clearTimeout(t); resolve(); }, { once: true });
+          start();
+        });
+      }
+
+      function render(data, prev) {
+        try {
+        const seq = ++renderSeq;
+        if (!data) {
+          showFallback();
+          return;
+        }
+        // The transition of what comes in; when a scheduled item ends, the way back uses its transition too
+        const tr = data.transition || (prev && prev.scheduled && prev.transition) || null;
+
+        hasReceivedContent = true;
+        const { mode } = data;
+        // Relative links (like sessions.html?…) point to this site, wherever the controller ran
+        let url = data.url;
+        try { if (url) url = new URL(url, location.href).href; } catch (e) {}
+        // Samsung: the sessions page has its own old-browser copy
+        if (url) url = url.replace(/\/sessions\.html(?=[?#]|$)/, '/sessions-samsung.html');
+        const kind = ['html', 'slideshow', 'video'].includes(mode) ? mode
+          : mode === 'blank' || !url ? 'blank' : mode === 'redirect' ? 'redirect' : 'url';
+        // Coming out of blank: everything under it is already cleared, so the new content comes in over black
+        if (kind !== 'blank') blankEl.classList.add('hidden');
+
+        if (kind === 'html' || kind === 'url') {
+          const isHtml = kind === 'html';
+          // Same content already showing: nothing to transition
+          if (curLayer === curFrame && (isHtml ? curFrame.srcdoc === data.html : curFrame.src === url)) { cleanupExcept(curFrame); return; }
+          const next = curLayer === curFrame ? frames.find(f => f !== curFrame) : curFrame;
+          whenReady(next, 'load', () => {
+            // Load out of sight, so a half-loaded page never covers the old one
+            next.style.visibility = 'hidden';
+            next.style.display = 'block';
+            if (isHtml) next.srcdoc = data.html;
+            else { next.removeAttribute('srcdoc'); next.src = url; }
+          }).then(() => {
+            if (seq !== renderSeq) return;
+            next.style.visibility = '';
+            animateIn(next, () => { if (seq === renderSeq) cleanupExcept(next); }, null, tr);
+          });
+
+        } else if (kind === 'slideshow') {
+          // Firebase may return array or numeric-keyed object — normalise to array
+          const raw = data.images;
+          const images = Array.isArray(raw) ? raw : Object.values(raw || {});
+          if (images.length === 0) return;
+
+          // Preload all images before starting
+          Promise.all(images.map(preloadImage)).then(() => {
+            if (seq !== renderSeq) return;
+            const wasShowing = curLayer === ssLayer;
+            if (slideshowTimer) { clearInterval(slideshowTimer); slideshowTimer = null; }
+            let idx = 1;
+            // Between the images: the slideshow's own transition, else the item's, else Settings
+            ssTransition = data.slideTransition || data.transition || null;
+            if (wasShowing) showSlide(images[0]); // new slideshow: transition like any other image
+            else {
+              ssImgA.src = images[0];
+              ssImgA.style.opacity = '1'; ssImgA.style.zIndex = '1';
+              ssImgB.style.opacity = '0'; ssImgB.style.zIndex = '0';
+              ssSlot = 'a';
+              ssLayer.classList.add('active');
+              animateIn(ssLayer, () => { if (seq === renderSeq) cleanupExcept(ssLayer); }, null, tr);
+            }
+            if (images.length > 1) {
+              slideshowTimer = setInterval(() => {
+                showSlide(images[idx % images.length]);
+                idx++;
+              }, data.interval || 30000);
+            }
+          });
+
+        } else if (kind === 'video') {
+          if (curLayer === videoEl && videoEl.src === url) return;
+          whenReady(videoEl, 'loadeddata', () => {
+            if (videoEl.src !== url) videoEl.src = url;
+          }).then(() => {
+            if (seq !== renderSeq) return;
+            videoEl.classList.add('active');
+            videoEl.play();
+            animateIn(videoEl, () => { if (seq === renderSeq) cleanupExcept(videoEl); }, null, tr);
+          });
+
+        } else if (kind === 'redirect') {
+          window.location.href = url;
+
+        } else {
+          // Blank (or nothing to show): transition to black
+          if (curLayer === blankEl) return;
+          blankEl.classList.remove('hidden');
+          animateIn(blankEl, () => { if (seq === renderSeq) cleanupExcept(blankEl); }, '20', tr);
+        }
+        } catch(e) { console.error('Receiver error:', e); }
+      }
+
+      // Alerts from the controller: { showOn, text, style: info|warning|urgent, display: banner|fullscreen, until, createdAt }
+      let alerts = {}, alertSig = '';
+      const alertBanners = document.getElementById('alert-banners');
+      const alertFull = document.getElementById('alert-full');
+      function alertCheck() {
+        const now = Date.now();
+        const mine = Object.values(alerts).filter(a => a && a.text && targetRank(a.showOn) >= 0 && !(a.until && now >= a.until))
+          .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        const sig = JSON.stringify(mine);
+        if (sig === alertSig) return;
+        alertSig = sig;
+        const style = a => 'alert-' + (['warning', 'urgent'].includes(a.style) ? a.style : 'info');
+        const full = mine.find(a => a.display === 'fullscreen');
+        alertFull.className = full ? style(full) : '';
+        alertFull.textContent = full ? full.text : '';
+        alertFull.style.display = full ? 'flex' : 'none';
+        alertBanners.innerHTML = '';
+        mine.filter(a => a.display !== 'fullscreen').slice(0, 3).forEach(a => {
+          const el = document.createElement('div');
+          el.className = 'alert-banner ' + style(a);
+          el.textContent = (a.style === 'urgent' ? '⚠ ' : a.style === 'warning' ? '! ' : 'ℹ ') + a.text;
+          alertBanners.appendChild(el);
+        });
+      }
+      db.ref('signage/alerts').on('value', snap => { alerts = snap.val() || {}; alertCheck(); });
+      setInterval(alertCheck, 1000);
+
+      db.ref('signage/settings/transition').on('value', snap => {
+        transition = Object.assign({ type: 'fade', duration: 0.8 }, snap.val() || {});
+      });
+
+      // Fallback image listener
+      db.ref('signage/settings/fallbackImage').on('value', snap => {
+        const url = snap.val();
+        if (url) {
+          fallbackUrl = url;
+          fallbackImg.src = url;
+        } else {
+          fallbackUrl = null;
+          fallbackImg.src = '';
+          hideFallback();
+        }
+      });
+
+      // Logo overlay listener
+      const logoEl = document.getElementById('logo-overlay');
+      db.ref('signage/settings/logo').on('value', snap => {
+        const logo = snap.val();
+        if (!logo || !logo.url || !logo.visible) {
+          logoEl.style.display = 'none';
+          return;
+        }
+        if (logoEl.src !== logo.url) logoEl.src = logo.url;
+        logoEl.className = 'pos-' + (logo.position || 'bottom-right') + ' size-' + (logo.size || 'medium');
+        logoEl.style.display = 'block';
+      });
+
+      // Clock overlay listener (uses the screen's own clock)
+      const clockEl = document.getElementById('clock-overlay');
+      let clockTimer = null;
+      db.ref('signage/settings/clock').on('value', snap => {
+        const clock = snap.val();
+        clearInterval(clockTimer);
+        if (!clock || !clock.visible) { clockEl.style.display = 'none'; return; }
+        const pad = n => (n < 10 ? '0' : '') + n;
+        const tick = () => {
+          const d = new Date();
+          clockEl.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + (clock.seconds ? ':' + pad(d.getSeconds()) : '');
+        };
+        tick();
+        clockTimer = setInterval(tick, 1000);
+        clockEl.className = 'pos-' + (clock.position || 'top-left') + ' size-' + (clock.size || 'medium');
+        clockEl.style.display = 'block';
+      });
+    }
+  </script>
+<script>
+  // ?debug=1: show which browser engine this screen runs (Samsung: the Chromium version tells the Tizen year)
+  if (/[?&]debug=1\b/.test(location.search)) {
+    var m = navigator.userAgent.match(/Chrom(?:e|ium)\/([\d.]+)/), t = navigator.userAgent.match(/Tizen ?([\d.]+)/);
+    var d = document.createElement('div'); d.id = 'debug-badge';
+    d.textContent = (m ? 'Chromium ' + m[1] : navigator.userAgent) + (t ? ' · Tizen ' + t[1] : '') + ' · ' + innerWidth + '×' + innerHeight;
+    document.body.appendChild(d);
+  }
+</script>
+</body>
+</html>
