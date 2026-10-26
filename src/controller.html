@@ -1546,6 +1546,11 @@
         <div id="library-empty" class="empty-state" style="padding:30px 0;">No images yet. Click <strong>Sync from GitHub</strong> above.</div>
         <div id="library-grid" class="library-grid"></div>
       </div>
+      <details class="card" id="lib-theming">
+        <summary style="cursor:pointer;"><h2 style="display:inline; margin:0;">From the theming folder</h2>
+          <span class="tt-muted" style="margin-left:8px;">Backgrounds and images in <strong>src/theming</strong>: add them to the library to use them anywhere.</span></summary>
+        <div id="lib-theming-body" style="margin-top:14px;"></div>
+      </details>
     </div>
 
     <!-- SLIDESHOW PANEL -->
@@ -1644,8 +1649,38 @@
         </div>
       </div>
       <div class="card">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+          <h2 style="margin-bottom:0; flex:1;">Look</h2>
+          <span id="sx-look-unsaved" style="display:none; color:var(--danger); font-weight:600; font-size:0.82rem;">Not saved: screens still show the saved look</span>
+          <button id="sx-fonts-reset-btn">Default look</button>
+          <button id="sx-fonts-save-btn" class="btn-primary">Save look</button>
+        </div>
+        <p class="tt-muted" style="margin-bottom:12px; line-height:1.6;">
+          A background from <strong>theming/backgrounds</strong>, a figure from <strong>theming/assets</strong> and a font from the
+          <strong>fonts</strong> folder per part of the slides. The preview shows it straight away;
+          <strong>Save look</strong> changes it on every screen showing the sessions.
+          <span id="sx-fonts-status"></span>
+        </p>
+        <div id="sx-theme" style="display:grid; grid-template-columns:150px 220px 1fr; gap:8px 12px; align-items:center; margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--border);">
+          <span style="font-weight:600;">Background</span>
+          <select id="sx-bg"><option value="">Default (dark, speaker photo)</option></select>
+          <span style="display:flex; align-items:center; gap:8px;">Darken
+            <select id="sx-dim" style="width:auto;"><option value="20">20%</option><option value="35">35%</option><option value="50" selected>50%</option><option value="65">65%</option><option value="80">80%</option></select></span>
+          <span style="font-weight:600;">Figure</span>
+          <select id="sx-fig"><option value="">None</option></select>
+          <span style="display:flex; align-items:center; gap:8px;">Size
+            <select id="sx-figsize" style="width:auto;"><option value="10">Tiny</option><option value="15">Extra small</option><option value="25">Small</option><option value="40">Medium</option><option value="60" selected>Large</option><option value="80">Extra large</option></select>
+            <select id="sx-figpos" style="width:auto;"><option value="bottom-right">Bottom right</option><option value="bottom-left">Bottom left</option><option value="top-right">Top right</option><option value="top-left">Top left</option></select></span>
+          <span></span><span></span>
+          <span id="sx-fig-clash" style="display:none; color:var(--danger); font-size:0.82rem; font-weight:600;"></span>
+        </div>
+        <div id="sx-fonts" style="display:grid; grid-template-columns:150px 220px 1fr; gap:8px 12px; align-items:center;"></div>
+      </div>
+      <div class="card">
         <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-          <h2 style="margin-bottom:0; flex:1;">Preview</h2>
+          <h2 style="margin-bottom:0;">Preview</h2>
+          <span id="sx-preview-note" style="display:none; flex:1; color:var(--danger); font-size:0.82rem;">with the unsaved look; screens show the saved one</span>
+          <span style="flex:1;"></span>
           <label style="display:flex; flex-direction:row; align-items:center; gap:8px; text-transform:none; letter-spacing:normal; font-weight:400;">as if it is
             <input id="sx-preview-time" type="datetime-local" style="width:auto;"></label>
         </div>
@@ -2348,6 +2383,9 @@
     // Publishable key = safe in the browser; uploading/deleting needs a signed-in Supabase user
     // (same e-mail and password as the controller login, see supabase-signage.sql).
     const SUPABASE_URL = 'https://uxhflnciobtmktxpjuru.supabase.co';
+    // The live site: files from the repo (theming/…) get this address, so screens can load them wherever the controller runs
+    const SITE_URL = location.hostname.endsWith('github.io') ? new URL('.', location.href).href : 'https://kevinderudder.github.io/techorama-streaming/src/';
+    const SITE_REPO = new URL(SITE_URL).hostname.split('.')[0] + '/' + new URL(SITE_URL).pathname.split('/').filter(Boolean)[0];
     const SUPABASE_KEY = 'sb_publishable_nrrbBaDiHJsXEiffRnovGw_fPms5m33';
     const SUPABASE_BUCKET = 'signage';
 
@@ -3325,10 +3363,17 @@
         refreshPlannerLanes();
       });
 
+      let lastLogoPos = null;
       db.ref('signage/settings/logo').on('value', snap => {
         if (snap.val()) {
+          const moved = lastLogoPos !== null && lastLogoPos !== snap.val().position;
+          lastLogoPos = snap.val().position;
           logoSettings = snap.val();
           renderLogoSettings();
+          updateFigureClash();
+          // Moved onto the corner of the figure on the sessions slides
+          const clash = moved && sxFigureClash(sxFontsSaved);
+          if (clash) showToast(clash.slice(2).replace('The screen logo is also', 'The figure on the sessions slides is also').replace(' (Settings)', ''), true);
         }
       });
 
@@ -3812,8 +3857,64 @@ tick();setInterval(tick,250);
         startingMin: ['startingnowmin', 'startingnow', 'startingnowminutes'],
         barDoneMin: ['barwhenfullmin', 'barwhenfull', 'barafterfullmin', 'whenfullmin'],
         barDoneText: ['bartextwhenfull', 'textwhenfull', 'whenfulltext'],
-        transition: ['transition', 'overgang']
+        transition: ['transition', 'overgang'],
+        content: ['content', 'show', 'whattoshow', 'inhoud'],
+        until: ['until', 'end', 'endtime', 'ends', 'to', 'tot']
       };
+
+      // Content cell → { type, value } or { error }. "image: sponsor.png", "image: #2" (2nd image in the library, A–Z),
+      // "slideshow: Sponsors", "template: Welcome", "video: #1", "sessions: next | overview | slides | room Room 7 |
+      // slot 2026-10-27 13:15", "url: https://…", "color: #000000". A bare library name works too.
+      function parseContentCell(raw) {
+        const m = String(raw).trim().match(/^([a-z]+)\s*:\s*([\s\S]*)$/i);
+        const alias = { picture: 'image', img: 'image', website: 'url', site: 'url', colour: 'color', session: 'sessions', slides: 'slideshow' };
+        let type = m ? (alias[m[1].toLowerCase()] || m[1].toLowerCase()) : null;
+        let what = (m ? m[2] : String(raw)).trim();
+        if (!type) {
+          if (/^https?:\/\//i.test(what)) type = 'url';
+          else if (/^#[0-9a-f]{3,8}$/i.test(what)) type = 'color';
+          else type = 'image';
+        }
+        const nth = what.match(/^#(\d+)$/);
+        const byName = (list, kind) => {
+          if (nth) return list[Number(nth[1]) - 1] || { error: `There is no ${kind} #${nth[1]} (there ${list.length === 1 ? 'is' : 'are'} ${list.length})` };
+          const lower = what.toLowerCase();
+          return list.find(x => x.name.toLowerCase() === lower)
+            || list.find(x => x.name.toLowerCase().replace(/\.[a-z0-9]+$/, '') === lower)
+            || { error: `No ${kind} called "${what}"` };
+        };
+        const az = list => list.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+        if (type === 'image' || type === 'video') {
+          if (/^https?:\/\//i.test(what)) return { type, value: what };
+          const items = az(Object.values(libraryItems).filter(i => (i.mediaType === 'video') === (type === 'video')));
+          const hit = byName(items, type + ' in the library');
+          return hit.error ? hit : { type, value: hit.url };
+        }
+        if (type === 'slideshow' || type === 'template') {
+          const cache = type === 'slideshow' ? snap_presets_cache : snap_templates_cache;
+          const hit = byName(az(Object.entries(cache).map(([id, x]) => ({ id, name: x.name || '' }))), type);
+          return hit.error ? hit : { type, value: hit.id };
+        }
+        if (type === 'sessions') {
+          const [view, sec] = what.split('@').map(s => s.trim());
+          const sfx = sec ? '@' + parseInt(sec, 10) : '';
+          const v = view.toLowerCase();
+          if (!v || v === 'next' || v === 'all') return { type, value: 'all' + sfx };
+          if (v === 'overview' || v === 'slides') return { type, value: v + sfx };
+          const room = view.match(/^room\s+(.+)$/i);
+          if (room) return { type, value: 'room:' + room[1].trim() + sfx };
+          const slot = view.match(/^slot\s+(.+)$/i);
+          const day = slot && parseExcelDay(slot[1]), time = slot && parseExcelTime(slot[1].replace(/^\S+\s*/, ''));
+          if (day && time) {
+            const p = n => String(n).padStart(2, '0');
+            return { type, value: `slot:${day[0]}-${p(day[1])}-${p(day[2])}T${p(time[0])}:${p(time[1])}` + sfx };
+          }
+          return { error: `Sessions: use next, overview, slides, "room Room 7" or "slot 2026-10-27 13:15"` };
+        }
+        if (type === 'url') return /^https?:\/\//i.test(what) ? { type, value: what } : { error: 'The website must start with http:// or https://' };
+        if (type === 'color') return /^#[0-9a-f]{3,8}$/i.test(what) ? { type, value: what } : { error: 'A colour looks like #000000' };
+        return { error: `Unknown content "${m[1]}": use image, video, slideshow, template, sessions, url or color` };
+      }
 
       const TR_LABELS = { fade: 'Fade', black: 'Through black', push: 'Push', up: 'Slide up', wipe: 'Wipe', zoom: 'Zoom', none: 'Cut' };
       const trDuration = v => Math.min(10, Math.max(0, Number(String(v).replace(',', '.')) || 0));
@@ -3880,6 +3981,22 @@ tick();setInterval(tick,250);
             else if (!row.showOn) row.error = `Unknown screen or group "${row.showOnRaw}"`;
             else if (row.transition === undefined) row.error = `Unknown transition "${trRaw}": use fade, black, push, up, wipe, zoom or none, optionally with seconds (e.g. "push 0.5")`;
             if (day && time) row.start = new Date(day[0], day[1] - 1, day[2], time[0], time[1]).getTime();
+            // A row with content is a block in the planner (from Start until Until), not a countdown
+            const contentRaw = String(get('content')).trim();
+            if (contentRaw) {
+              const c = parseContentCell(contentRaw);
+              const untilCell = get('until');
+              const uDay = parseExcelDay(get('date') !== '' ? get('date') : untilCell) || day;
+              const uTime = parseExcelTime(untilCell, get('date') !== '');
+              const content = { kind: 'content', line: row.line, title: row.title, showOn: row.showOn, showOnRaw: row.showOnRaw,
+                transition: row.transition, start: row.start, error: row.error && !/^Minutes/.test(row.error) ? row.error : null };
+              if (uDay && uTime) content.until = new Date(uDay[0], uDay[1] - 1, uDay[2], uTime[0], uTime[1]).getTime();
+              if (!content.error && c.error) content.error = c.error;
+              else if (!content.error && !content.until) content.error = 'Content needs an "Until" time';
+              else if (!content.error && content.until <= content.start) content.error = '"Until" must be after "Start"';
+              if (!c.error) content.content = c;
+              return content;
+            }
             return row;
           });
       }
@@ -3948,15 +4065,155 @@ tick();setInterval(tick,250);
           ? `Schedule from techorama.nl, fetched ${new Date(sessionsFetchedAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}.` : '';
         updateSessionsPreview();
       }
+      // Fonts per part of the sessions slides, saved in signage/sessionsLook
+      const SX_FONT_ROLES = [
+        ['title', 'ftitle', 'Titles', 'Kubernetes for humans'],
+        ['kicker', 'fkicker', 'Time & label', '13:15–14:15 UP NEXT'],
+        ['room', 'froom', 'Room', 'Room 7'],
+        ['text', 'ftext', 'Speakers & text', 'Jane Doe & John Smith']
+      ];
+      let sxFontFiles = [], sxFontsSaved = {}, sxFontFaces = {};
+      const sxFontsBox = document.getElementById('sx-fonts');
+      const fontLabel = f => f.replace(/\.[^.]+$/, '').replace(/[-_]?VariableFont.*$/i, '').replace(/[-_ ]Regular$/i, '').replace(/[-_]+/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\s+/g, ' ').trim();
+
+      // The files in a folder of the site (fonts, theming/assets …): from the GitHub API on the live site,
+      // from the directory listing on the local server
+      async function listSiteFolder(folder, re) {
+        const tries = [];
+        const github = () => fetch(`https://api.github.com/repos/${SITE_REPO}/contents/src/${folder}`)
+          .then(r => r.ok ? r.json() : Promise.reject()).then(list => list.map(f => f.name));
+        if (location.hostname.endsWith('github.io')) tries.push(github);
+        tries.push(() => fetch(folder + '/', { cache: 'no-cache' }).then(r => r.ok ? r.text() : Promise.reject())
+          .then(html => [...html.matchAll(/href="([^"?/]+)"/g)].map(m => decodeURIComponent(m[1]))));
+        if (!location.hostname.endsWith('github.io')) tries.push(github);
+        for (const t of tries) {
+          try { const names = (await t()).filter(n => re.test(n)); if (names.length) return [...new Set(names)].sort((a, b) => a.localeCompare(b)); } catch (e) {}
+        }
+        return [];
+      }
+      const loadFontFiles = () => listSiteFolder('fonts', /\.(ttf|otf|woff2?)$/i);
+      const IMG_RE = /\.(png|jpe?g|webp|gif|svg)$/i;
+      let sxThemeFiles = { backgrounds: [], assets: [] };
+      const loadThemeFiles = () => Promise.all(['backgrounds', 'assets'].map(f => listSiteFolder('theming/' + f, IMG_RE)))
+        .then(([backgrounds, assets]) => { sxThemeFiles = { backgrounds, assets }; return sxThemeFiles; });
+
+      function sxFontFamily(file) {
+        if (!sxFontFaces[file]) {
+          const name = 'sxp ' + file.replace(/\.[^.]+$/, '').replace(/[^\w -]/g, '');
+          const face = new FontFace(name, `url("fonts/${encodeURIComponent(file)}")`, { weight: '1 1000' });
+          document.fonts.add(face);
+          face.load().catch(() => {});
+          sxFontFaces[file] = name;
+        }
+        return sxFontFaces[file];
+      }
+
+      function sxLookChosen() {
+        const look = { fonts: sxFontsChosen() };
+        const bg = document.getElementById('sx-bg').value, fig = document.getElementById('sx-fig').value;
+        if (bg) { look.background = bg; look.dim = Number(document.getElementById('sx-dim').value); }
+        if (fig) { look.figure = fig; look.figSize = Number(document.getElementById('sx-figsize').value); look.figPos = document.getElementById('sx-figpos').value; }
+        return look;
+      }
+
+      function renderSessionTheme(look) {
+        const opts = (files, cur, first) => first + [...new Set(files.concat(cur ? [cur] : []))].map(f =>
+          `<option value="${escHtml(f)}"${f === cur ? ' selected' : ''}>${escHtml(f.replace(/\.[^.]+$/, ''))}</option>`).join('');
+        document.getElementById('sx-bg').innerHTML = opts(sxThemeFiles.backgrounds, look.background, '<option value="">Default (dark, speaker photo)</option>');
+        document.getElementById('sx-fig').innerHTML = opts(sxThemeFiles.assets, look.figure, '<option value="">None</option>');
+        document.getElementById('sx-dim').value = String(look.dim != null ? look.dim : 50);
+        document.getElementById('sx-figsize').value = String(look.figSize || 60);
+        document.getElementById('sx-figpos').value = look.figPos || 'bottom-right';
+      }
+      ['sx-bg', 'sx-dim', 'sx-fig', 'sx-figsize', 'sx-figpos'].forEach(id => document.getElementById(id).addEventListener('change', updateSessionFonts));
+
+      function sxFontsChosen() {
+        const out = {};
+        SX_FONT_ROLES.forEach(([role]) => { const v = document.getElementById('sx-font-' + role)?.value; if (v) out[role] = v; });
+        return out;
+      }
+
+      function renderSessionFonts(chosen) {
+        const files = [...new Set(sxFontFiles.concat(Object.values(chosen)))];
+        sxFontsBox.innerHTML = SX_FONT_ROLES.map(([role, , label, sample]) => `
+          <span style="font-weight:600;">${label}</span>
+          <select id="sx-font-${role}"><option value="">Default (Inter)</option>${files.map(f =>
+            `<option value="${escHtml(f)}"${chosen[role] === f ? ' selected' : ''}>${escHtml(fontLabel(f))}${sxFontFiles.includes(f) ? '' : ' (missing)'}</option>`).join('')}</select>
+          <span id="sx-font-sample-${role}" style="font-size:1.35rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escHtml(sample)}</span>`).join('');
+        SX_FONT_ROLES.forEach(([role]) => document.getElementById('sx-font-' + role).addEventListener('change', updateSessionFonts));
+        updateSessionFonts();
+      }
+
+      function updateSessionFonts() {
+        const chosen = sxFontsChosen();
+        SX_FONT_ROLES.forEach(([role]) => {
+          document.getElementById('sx-font-sample-' + role).style.fontFamily = chosen[role] ? `"${sxFontFamily(chosen[role])}", sans-serif` : '';
+        });
+        document.getElementById('sx-dim').disabled = !document.getElementById('sx-bg').value;
+        document.getElementById('sx-figsize').disabled = document.getElementById('sx-figpos').disabled = !document.getElementById('sx-fig').value;
+        updateFigureClash();
+        const norm = l => JSON.stringify({ f: l.fonts || {}, b: l.background || '', d: l.background ? Number(l.dim ?? 50) : 0, g: l.figure || '', z: l.figure ? Number(l.figSize || 60) : 0, p: l.figure ? l.figPos || 'bottom-right' : '' });
+        const changed = norm(sxLookChosen()) !== norm(sxFontsSaved);
+        document.getElementById('sx-fonts-status').textContent = !sxFontFiles.length ? 'No fonts found in the fonts folder.' : '';
+        // Screens only follow the saved look: say so when the preview shows something else
+        document.getElementById('sx-look-unsaved').style.display = changed ? '' : 'none';
+        document.getElementById('sx-preview-note').style.display = changed ? '' : 'none';
+        document.getElementById('sx-fonts-save-btn').textContent = changed ? 'Save look ●' : 'Save look';
+        updateSessionsPreview();
+      }
+
+      document.getElementById('sx-fonts-reset-btn').addEventListener('click', () => {
+        SX_FONT_ROLES.forEach(([role]) => { document.getElementById('sx-font-' + role).value = ''; });
+        document.getElementById('sx-bg').value = ''; document.getElementById('sx-fig').value = '';
+        document.getElementById('sx-dim').value = '50'; document.getElementById('sx-figsize').value = '60'; document.getElementById('sx-figpos').value = 'bottom-right';
+        updateSessionFonts();
+        // Straight to the screens: the default look needs no saving
+        saveSessionLook('Back to the default look');
+      });
+      // The screens' logo (Settings) sits in a corner too: warn when the figure is in the same one
+      function sxFigureClash(look = sxLookChosen()) {
+        if (!look.figure || !logoSettings.url || logoSettings.visible === false) return '';
+        if ((logoSettings.position || 'bottom-right') !== (look.figPos || 'bottom-right')) return '';
+        return `⚠ The screen logo is also ${look.figPos.replace('-', ' ')} (Settings): they'll overlap. Pick another corner for one of them.`;
+      }
+      function updateFigureClash() {
+        const clash = sxFigureClash();
+        document.getElementById('sx-fig-clash').style.display = clash ? '' : 'none';
+        document.getElementById('sx-fig-clash').textContent = clash;
+      }
+      function saveSessionLook(msg) {
+        if (!db) { showToast('Not connected to Firebase', true); return; }
+        const clash = sxFigureClash();
+        db.ref('signage/sessionsLook').set(Object.assign(sxLookChosen(), { updatedAt: Date.now() }))
+          .then(() => showToast(clash ? msg + '. ' + clash.slice(2) : msg, !!clash))
+          .catch(err => showToast('Error: ' + err.message, true));
+      }
+      document.getElementById('sx-fonts-save-btn').addEventListener('click', () => saveSessionLook('Look saved'));
+
       function updateSessionsPreview() {
-        const url = sessionsUrl(sxValue(), sxTime.value);
+        const url = (() => {
+          const u = new URL(sessionsUrl(sxValue(), sxTime.value), location.href);
+          // The preview always uses the look picked here, saved or not
+          const look = sxLookChosen();
+          SX_FONT_ROLES.forEach(([role, key]) => u.searchParams.set(key, look.fonts[role] || ''));
+          if (look.background) { u.searchParams.set('bg', look.background); u.searchParams.set('dim', look.dim); }
+          if (look.figure) { u.searchParams.set('fig', look.figure); u.searchParams.set('figsize', look.figSize); u.searchParams.set('figpos', look.figPos); }
+          return u.href;
+        })();
         if (sxPreview.dataset.url !== url) { sxPreview.dataset.url = url; sxPreview.src = url; }
         sxPreview.style.transform = `scale(${sxPreview.parentElement.clientWidth / 1920})`;
       }
       [sxView, sxSec, sxTime].forEach(el => el.addEventListener('change', updateSessionsPreview));
       window.addEventListener('resize', updateSessionsPreview);
-      document.querySelector('.nav-btn[data-panel="sessions"]').addEventListener('click', () => { loadSessionRooms(); renderSessionsPanel(); });
-      document.getElementById('sx-push-btn').addEventListener('click', () => push(sessionsUrl(sxValue()), 'iframe'));
+      document.querySelector('.nav-btn[data-panel="sessions"]').addEventListener('click', () => {
+        loadSessionRooms(); renderSessionsPanel();
+        if (!sxFontFiles.length) loadFontFiles().then(files => { sxFontFiles = files; renderSessionFonts(sxFontsChosen()); });
+        if (!sxThemeFiles.backgrounds.length) loadThemeFiles().then(() => { renderSessionTheme(sxLookChosen()); updateSessionFonts(); });
+      });
+      document.getElementById('sx-push-btn').addEventListener('click', () => {
+        if (document.getElementById('sx-look-unsaved').style.display !== 'none') showToast('Showing it with the saved look. Click Save look to use the new one', true);
+        push(sessionsUrl(sxValue()), 'iframe');
+      });
       // Every time slot of a day: its sessions from the end of the slot before it (the break) until 5 minutes after it starts
       document.getElementById('sx-schedule-all-btn').addEventListener('click', () => {
         const day = document.getElementById('sx-day').value;
@@ -4566,13 +4823,15 @@ tick();setInterval(tick,250);
             const libImage = (Object.values(libraryItems).find(i => i.mediaType !== 'video') || {}).name || 'https://example.com/keynote.jpg';
             const ws = XLSX.utils.aoa_to_sheet([
               ['Date', 'Start', 'Show on', 'Title', 'Speaker / room', 'Countdown (min before)', 'Progress bar (min before)', 'Bar text',
-               'Starting now (min)', 'Bar when full (min)', 'Bar text when full', 'Transition'],
+               'Starting now (min)', 'Bar when full (min)', 'Bar text when full', 'Transition', 'Content', 'Until'],
+              [D, T(8, 0), 'all', 'Welcome loop', '', '', '', '', '', '', '', 'fade', 'image: #1', T(8, 50)],
+              [D, T(8, 50), 'all', 'Before the keynote', '', '', '', '', '', '', '', '', 'sessions: next', T(9, 5)],
               [D, T(9, 0), 'all', 'Keynote', 'Jane Doe · Hall A', 5, 30, 'Keynote starts in {countdown}', 2, 2, 'The keynote has started', 'black 1.5'],
               [D, T(10, 30), group, 'Next sessions start', 'Room 3 · Room 5', 5, 15, '{title} in {countdown}', '', '', '', 'push 0.6'],
               [D, T(10, 30), screen, 'Securing your APIs', 'Ann Peeters · Room 5', 5, '', ''],
               [D, T(12, 30), 'all', 'Lunch', '', 0, 20, 'Lunch is served in {countdown}', '', 0, '']
             ]);
-            ws['!cols'] = [12, 8, 16, 34, 26, 22, 24, 34, 18, 18, 28, 14].map(wch => ({ wch }));
+            ws['!cols'] = [12, 8, 16, 34, 26, 22, 24, 34, 18, 18, 28, 14, 30, 8].map(wch => ({ wch }));
             const help = XLSX.utils.aoa_to_sheet([
               ['Column', 'What to fill in'],
               ['Date', 'Day of the session, e.g. 24/10/2026'],
@@ -4587,8 +4846,13 @@ tick();setInterval(tick,250);
               ['Bar when full (min)', 'Optional. How long the full bar stays after the start. Empty = the default on the Schedule page (1), 0 = remove it at once.'],
               ['Bar text when full', 'Optional. Text in the bar once it is full, e.g. "The keynote has started". Empty = the default on the Schedule page.'],
               ['Transition', 'Optional. Not used for countdowns (they sit on top of the content); kept for older files: fade, black (fade through black), push, up, wipe, zoom or none, optionally with seconds, e.g. "push 0.6". Empty = the default transition on the Schedule page.'],
+              ['Content', 'Optional. Fill it in to plan content instead of a countdown: the row then shows this from Start until Until (the countdown columns are ignored). ' +
+                '"image: name.jpg" or "image: #2" (the 2nd image of the Image Library, A–Z), "video: name" or "video: #1", "slideshow: name" or "slideshow: #1", "template: name", ' +
+                '"sessions: next" (always the next time slot), "sessions: overview", "sessions: slides", "sessions: room Room 7", "sessions: slot 2026-10-27 13:15" (add "@10" for 10 seconds per slide), ' +
+                '"url: https://…" or "color: #000000". Title is then only the name in the planner.'],
+              ['Until', 'Only for content: when it stops, e.g. 10:30 (same day as Date).'],
               [],
-              ['Tip', 'Keep the column names in row 1. Add as many rows as you like; the first sheet ("Sessions") is read. Uploading replaces the countdowns; content you added in the planner stays. Add the content itself (images, videos, slideshows, HTML…) in the planner.']
+              ['Tip', 'Keep the column names in row 1. Add as many rows as you like; the first sheet ("Sessions") is read. Uploading replaces the countdowns; content you added in the planner stays (and is not added twice when the file has it too).']
             ]);
             help['!cols'] = [{ wch: 26 }, { wch: 110 }];
             const wb = XLSX.utils.book_new();
@@ -4677,7 +4941,10 @@ tick();setInterval(tick,250);
             const parsed = parseTimetableSheet(XLSX, await file.arrayBuffer());
             if (!parsed.length) { showToast('No sessions found in the file', true); return; }
             // The file replaces the sessions; content planned here stays
-            const content = currentTtRows().filter(r => r.kind === 'content' && !r.error).map(r => Object.assign({}, r));
+            // (content that the file has too isn't kept twice, so uploading the same file again doesn't double it)
+            const sig = r => [r.start, r.until, r.showOn, r.content && r.content.type, r.content && r.content.value].join('|');
+            const inFile = new Set(parsed.filter(r => r.kind === 'content').map(sig));
+            const content = currentTtRows().filter(r => r.kind === 'content' && !r.error && !inFile.has(sig(r))).map(r => Object.assign({}, r));
             ttRows = parsed.concat(content);
             ttFileName = file.name;
             const first = parsed.find(r => !r.error && r.start);
@@ -5145,6 +5412,54 @@ tick();setInterval(tick,250);
         document.getElementById('lib-url-input').value = '';
       });
 
+      db.ref('signage/sessionsLook').on('value', snap => {
+        sxFontsSaved = snap.val() || {};
+        renderSessionTheme(sxFontsSaved);
+        renderSessionFonts(sxFontsSaved.fonts || {});
+      });
+
+      // Library: add backgrounds and images from the theming folder in the repo
+      const themingBox = document.getElementById('lib-theming-body');
+      const themingUrl = (folder, file) => SITE_URL + 'theming/' + folder + '/' + encodeURIComponent(file);
+      function renderThemingLibrary() {
+        if (!document.getElementById('lib-theming').open) return;
+        const inLib = new Set(Object.values(libraryItems || {}).map(i => i.url));
+        const group = (folder, title) => {
+          const files = sxThemeFiles[folder];
+          const missing = files.filter(f => !inLib.has(themingUrl(folder, f)));
+          return `<div style="display:flex; align-items:center; gap:10px; margin:4px 0 10px;"><h3 style="margin:0; font-size:0.9rem; flex:1;">${title} <span class="tt-muted">(${files.length})</span></h3>
+            ${missing.length ? `<button data-theming-all="${folder}" style="padding:6px 12px; font-size:0.8rem;">＋ Add all ${missing.length}</button>` : ''}</div>
+            <div class="library-grid" style="margin-bottom:18px;">${files.map(f => {
+              const url = themingUrl(folder, f), has = inLib.has(url);
+              return `<div class="lib-item"><div style="aspect-ratio:4/3; background:#2a2e3b; border-radius:6px; overflow:hidden;">
+                  <img src="theming/${folder}/${encodeURIComponent(f)}" loading="lazy" alt="" style="width:100%; height:100%; object-fit:${folder === 'assets' ? 'contain' : 'cover'};"></div>
+                <div class="lib-item-name" title="${escHtml(f)}">${escHtml(f)}</div>
+                <button data-theming-add="${folder}/${escHtml(f)}" ${has ? 'disabled' : ''} style="width:100%; padding:5px; font-size:0.78rem;">${has ? '✓ In library' : '＋ Add to library'}</button></div>`;
+            }).join('')}</div>`;
+        };
+        themingBox.innerHTML = sxThemeFiles.backgrounds.length || sxThemeFiles.assets.length
+          ? group('backgrounds', 'Backgrounds') + group('assets', 'Images')
+          : '<div class="empty-state" style="padding:20px 0;">No images found in the theming folder.</div>';
+      }
+      function addThemingFiles(folder, files) {
+        Promise.all(files.map(f => addUrlToLibrary(themingUrl(folder, f), f, 'theming')))
+          .then(() => showToast(files.length === 1 ? 'Added to library (folder theming)' : `${files.length} items added to library (folder theming)`))
+          .catch(err => showToast('Error: ' + err.message, true));
+      }
+      document.getElementById('lib-theming').addEventListener('toggle', () => {
+        if (!document.getElementById('lib-theming').open) return;
+        themingBox.innerHTML = '<div class="tt-muted">Loading…</div>';
+        loadThemeFiles().then(renderThemingLibrary);
+      });
+      themingBox.addEventListener('click', e => {
+        const one = e.target.closest('[data-theming-add]'), all = e.target.closest('[data-theming-all]');
+        if (one) { const [folder, ...rest] = one.dataset.themingAdd.split('/'); addThemingFiles(folder, [rest.join('/')]); }
+        if (all) {
+          const folder = all.dataset.themingAll, inLib = new Set(Object.values(libraryItems || {}).map(i => i.url));
+          addThemingFiles(folder, sxThemeFiles[folder].filter(f => !inLib.has(themingUrl(folder, f))));
+        }
+      });
+
       db.ref('signage/libraryFolders').on('value', snap => {
         libraryFolders = snap.val() || {};
         renderLibraryGrid(libraryItems);
@@ -5156,6 +5471,7 @@ tick();setInterval(tick,250);
         renderLibraryGrid(libraryItems);
         renderNowPlaying();
         renderTimetable();
+        renderThemingLibrary();
       });
 
       // ─── SLIDESHOW ────────────────────────────────────────────────────────────

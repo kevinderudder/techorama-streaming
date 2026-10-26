@@ -13,20 +13,51 @@
     sec=8              seconds per slide
     grace=10           a slot stays "Starting now" for this many minutes after it started
     now=2026-10-27T13:00  pretend it is this time (for testing; the clock keeps running from there)
+    ftitle= fkicker= froom= ftext=  a file in fonts/ per part (titles, time & label, room, speakers & text)
+    bg=BG stone.jpg    a background from theming/backgrounds (instead of the blurred speaker photo)
+    dim=50             how much a background is darkened, in %
+    fig=castle.png     a figure from theming/assets
+    figsize=60         its height, in % of the screen (40 or less: session slides keep their place on the left)
+    figpos=bottom-right  its corner: top-left, top-right, bottom-left, bottom-right
+    Without any of these the screen follows the look saved in the controller (signage/sessionsLook)
 -->
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  :root{--accent:#e8b23a;--text:#f5f2ea;--muted:rgba(245,242,234,.62);--card:rgba(255,255,255,.06);--line:rgba(255,255,255,.12)}
+  :root{--f-base:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;--f-title:var(--f-base);--f-kicker:var(--f-base);--f-room:var(--f-base);--f-text:var(--f-base);
+    --accent:#e8b23a;--text:#f5f2ea;--muted:rgba(245,242,234,.62);--card:rgba(255,255,255,.06);--line:rgba(255,255,255,.12)}
   html,body{width:100%;height:100%;overflow:hidden;background:#0d0f17;color:var(--text);
-    font-family:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+    font-family:var(--f-text);-webkit-font-smoothing:antialiased}
+  .one h1,.all h2,.row .t b,.msg h1{font-family:var(--f-title)}
+  .kicker{font-family:var(--f-kicker)}
+  .room,.row .r{font-family:var(--f-room)}
   #bg{position:fixed;inset:-6%;background:center/cover no-repeat;filter:blur(60px) saturate(1.2);opacity:.35;transition:background-image 1s}
   #bg::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%,transparent,#0d0f17 75%)}
+  #theme{position:fixed;inset:0;background:center/cover no-repeat;display:none}
+  #theme::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 40% 45%,rgba(0,0,0,var(--dim)),rgba(0,0,0,calc(var(--dim) + .25)) 95%)}
+  .themed #theme{display:block}
+  .themed #bg{display:none}
+  #fig{position:fixed;right:2vw;bottom:5vh;height:var(--figh,60vh);width:var(--figw,22vw);object-fit:contain;object-position:bottom right;display:none;
+    filter:drop-shadow(0 2vw 3vw rgba(0,0,0,.6))}
+  .figured #fig{display:block}
+  .fig-top #fig{bottom:auto;top:3vh;object-position:top right}
+  .fig-left #fig{right:auto;left:2vw;object-position:bottom left}
+  .fig-top.fig-left #fig{object-position:top left}
+  /* A big figure gets a column of its own */
+  .figured .slide{padding-right:calc(var(--figw,22vw) + 4vw)}
+  .figured.fig-left .slide{padding-right:6vw;padding-left:calc(var(--figw,22vw) + 4vw)}
+  .figured:not(.fig-small) .one{gap:3.5vw}
+  .figured:not(.fig-small) .one .photos{flex-basis:27vw;height:27vw}
+  .figured:not(.fig-small) .one h1{font-size:4vw}.figured:not(.fig-small) .one h1.long{font-size:3.2vw}.figured:not(.fig-small) .one h1.longer{font-size:2.7vw}
+  /* A small one: a session slide keeps its place on the left and makes room above or below it instead */
+  .figured.fig-small .slide.one{padding-left:6vw;padding-right:6vw;padding-bottom:calc(var(--figh) + 7.5vh)}
+  .figured.fig-small.fig-top .slide.one{padding-top:calc(var(--figh) + 5vh);padding-bottom:7vh}
+  .figured.fig-small .one .photos{flex-basis:var(--ph);height:var(--ph)}
   #stage{position:fixed;inset:0}
-  .slide{position:absolute;inset:0;padding:6vh 6vw 9vh;display:flex;opacity:0;transition:opacity .7s ease}
+  .slide{position:absolute;inset:0;padding:6vh 6vw 7vh;display:flex;opacity:0;transition:opacity .7s ease}
   .slide.in{opacity:1}
   .slide.out{opacity:0}
   .kicker{display:flex;align-items:center;gap:1.2vw;font-size:2.1vw;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
-  .kicker .time{color:var(--text);background:var(--card);border:1px solid var(--line);padding:.25em .7em;border-radius:.5em;letter-spacing:.04em}
+  .kicker .time{white-space:nowrap;color:var(--text);background:var(--card);border:1px solid var(--line);padding:.25em .7em;border-radius:.5em;letter-spacing:.04em}
   .rise{opacity:0;transform:translateY(4vh)}
   .in .rise{animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards}
   .in .rise:nth-child(2){animation-delay:.12s}.in .rise:nth-child(3){animation-delay:.24s}
@@ -50,7 +81,7 @@
   .one h1.long{font-size:3.6vw}.one h1.longer{font-size:3vw}
   .one .who{font-size:2.3vw;color:var(--muted);font-weight:500}
   .one .meta{display:flex;flex-wrap:wrap;gap:1vw;align-items:center}
-  .room{display:inline-flex;align-items:center;gap:.5em;font-size:2.8vw;font-weight:800;background:var(--accent);color:#14110a;padding:.3em .8em;border-radius:.45em}
+  .room{white-space:nowrap;display:inline-flex;align-items:center;gap:.5em;font-size:2.8vw;font-weight:800;background:var(--accent);color:#14110a;padding:.3em .8em;border-radius:.45em}
   .room svg{width:.8em;height:.8em}
   .chip{font-size:1.5vw;font-weight:600;padding:.4em .9em;border-radius:99px;border:1px solid var(--line);background:var(--card)}
   .chip i{display:inline-block;width:.6em;height:.6em;border-radius:50%;background:var(--c);margin-right:.5em}
@@ -72,7 +103,7 @@
   .msg h1{font-size:5vw;font-weight:800}
   .msg p{font-size:2.2vw;color:var(--muted)}
 
-  #bar{position:fixed;left:6vw;right:6vw;bottom:4.5vh;display:flex;gap:.5vw}
+  #bar{position:fixed;left:2vw;right:2vw;bottom:2.5vh;display:flex;gap:.5vw}
   #bar i{flex:1;height:.5vh;border-radius:9px;background:var(--line);overflow:hidden}
   #bar i.done::after,#bar i.on::after{content:"";display:block;height:100%;background:var(--accent)}
   #bar i.on::after{animation:fill var(--d) linear forwards;width:0}
@@ -81,6 +112,8 @@
 </head>
 <body>
 <div id="bg"></div>
+<div id="theme"></div>
+<img id="fig" alt="">
 <div id="stage"></div>
 <div id="bar"></div>
 <script>
@@ -210,7 +243,70 @@
     setTimeout(show, slideMs);
   }
 
-  load().then(() => { deck = buildDeck(); show(); });
+  // The look (fonts per part, background, figure): from the query string (controller preview), else live from Firebase
+  const ROLES = { title: 'ftitle', kicker: 'fkicker', room: 'froom', text: 'ftext' };
+  const LOOK_PARAMS = Object.values(ROLES).concat(['bg', 'dim', 'fig', 'figsize', 'figpos']);
+  const LOOK_URL = 'https://techorama-stream-default-rtdb.europe-west1.firebasedatabase.app/signage/sessionsLook.json';
+  const loaded = {};
+  function fontFamily(file) {
+    if (!loaded[file]) {
+      const name = 'sx ' + file.replace(/\.[^.]+$/, '').replace(/[^\w -]/g, '');
+      // One face for every weight, so the browser doesn't fake bold on a font with a single weight
+      const face = new FontFace(name, `url("fonts/${encodeURIComponent(file)}")`, { weight: '1 1000' });
+      document.fonts.add(face);
+      loaded[file] = face.load().then(() => name).catch(() => { console.warn('Could not load font', file); return null; });
+    }
+    return loaded[file];
+  }
+  const themeFile = (folder, file) => `theming/${folder}/${encodeURIComponent(file)}`;
+  async function applyLook(look) {
+    look = look || {};
+    const fonts = look.fonts || {};
+    const root = document.documentElement;
+    const bg = look.background ? themeFile('backgrounds', look.background) : null;
+    const fig = look.figure ? themeFile('assets', look.figure) : null;
+    const done = Promise.all(Object.keys(ROLES).map(async role => {
+      const name = fonts[role] ? await fontFamily(fonts[role]) : null;
+      root.style.setProperty('--f-' + role, name ? `"${name}", var(--f-base)` : 'var(--f-base)');
+    }).concat([preload(bg), preload(fig)]));
+    await Promise.race([done, new Promise(r => setTimeout(r, 5000))]);
+    root.style.setProperty('--dim', (look.dim != null ? Number(look.dim) : 50) / 100);
+    document.getElementById('theme').style.backgroundImage = bg ? `url("${bg}")` : 'none';
+    root.classList.toggle('themed', !!bg);
+    figSize = Math.min(90, Math.max(10, Number(look.figSize) || 60));
+    const img = document.getElementById('fig');
+    if (fig) { img.src = fig; await img.decode().catch(() => {}); }
+    sizeFigure();
+    const pos = /^(top|bottom)-(left|right)$/.test(look.figPos) ? look.figPos : 'bottom-right';
+    root.classList.toggle('fig-top', pos.startsWith('top'));
+    root.classList.toggle('fig-left', pos.endsWith('left'));
+    root.classList.toggle('fig-small', figSize <= 40);
+    root.classList.toggle('figured', !!fig);
+  }
+  // The figure is as high as chosen, and only as wide as the image needs (at most a third of the screen)
+  let figSize = 60;
+  function sizeFigure() {
+    const img = document.getElementById('fig'), h = figSize / 100 * innerHeight;
+    const ratio = img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 0.7;
+    document.documentElement.style.setProperty('--figh', figSize + 'vh');
+    document.documentElement.style.setProperty('--figw', Math.min(h * ratio, innerWidth / 3) + 'px');
+    // Speaker photo for a small figure: what's left of the height (screen − figure − margins)
+    document.documentElement.style.setProperty('--ph', Math.min(0.34 * innerWidth, innerHeight * (1 - figSize / 100 - 0.18)) + 'px');
+  }
+  addEventListener('resize', sizeFigure);
+  async function initLook() {
+    if (LOOK_PARAMS.some(k => q.has(k))) {
+      const fonts = {};
+      Object.entries(ROLES).forEach(([role, k]) => { if (q.get(k)) fonts[role] = q.get(k); });
+      return applyLook({ fonts, background: q.get('bg'), dim: q.get('dim'), figure: q.get('fig'), figSize: q.get('figsize'), figPos: q.get('figpos') });
+    }
+    const fetchLook = () => fetch(LOOK_URL, { cache: 'no-store' }).then(r => r.json()).then(applyLook).catch(() => {});
+    await fetchLook();
+    // Live updates when the look changes in the controller
+    try { const es = new EventSource(LOOK_URL); es.addEventListener('put', fetchLook); es.addEventListener('patch', fetchLook); } catch (e) {}
+  }
+
+  Promise.all([load(), initLook()]).then(() => { deck = buildDeck(); show(); });
   setInterval(load, 10 * 60000); // pick up a new JSON after a redeploy
 </script>
 </body>
