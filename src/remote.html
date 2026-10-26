@@ -129,6 +129,7 @@
     .scr .g { font-size: .8rem; color: var(--muted); font-weight: 600; margin-left: auto; }
     .scr .s { font-size: .9rem; color: var(--muted); }
     .scr .s b { color: var(--text); }
+    .scr .s.bad { color: var(--danger); }
     .scr .acts { display: flex; gap: 8px; }
     .scr .acts button { flex: 1; min-height: 46px; border-radius: 12px; font-weight: 700; font-size: .9rem; background: rgba(var(--tint), .08); }
     .scr .acts button.sel { background: var(--accent); color: var(--on-accent); }
@@ -188,6 +189,14 @@
       border-radius: 16px; font-weight: 600; font-size: .95rem; opacity: 0; transition: .2s; z-index: 30; max-width: calc(100% - 32px); text-align: center; box-shadow: 0 8px 30px rgba(0,0,0,.3); }
     #toast.show { opacity: 1; transform: translate(-50%, 0); }
     #toast.error { background: var(--danger); }
+    /* Messages from the screens' watchdog: stay until closed */
+    #screen-alerts { position: fixed; top: 14px; right: 14px; z-index: 3100; display: flex; flex-direction: column; gap: 8px; width: min(380px, calc(100vw - 28px)); pointer-events: none; }
+    #screen-alerts .sa { pointer-events: auto; display: flex; gap: 10px; align-items: flex-start; background: var(--panel); color: var(--text); border: 1px solid var(--border);
+      border-left: 4px solid var(--danger); border-radius: 10px; padding: 10px 12px; font-size: 0.85rem; line-height: 1.4; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+    #screen-alerts .sa.ok { border-left-color: var(--ok); }
+    #screen-alerts .sa div { flex: 1; min-width: 0; }
+    #screen-alerts .sa small { display: block; color: var(--muted); font-size: 0.75rem; }
+    #screen-alerts .sa button { background: transparent; border: 0; color: var(--muted); font-size: 1.1rem; line-height: 1; padding: 0 2px; cursor: pointer; min-height: 0; }
 
     /* Login */
     #login { position: fixed; inset: 0; z-index: 40; background: var(--bg); display: none; align-items: center; justify-content: center; padding: 24px; }
@@ -324,6 +333,7 @@
     </div>
   </div>
   <div id="toast"></div>
+  <div id="screen-alerts"></div>
 
   <!-- Login: the database rules only accept changes from accounts listed under signage_admins -->
   <div id="login" class="show">
@@ -373,6 +383,61 @@
       toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
     }
     const fail = err => toast('Error: ' + err.message, true);
+
+    // ─── Screen health: the receivers' watchdog reports in presence.issue; a screen that stops its
+    // heartbeat (presence.lastSeen, every minute) while it looks online is "not responding" ───
+    const SEEN_KEY = 'signage_screen_issues_seen_v1';
+    let seenIssues = null, silentScreens = {};
+    try { seenIssues = JSON.parse(localStorage.getItem(SEEN_KEY)); } catch (e) {}
+    const hhmm = ms => new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    function screenHealth(s) {
+      const p = (s && s.presence) || {};
+      const silent = !!(p.online && p.wd && p.lastSeen && Date.now() - p.lastSeen > 3 * 60000);
+      return { online: !!p.online, silent, lastSeen: p.lastSeen, issue: p.issue || null };
+    }
+    function issueText(id, i) {
+      return i.action === 'reloaded' ? `${id} is back after a reload (${i.reason})`
+        : i.action === 'reloading' ? `${id} got stuck: ${i.reason}. It shows the fallback image and reloads.`
+        : `${id} keeps getting stuck: ${i.reason}. It shows the fallback image for 10 minutes.`;
+    }
+    function screenAlert(text, sub, ok) {
+      const box = document.getElementById('screen-alerts');
+      const el = document.createElement('div');
+      el.className = 'sa' + (ok ? ' ok' : '');
+      el.innerHTML = `<span>${ok ? '✅' : '⚠️'}</span><div></div><button title="Close">×</button>`;
+      el.querySelector('div').textContent = text;
+      const small = document.createElement('small'); small.textContent = sub; el.querySelector('div').appendChild(small);
+      el.querySelector('button').onclick = () => el.remove();
+      box.prepend(el);
+      if (ok) setTimeout(() => el.remove(), 20000);
+      while (box.children.length > 6) box.lastChild.remove();
+    }
+    function checkScreenHealth(screens) {
+      const first = !seenIssues;
+      seenIssues = seenIssues || {};
+      Object.keys(screens || {}).forEach(id => {
+        const h = screenHealth(screens[id]);
+        if (h.issue && h.issue.id) {
+          const key = id + ':' + h.issue.id + ':' + h.issue.action;
+          // The first time this controller runs, older reports are history, not news
+          if (!seenIssues[key] && !(first && Date.now() - (h.issue.back || h.issue.at || 0) > 10 * 60000)) {
+            screenAlert(issueText(id, h.issue), hhmm(h.issue.back || h.issue.at || Date.now()), h.issue.action === 'reloaded');
+          }
+          seenIssues[key] = h.issue.at || Date.now();
+        }
+        if (h.silent && !silentScreens[id]) screenAlert(`${id} is not responding`, 'Last sign of life ' + hhmm(h.lastSeen));
+        silentScreens[id] = h.silent;
+      });
+      // Forget reports older than two days
+      Object.keys(seenIssues).forEach(k => { if (Date.now() - seenIssues[k] > 2 * 86400000) delete seenIssues[k]; });
+      try { localStorage.setItem(SEEN_KEY, JSON.stringify(seenIssues)); } catch (e) {}
+    }
+    // Last problem of a screen, for the screens list
+    function healthNote(s) {
+      const h = screenHealth(s), i = h.issue;
+      return (h.silent ? 'Not responding since ' + hhmm(h.lastSeen) : '')
+        + (i ? (h.silent ? ' · ' : '') + 'Last problem ' + hhmm(i.at) + ': ' + i.reason + (i.action === 'reloaded' ? ' (reloaded)' : '') : '');
+    }
 
     // ─── Login ───
     auth.onAuthStateChanged(async user => {
@@ -805,6 +870,7 @@
         return `<div class="scr${online(id) ? '' : ' offline'}${target === t ? ' sel' : ''}">
           <div class="n"><span class="dot${online(id) ? ' on' : ''}"></span>${esc(id)}${screens[id].group ? `<span class="g">📁 ${esc(screens[id].group)}</span>` : ''}</div>
           <div class="s">${online(id) ? '' : 'Offline · '}${override ? '✋' : '🗓'} <b>${esc(what)}</b></div>
+          ${healthNote(screens[id]) ? `<div class="s${screenHealth(screens[id]).silent ? ' bad' : ''}">⚠️ ${esc(healthNote(screens[id]))}</div>` : ''}
           <div class="acts"><button data-pick="${esc(t)}" class="${target === t ? 'sel' : ''}">${target === t ? '✓ Selected' : 'Control this one'}</button>${override ? `<button data-back="${esc(t)}">↩ Schedule</button>` : ''}</div>
         </div>`;
       }).join('') : '<div class="empty">No screens yet. Open receiver.html on a screen.</div>';
@@ -827,7 +893,7 @@
 
     // ─── Live data ───
     const on = (path, fn) => db.ref(path).on('value', snap => { fn(snap.val()); renderAll(); });
-    on('signage/screens', v => screens = v || {});
+    on('signage/screens', v => { screens = v || {}; checkScreenHealth(screens); });
     on('signage/groups', v => groupsCurrent = v || {});
     on('signage/current', v => globalCurrent = v);
     on('signage/timetable', v => timetable = v);
@@ -837,7 +903,7 @@
     on('signage/alerts', v => alerts = v || {});
     on('signage/settings/fallbackImage', v => fallbackUrl = v || null);
     // The schedule moves on by itself
-    setInterval(() => { renderStatus(); renderSchedule(); renderAlerts(); renderScreens(); }, 15000);
+    setInterval(() => { renderStatus(); renderSchedule(); renderAlerts(); renderScreens(); checkScreenHealth(screens); }, 15000);
     renderAll();
   </script>
 </body>

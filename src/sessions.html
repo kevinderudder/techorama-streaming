@@ -221,6 +221,8 @@
   let deck = [], idx = 0, sig = '';
 
   async function show() {
+    // Heartbeat for the receiver's watchdog: a page that stops showing slides gets reloaded
+    window.__alive = Date.now(); window.__aliveWithin = 3 * slideMs + 60000;
     if (idx >= deck.length) { idx = 0; deck = buildDeck(); }
     const slide = deck[idx];
     const html = slide.html;

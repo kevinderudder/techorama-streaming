@@ -1259,6 +1259,15 @@
     #toast.show { transform: translateX(-50%) translateY(0); }
     #toast.error { background: var(--danger); }
 
+    /* Messages from the screens' watchdog: stay until closed */
+    #screen-alerts { position: fixed; top: 14px; right: 14px; z-index: 3100; display: flex; flex-direction: column; gap: 8px; width: min(380px, calc(100vw - 28px)); pointer-events: none; }
+    #screen-alerts .sa { pointer-events: auto; display: flex; gap: 10px; align-items: flex-start; background: var(--panel); color: var(--text); border: 1px solid var(--border);
+      border-left: 4px solid var(--danger); border-radius: 10px; padding: 10px 12px; font-size: 0.85rem; line-height: 1.4; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+    #screen-alerts .sa.ok { border-left-color: var(--ok); }
+    #screen-alerts .sa div { flex: 1; min-width: 0; }
+    #screen-alerts .sa small { display: block; color: var(--muted); font-size: 0.75rem; }
+    #screen-alerts .sa button { background: transparent; border: 0; color: var(--muted); font-size: 1.1rem; line-height: 1; padding: 0 2px; cursor: pointer; min-height: 0; }
+
     /* === COMPACT, NEUTRAL THEME (overrides the sizes above) === */
     body { font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif; font-size: 14px; -webkit-font-smoothing: antialiased; }
     button { padding: 7px 14px; font-size: 0.84rem; font-weight: 500; border-radius: 6px; }
@@ -2325,6 +2334,7 @@
 
   <!-- TOAST NOTIFICATION -->
   <div id="toast">Pushed!</div>
+  <div id="screen-alerts"></div>
 
   <!-- Login: the database rules only accept changes from accounts listed under signage_admins -->
   <div id="login" class="show">
@@ -2461,6 +2471,61 @@
       toast.classList.add('show');
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    // ─── Screen health: the receivers' watchdog reports in presence.issue; a screen that stops its
+    // heartbeat (presence.lastSeen, every minute) while it looks online is "not responding" ───
+    const SEEN_KEY = 'signage_screen_issues_seen_v1';
+    let seenIssues = null, silentScreens = {};
+    try { seenIssues = JSON.parse(localStorage.getItem(SEEN_KEY)); } catch (e) {}
+    const hhmm = ms => new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    function screenHealth(s) {
+      const p = (s && s.presence) || {};
+      const silent = !!(p.online && p.wd && p.lastSeen && Date.now() - p.lastSeen > 3 * 60000);
+      return { online: !!p.online, silent, lastSeen: p.lastSeen, issue: p.issue || null };
+    }
+    function issueText(id, i) {
+      return i.action === 'reloaded' ? `${id} is back after a reload (${i.reason})`
+        : i.action === 'reloading' ? `${id} got stuck: ${i.reason}. It shows the fallback image and reloads.`
+        : `${id} keeps getting stuck: ${i.reason}. It shows the fallback image for 10 minutes.`;
+    }
+    function screenAlert(text, sub, ok) {
+      const box = document.getElementById('screen-alerts');
+      const el = document.createElement('div');
+      el.className = 'sa' + (ok ? ' ok' : '');
+      el.innerHTML = `<span>${ok ? '✅' : '⚠️'}</span><div></div><button title="Close">×</button>`;
+      el.querySelector('div').textContent = text;
+      const small = document.createElement('small'); small.textContent = sub; el.querySelector('div').appendChild(small);
+      el.querySelector('button').onclick = () => el.remove();
+      box.prepend(el);
+      if (ok) setTimeout(() => el.remove(), 20000);
+      while (box.children.length > 6) box.lastChild.remove();
+    }
+    function checkScreenHealth(screens) {
+      const first = !seenIssues;
+      seenIssues = seenIssues || {};
+      Object.keys(screens || {}).forEach(id => {
+        const h = screenHealth(screens[id]);
+        if (h.issue && h.issue.id) {
+          const key = id + ':' + h.issue.id + ':' + h.issue.action;
+          // The first time this controller runs, older reports are history, not news
+          if (!seenIssues[key] && !(first && Date.now() - (h.issue.back || h.issue.at || 0) > 10 * 60000)) {
+            screenAlert(issueText(id, h.issue), hhmm(h.issue.back || h.issue.at || Date.now()), h.issue.action === 'reloaded');
+          }
+          seenIssues[key] = h.issue.at || Date.now();
+        }
+        if (h.silent && !silentScreens[id]) screenAlert(`${id} is not responding`, 'Last sign of life ' + hhmm(h.lastSeen));
+        silentScreens[id] = h.silent;
+      });
+      // Forget reports older than two days
+      Object.keys(seenIssues).forEach(k => { if (Date.now() - seenIssues[k] > 2 * 86400000) delete seenIssues[k]; });
+      try { localStorage.setItem(SEEN_KEY, JSON.stringify(seenIssues)); } catch (e) {}
+    }
+    // Last problem of a screen, for the screens list
+    function healthNote(s) {
+      const h = screenHealth(s), i = h.issue;
+      return (h.silent ? 'Not responding since ' + hhmm(h.lastSeen) : '')
+        + (i ? (h.silent ? ' · ' : '') + 'Last problem ' + hhmm(i.at) + ': ' + i.reason + (i.action === 'reloaded' ? ' (reloaded)' : '') : '');
     }
 
     const RECENT_KEY = 'signage_recent_v1';
@@ -3022,13 +3087,15 @@
           const s = screens[id];
           const online = s.presence && s.presence.online;
           const lastSeen = s.presence && s.presence.lastSeen ? new Date(s.presence.lastSeen).toLocaleString() : 'never';
+          const health = healthNote(s), silent = screenHealth(s).silent;
           const row = document.createElement('div');
           row.style.cssText = 'display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); font-size:0.88rem;';
           row.innerHTML = `
-            <span title="${online ? 'Online' : 'Offline'}">${online ? '🟢' : '⚫'}</span>
+            <span title="${silent ? 'Not responding' : online ? 'Online' : 'Offline'}">${silent ? '🟠' : online ? '🟢' : '⚫'}</span>
             <div style="flex:1; min-width:0;">
               <div style="font-weight:600;">${escHtml(id)}</div>
               <div style="color:var(--muted); font-size:0.75rem;">${online ? 'Online' : 'Last seen ' + escHtml(lastSeen)}</div>
+              ${health ? `<div style="color:${silent ? 'var(--danger)' : 'var(--muted)'}; font-size:0.75rem;">${escHtml(health)}</div>` : ''}
             </div>
             <input type="text" class="screen-group-input" list="group-options" value="${escHtml(s.group || '')}" placeholder="Group (optional)" style="width:180px; padding:7px 10px; font-size:0.85rem;">
             <button class="screen-del-btn" title="Forget this screen" style="background:transparent; border:1px solid var(--border); color:var(--muted); padding:6px 10px; font-size:0.85rem;">🗑</button>
@@ -3349,12 +3416,15 @@
 
       db.ref('signage/screens').on('value', snap => {
         screens = snap.val() || {};
+        checkScreenHealth(screens);
         renderTargetSelect();
         renderScreensList();
         renderLiveStatus();
         renderScreensOverview();
         refreshPlannerLanes();
       });
+      // A screen that stops its heartbeat only shows up when the clock moves on
+      setInterval(() => { checkScreenHealth(screens); renderScreensList(); }, 30000);
 
       db.ref('signage/groups').on('value', snap => {
         groupsCurrent = snap.val() || {};

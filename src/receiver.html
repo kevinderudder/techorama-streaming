@@ -347,22 +347,80 @@
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
 
+      // Watchdog: when this screen gets stuck it shows the fallback image, tells the controllers and reloads.
+      // The report rides along with the presence (signage/screens/<id>/presence/issue), also after the reload.
+      // Stuck = the page froze, the content never loaded, the sessions page stopped, or memory is almost full.
+      const WD_KEY = 'signage_watchdog_v1';
+      const wdLoad = () => { try { return JSON.parse(localStorage.getItem(WD_KEY)) || {}; } catch (e) { return {}; } };
+      const wdSave = v => { try { localStorage.setItem(WD_KEY, JSON.stringify(v)); } catch (e) {} };
+      let wdIssue = wdLoad().pending || null, wdOnline = false, wdOffset = 0, wdBusy = false;
+      if (wdIssue) { wdIssue.action = 'reloaded'; wdIssue.back = Date.now(); wdSave(Object.assign(wdLoad(), { pending: null })); }
+      db.ref('.info/serverTimeOffset').on('value', snap => { wdOffset = Number(snap.val()) || 0; });
+
+      function writePresence() {
+        if (!screenId || !wdOnline) return Promise.resolve();
+        const presenceRef = db.ref('signage/screens/' + screenId + '/presence');
+        const p = { online: true, lastSeen: firebase.database.ServerValue.TIMESTAMP, wd: 1 };
+        if (wdIssue) p.issue = Object.assign({}, wdIssue, { back: wdIssue.back ? wdIssue.back + wdOffset : null });
+        presenceRef.onDisconnect().set(Object.assign({}, p, { online: false }));
+        return presenceRef.set(p).catch(() => {});
+      }
+      // A sign of life every minute: the controller calls a screen that stays silent "not responding"
+      setInterval(writePresence, 60000);
+
+      function stuck(reason) {
+        if (wdBusy) return;
+        wdBusy = true;
+        showFallback();
+        const t = Date.now(), wd = wdLoad();
+        const recent = (wd.reloads || []).filter(x => t - x < 30 * 60000);
+        // Three reloads in half an hour didn't help: keep the fallback for a while instead of reloading in a loop
+        const wait = recent.length >= 3 ? 10 * 60000 : 4000;
+        wdIssue = { id: t.toString(36) + Math.random().toString(36).slice(2, 6), reason, at: t + wdOffset,
+          action: wait > 4000 ? 'reloads keep failing: fallback for 10 min' : 'reloading' };
+        wdSave({ reloads: recent.concat(t), pending: wdIssue });
+        writePresence();
+        // Only reload when the page itself can be fetched, else a screen without network ends up on an error page
+        const reload = () => fetch(location.href, { cache: 'no-store' })
+          .then(r => { if (r.ok) location.reload(); else setTimeout(reload, 60000); })
+          .catch(() => setTimeout(reload, 60000));
+        setTimeout(reload, wait);
+      }
+
+      let wdTick = performance.now();
+      setInterval(() => {
+        const tick = performance.now(), gap = tick - wdTick, t = Date.now();
+        wdTick = tick;
+        if (gap > 60000) return stuck('the page froze for ' + Math.round(gap / 1000) + ' s');
+        const mem = performance.memory;
+        if (mem && mem.jsHeapSizeLimit && mem.usedJSHeapSize > 0.9 * mem.jsHeapSizeLimit) return stuck('memory almost full');
+        const f = typeof curLayer !== 'undefined' && frames.indexOf(curLayer) >= 0 ? curLayer : null;
+        if (!f || !f.__setAt) return;
+        const page = (f.getAttribute('src') || '').split('?')[0].split('/').pop();
+        if (!f.__loadedAt) { if (t - f.__setAt > 45000) stuck(page + ' did not load'); return; }
+        // Pages that keep a heartbeat (the sessions pages) must keep it going
+        if (/^sessions/.test(page)) {
+          let alive = 0, within = 90000;
+          try { alive = f.contentWindow.__alive || 0; within = Math.max(within, f.contentWindow.__aliveWithin || 0); } catch (e) {}
+          if (!alive && t - f.__loadedAt > within) stuck(page + ' did not start');
+          else if (alive && t - alive > within) stuck(page + ' stopped');
+        }
+      }, 5000);
+
       // Connection indicator + fallback on disconnect
       db.ref('.info/connected').on('value', snap => {
         const connected = !!snap.val();
         dotEl.classList.toggle('connected', connected);
         if (connected) {
-          if (screenId) {
-            // Presence — lets the controller list this screen and show it as online
-            const presenceRef = db.ref('signage/screens/' + screenId + '/presence');
-            presenceRef.onDisconnect().set({ online: false, lastSeen: firebase.database.ServerValue.TIMESTAMP });
-            presenceRef.set({ online: true, lastSeen: firebase.database.ServerValue.TIMESTAMP });
-          }
+          // Presence — lets the controller list this screen and show it as online
+          wdOnline = true;
+          writePresence();
           clearTimeout(disconnectTimer);
           disconnectTimer = null;
           // Only hide fallback if we've received real content since page load
           if (hasReceivedContent) hideFallback();
         } else {
+          wdOnline = false;
           // Show fallback after 15 seconds of being disconnected
           disconnectTimer = setTimeout(showFallback, 15000);
         }
@@ -649,6 +707,7 @@
 
       function clearFrame(f) {
         f.onload = null;
+        f.__setAt = 0;
         f.removeAttribute('srcdoc');
         f.src = 'about:blank';
         f.style.display = 'none';
@@ -705,6 +764,9 @@
             next.style.display = 'block';
             if (isHtml) next.srcdoc = data.html;
             else { next.removeAttribute('srcdoc'); next.src = url; }
+            // For the watchdog: when this page was asked for and when it loaded
+            next.__setAt = isHtml ? 0 : Date.now(); next.__loadedAt = 0;
+            next.onload = () => { next.__loadedAt = Date.now(); };
           }).then(() => {
             if (seq !== renderSeq) return;
             next.style.visibility = '';
