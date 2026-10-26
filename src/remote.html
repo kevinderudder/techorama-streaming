@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Remote">
+  <title>Signage Remote</title>
+  <!-- Touch remote for walking around the venue with an iPad: the same login and the same pushes as controller.html -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <script>try { const t = localStorage.getItem('signage_theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <style>
+    :root {
+      --bg: #0d0d0f; --panel: #161618; --panel-2: #1d1d20; --border: #2a2a2e;
+      --accent: #5b8def; --accent-h: #7aa3f3; --on-accent: #ffffff;
+      --danger: #e5484d; --ok: #30a46c; --warn: #f0a500; --text: #ececee; --muted: #8b8b94; --tint: 255,255,255;
+    }
+    :root[data-theme="light"] {
+      --bg: #f1f4f9; --panel: #ffffff; --panel-2: #f8fafc; --border: #e5e9f0;
+      --accent: #3b6fe0; --accent-h: #2f5ec7; --on-accent: #ffffff;
+      --danger: #dc3e42; --ok: #218358; --warn: #c27c00; --text: #1e293b; --muted: #64748b; --tint: 15,23,42;
+    }
+    @media (prefers-color-scheme: light) {
+      :root:not([data-theme="dark"]) {
+        --bg: #f1f4f9; --panel: #ffffff; --panel-2: #f8fafc; --border: #e5e9f0;
+        --accent: #3b6fe0; --accent-h: #2f5ec7; --on-accent: #ffffff;
+        --danger: #dc3e42; --ok: #218358; --warn: #c27c00; --text: #1e293b; --muted: #64748b; --tint: 15,23,42;
+      }
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+      font-size: 17px; -webkit-font-smoothing: antialiased; touch-action: manipulation; overscroll-behavior: none;
+      display: flex; flex-direction: column; -webkit-user-select: none; user-select: none; }
+    button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; touch-action: manipulation; }
+    input, textarea { font: inherit; color: var(--text); -webkit-user-select: text; user-select: text; }
+    .hidden { display: none !important; }
+
+    /* Header + target picker */
+    header { padding: calc(env(safe-area-inset-top) + 12px) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left));
+      background: var(--panel); border-bottom: 1px solid var(--border); }
+    .head-row { display: flex; align-items: center; gap: 12px; }
+    .head-row h1 { font-size: 1.25rem; font-weight: 700; flex: 1; }
+    .conn { display: flex; align-items: center; gap: 7px; font-size: .85rem; color: var(--muted); }
+    .conn i { width: 10px; height: 10px; border-radius: 50%; background: var(--danger); }
+    .conn.live i { background: var(--ok); }
+    .icon-btn { min-width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 1.1rem; background: rgba(var(--tint), .06); }
+    .targets { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0 14px; scrollbar-width: none; }
+    .targets::-webkit-scrollbar { display: none; }
+    .chip { flex: none; min-height: 48px; padding: 0 18px; border-radius: 24px; border: 1.5px solid var(--border); background: var(--panel-2);
+      font-weight: 600; font-size: .95rem; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .chip.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    .chip .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
+    .chip .dot.on { background: var(--ok); }
+    .chip-label { font-size: .75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; align-self: center; padding: 0 2px 0 6px; flex: none; }
+
+    main { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px max(16px, env(safe-area-inset-right)) 24px max(16px, env(safe-area-inset-left)); }
+    .tab { display: none; max-width: 1100px; margin: 0 auto; }
+    .tab.active { display: block; }
+    h2 { font-size: .8rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin: 22px 2px 10px; }
+    h2:first-child { margin-top: 4px; }
+
+    /* What the target shows now */
+    .status { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 18px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    .status .what { flex: 1; min-width: 220px; }
+    .status .where { font-size: .85rem; color: var(--muted); font-weight: 600; }
+    .status .title { font-size: 1.35rem; font-weight: 700; margin-top: 4px; word-break: break-word; }
+    .status .src { margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 600; padding: 5px 12px; border-radius: 20px; background: rgba(var(--tint), .07); }
+    .status .src.override { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
+    .status .extra { margin-top: 8px; font-size: .9rem; color: var(--muted); }
+
+    /* Big action tiles */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+    .tile { min-height: 116px; border-radius: 18px; background: var(--panel); border: 1px solid var(--border); padding: 16px; text-align: left;
+      display: flex; flex-direction: column; justify-content: space-between; gap: 10px; transition: transform .08s; }
+    .tile:active { transform: scale(.97); background: var(--panel-2); }
+    .tile .ic { font-size: 2rem; line-height: 1; }
+    .tile b { font-size: 1.05rem; font-weight: 700; }
+    .tile small { display: block; font-size: .8rem; color: var(--muted); margin-top: 3px; font-weight: 500; }
+    .tile.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+    .tile.primary small { color: rgba(255,255,255,.8); }
+    .tile.on { border-color: var(--ok); box-shadow: inset 0 0 0 1.5px var(--ok); }
+    .tile.off { border-color: var(--danger); box-shadow: inset 0 0 0 1.5px var(--danger); }
+    .big-btn { min-height: 56px; padding: 0 24px; border-radius: 16px; font-weight: 700; font-size: 1.05rem; background: var(--accent); color: var(--on-accent); }
+    .big-btn.ghost { background: rgba(var(--tint), .08); color: var(--text); }
+    .big-btn.danger { background: var(--danger); color: #fff; }
+    .big-btn:active { filter: brightness(.9); }
+
+    /* Media */
+    .folders { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+    .media { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-top: 10px; }
+    .thumb { border-radius: 16px; overflow: hidden; background: var(--panel); border: 1px solid var(--border); text-align: left; }
+    .thumb:active { transform: scale(.97); }
+    .thumb .pic { aspect-ratio: 16/9; background: #2a2e3b; position: relative; }
+    .thumb .pic img, .thumb .pic video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .thumb .pic .badge { position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,.65); color: #fff; font-size: .7rem; font-weight: 700; padding: 3px 8px; border-radius: 8px; }
+    .thumb .pic.live::after { content: "ON SCREEN"; position: absolute; right: 8px; top: 8px; background: var(--ok); color: #fff; font-size: .7rem; font-weight: 700; padding: 3px 8px; border-radius: 8px; }
+    .thumb .name { padding: 10px 12px 12px; font-size: .85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .empty { color: var(--muted); font-size: .95rem; padding: 18px 4px; }
+
+    /* Message */
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 16px; }
+    textarea { width: 100%; min-height: 96px; resize: vertical; border-radius: 14px; border: 1.5px solid var(--border); background: var(--panel-2); padding: 14px; font-size: 1.15rem; }
+    textarea:focus { outline: none; border-color: var(--accent); }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .seg { display: flex; background: rgba(var(--tint), .06); border-radius: 14px; padding: 4px; gap: 4px; flex-wrap: wrap; }
+    .seg button { min-height: 46px; padding: 0 16px; border-radius: 11px; font-weight: 600; font-size: .92rem; }
+    .seg button.active { background: var(--panel); box-shadow: 0 1px 4px rgba(0,0,0,.15); color: var(--accent); }
+    .field-label { font-size: .8rem; font-weight: 700; color: var(--muted); margin: 16px 2px 8px; }
+    .preset { min-height: 46px; padding: 0 16px; border-radius: 23px; background: rgba(var(--tint), .07); font-weight: 600; font-size: .92rem; }
+    .alert-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .alert-row:last-child { border-bottom: 0; }
+    .alert-row .sw { width: 14px; height: 14px; border-radius: 50%; flex: none; }
+    .alert-row .t { flex: 1; min-width: 0; font-weight: 600; word-break: break-word; }
+    .alert-row .t small { display: block; color: var(--muted); font-weight: 500; font-size: .8rem; margin-top: 2px; }
+    .alert-row button { min-height: 46px; padding: 0 18px; border-radius: 12px; background: rgba(var(--tint), .08); font-weight: 700; }
+
+    /* Screens */
+    .screens { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+    .scr { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px; text-align: left; }
+    .scr.sel { border-color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+    .scr.offline { opacity: .55; }
+    .scr .n { font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; }
+    .scr .n .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+    .scr .n .dot.on { background: var(--ok); }
+    .scr .g { font-size: .8rem; color: var(--muted); font-weight: 600; margin-left: auto; }
+    .scr .s { font-size: .9rem; color: var(--muted); }
+    .scr .s b { color: var(--text); }
+    .scr .acts { display: flex; gap: 8px; }
+    .scr .acts button { flex: 1; min-height: 46px; border-radius: 12px; font-weight: 700; font-size: .9rem; background: rgba(var(--tint), .08); }
+    .scr .acts button.sel { background: var(--accent); color: var(--on-accent); }
+
+    /* Schedule timeline */
+    .sch-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .sch-head .folders { flex: 1; min-width: 0; padding: 0; }
+    .sch-note { margin-bottom: 12px; padding: 14px 16px; border-radius: 16px; font-weight: 600; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      background: color-mix(in srgb, var(--warn) 15%, transparent); color: var(--warn); }
+    .sch-note span { flex: 1; min-width: 200px; }
+    .sch-note button { min-height: 46px; padding: 0 18px; border-radius: 12px; background: var(--warn); color: #111; font-weight: 700; }
+    .sch { position: relative; }
+    .hour { font-size: .8rem; font-weight: 700; color: var(--muted); margin: 16px 4px 8px; }
+    .hour:first-child { margin-top: 0; }
+    .it { display: flex; gap: 14px; align-items: stretch; width: 100%; text-align: left; background: var(--panel); border: 1px solid var(--border);
+      border-radius: 16px; padding: 12px 14px; margin-bottom: 8px; position: relative; overflow: hidden; }
+    .it:active { background: var(--panel-2); }
+    .it .tm { width: 66px; flex: none; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.05rem; }
+    .it .tm small { display: block; font-weight: 500; font-size: .8rem; color: var(--muted); }
+    .it .th { width: 72px; height: 40px; flex: none; align-self: center; border-radius: 8px; object-fit: cover; background: #2a2e3b; }
+    .it .bd { flex: 1; min-width: 0; }
+    .it .bd b { display: block; font-size: 1rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .it .bd small { display: block; font-size: .82rem; color: var(--muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .it .tag { align-self: center; flex: none; font-size: .75rem; font-weight: 700; padding: 5px 10px; border-radius: 10px; background: rgba(var(--tint), .07); color: var(--muted); }
+    .it.cd { border-left: 5px solid var(--warn); }
+    .it.ct { border-left: 5px solid var(--accent); }
+    .it.past { opacity: .45; }
+    .it.live { border-color: var(--ok); box-shadow: inset 0 0 0 1.5px var(--ok); }
+    .it.live .tag { background: var(--ok); color: #fff; }
+    .it .prog { position: absolute; left: 0; bottom: 0; height: 4px; background: var(--ok); }
+    .nowline { display: flex; align-items: center; gap: 10px; margin: 4px 0 12px; color: var(--danger); font-weight: 700; font-size: .85rem; }
+    .nowline::after { content: ""; flex: 1; height: 2px; background: var(--danger); border-radius: 1px; }
+
+    /* Bottom tab bar */
+    nav { display: flex; background: var(--panel); border-top: 1px solid var(--border); padding: 6px max(8px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
+    nav button { flex: 1; min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 14px; font-size: .78rem; font-weight: 600; color: var(--muted); position: relative; }
+    nav button .ni { font-size: 1.5rem; line-height: 1; }
+    nav button.active { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+    nav button .cnt { position: absolute; top: 6px; left: calc(50% + 10px); background: var(--danger); color: #fff; font-size: .7rem; font-weight: 700; min-width: 20px; height: 20px; border-radius: 10px; display: grid; place-items: center; padding: 0 5px; }
+
+    /* Confirm sheet */
+    .sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 20; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .18s; }
+    .sheet-bg.show { opacity: 1; pointer-events: auto; }
+    .sheet { width: 100%; max-width: 620px; background: var(--panel); border-radius: 24px 24px 0 0; padding: 22px 20px calc(20px + env(safe-area-inset-bottom)); transform: translateY(40px); transition: transform .2s; }
+    .sheet-bg.show .sheet { transform: none; }
+    @media (min-width: 700px) { .sheet-bg { align-items: center; } .sheet { border-radius: 24px; } }
+    .sheet .pv { aspect-ratio: 16/9; border-radius: 14px; background: #000; overflow: hidden; margin-bottom: 16px; display: grid; place-items: center; color: #fff; font-size: 3rem; }
+    .sheet .pv img { width: 100%; height: 100%; object-fit: cover; }
+    .sheet .pv:empty { display: none; }
+    .sheet h3 { font-size: 1.3rem; font-weight: 700; }
+    .sheet p { color: var(--muted); margin-top: 6px; font-size: .95rem; }
+    .sheet p b { color: var(--text); }
+    .sheet .btns { display: flex; gap: 10px; margin-top: 20px; }
+    .sheet .btns button { flex: 1; }
+
+    #toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); background: #18181b; color: #fff; padding: 14px 22px;
+      border-radius: 16px; font-weight: 600; font-size: .95rem; opacity: 0; transition: .2s; z-index: 30; max-width: calc(100% - 32px); text-align: center; box-shadow: 0 8px 30px rgba(0,0,0,.3); }
+    #toast.show { opacity: 1; transform: translate(-50%, 0); }
+    #toast.error { background: var(--danger); }
+
+    /* Login */
+    #login { position: fixed; inset: 0; z-index: 40; background: var(--bg); display: none; align-items: center; justify-content: center; padding: 24px; }
+    #login.show { display: flex; }
+    #login form { width: 100%; max-width: 400px; background: var(--panel); border: 1px solid var(--border); border-radius: 22px; padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+    #login h1 { font-size: 1.5rem; }
+    #login p { color: var(--muted); font-size: .95rem; }
+    #login label { display: flex; flex-direction: column; gap: 6px; font-size: .85rem; font-weight: 600; color: var(--muted); }
+    #login input { min-height: 52px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--panel-2); padding: 0 14px; font-size: 1.05rem; }
+    #login-error { color: var(--danger); font-size: .9rem; min-height: 1em; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="head-row">
+      <h1>📺 Remote</h1>
+      <div class="conn" id="conn"><i></i><span id="conn-label">Connecting…</span></div>
+      <button class="icon-btn" id="theme-btn" title="Light / dark">◐</button>
+      <a class="icon-btn" href="controller.html" title="Open the full controller" style="padding:0 14px; font-size:.85rem; font-weight:600; color:var(--text); text-decoration:none;">Full controller</a>
+      <button class="icon-btn" id="logout-btn" title="Sign out" style="padding:0 14px; font-size:.85rem; font-weight:600;">Sign out</button>
+    </div>
+    <div class="targets" id="targets"></div>
+  </header>
+
+  <main>
+    <!-- Now: status + quick actions -->
+    <section class="tab active" id="tab-now">
+      <div class="status">
+        <div class="what">
+          <div class="where" id="st-where">All screens</div>
+          <div class="title" id="st-title">—</div>
+          <div class="src" id="st-src"></div>
+          <div class="extra" id="st-extra"></div>
+        </div>
+        <button class="big-btn" id="st-back">↩ Back to schedule</button>
+      </div>
+      <h2>Quick actions</h2>
+      <div class="grid">
+        <button class="tile primary" data-quick="sessions"><span class="ic">🗓</span><span><b>Upcoming sessions</b><small>The next time slot</small></span></button>
+        <button class="tile" data-quick="back"><span class="ic">↩</span><span><b>Back to schedule</b><small>Stop what was sent by hand</small></span></button>
+        <button class="tile" data-quick="fallback"><span class="ic">🖼</span><span><b>Fallback image</b><small>The default picture</small></span></button>
+        <button class="tile" data-quick="black"><span class="ic">⬛</span><span><b>Black screen</b><small>Nothing on screen</small></span></button>
+        <button class="tile" data-quick="message"><span class="ic">💬</span><span><b>Message</b><small>A bar on top of the content</small></span></button>
+        <button class="tile" id="tt-toggle" data-quick="schedule"><span class="ic">⏯</span><span><b id="tt-toggle-label">Schedule</b><small id="tt-toggle-sub">—</small></span></button>
+      </div>
+      <h2>Next in the schedule</h2>
+      <div class="card" id="next-list"></div>
+    </section>
+
+    <!-- The day's schedule for the selected target -->
+    <section class="tab" id="tab-schedule">
+      <div class="sch-note hidden" id="sch-note"><span id="sch-note-text"></span><button id="sch-note-back">↩ Back to schedule</button></div>
+      <div class="sch-head">
+        <div class="folders" id="sch-days"></div>
+        <button class="chip" id="sch-now-btn">⏬ Now</button>
+      </div>
+      <div class="sch" id="sch"></div>
+    </section>
+
+    <!-- Images & videos from the library -->
+    <section class="tab" id="tab-media">
+      <div class="folders" id="folders"></div>
+      <div class="media" id="media"></div>
+    </section>
+
+    <!-- Upcoming sessions -->
+    <section class="tab" id="tab-sessions">
+      <h2>Always the next time slot</h2>
+      <div class="grid">
+        <button class="tile primary" data-sessions="all"><span class="ic">🗓</span><span><b>Overview + slides</b><small>All sessions, then one per slide</small></span></button>
+        <button class="tile" data-sessions="overview"><span class="ic">📋</span><span><b>Overview only</b><small>One list of the slot</small></span></button>
+        <button class="tile" data-sessions="slides"><span class="ic">🎞</span><span><b>Slides only</b><small>One session per slide</small></span></button>
+      </div>
+      <h2>One room</h2>
+      <div class="grid" id="rooms"><div class="empty">Loading the rooms…</div></div>
+    </section>
+
+    <!-- Slideshows & templates -->
+    <section class="tab" id="tab-shows">
+      <h2>Slideshows</h2>
+      <div class="grid" id="presets"></div>
+      <h2>Templates</h2>
+      <div class="grid" id="templates"></div>
+    </section>
+
+    <!-- Message bars -->
+    <section class="tab" id="tab-message">
+      <div class="card">
+        <textarea id="al-text" placeholder="Type a message for the screens…"></textarea>
+        <div class="row" id="al-presets"></div>
+        <div class="field-label">Look</div>
+        <div class="seg" id="al-style">
+          <button data-v="info" class="active">ℹ Info</button><button data-v="warning">! Warning</button><button data-v="urgent">⚠ Urgent</button>
+        </div>
+        <div class="field-label">Size</div>
+        <div class="seg" id="al-display">
+          <button data-v="banner" class="active">Bar at the top</button><button data-v="fullscreen">Full screen</button>
+        </div>
+        <div class="field-label">How long</div>
+        <div class="seg" id="al-duration">
+          <button data-v="5">5 min</button><button data-v="15" class="active">15 min</button><button data-v="30">30 min</button><button data-v="60">1 hour</button><button data-v="0">Until removed</button>
+        </div>
+        <div class="row" style="margin-top:18px;"><button class="big-btn" id="al-send" style="flex:1;">Send to <span id="al-where">all screens</span></button></div>
+      </div>
+      <h2>On the screens now</h2>
+      <div class="card" id="al-list"></div>
+    </section>
+
+    <!-- Screens -->
+    <section class="tab" id="tab-screens">
+      <div class="screens" id="screens"></div>
+    </section>
+  </main>
+
+  <nav id="nav">
+    <button data-tab="now" class="active"><span class="ni">⚡</span>Now</button>
+    <button data-tab="schedule"><span class="ni">🕒</span>Schedule</button>
+    <button data-tab="media"><span class="ni">🖼</span>Images</button>
+    <button data-tab="sessions"><span class="ni">🗓</span>Sessions</button>
+    <button data-tab="shows"><span class="ni">🎞</span>Slideshows</button>
+    <button data-tab="message"><span class="ni">💬</span>Message<span class="cnt hidden" id="al-count"></span></button>
+    <button data-tab="screens"><span class="ni">📺</span>Screens</button>
+  </nav>
+
+  <div class="sheet-bg" id="sheet">
+    <div class="sheet">
+      <div class="pv" id="sh-pv"></div>
+      <h3 id="sh-title"></h3>
+      <p id="sh-sub"></p>
+      <div class="btns">
+        <button class="big-btn ghost" id="sh-cancel">Cancel</button>
+        <button class="big-btn" id="sh-ok">Show now</button>
+      </div>
+    </div>
+  </div>
+  <div id="toast"></div>
+
+  <!-- Login: the database rules only accept changes from accounts listed under signage_admins -->
+  <div id="login" class="show">
+    <form id="login-form">
+      <h1>📺 Remote</h1>
+      <p>Sign in to control the screens.</p>
+      <label>E-mail<input id="login-email" type="email" autocomplete="username" autocapitalize="off" required></label>
+      <label>Password<input id="login-password" type="password" autocomplete="current-password" required></label>
+      <div id="login-error"></div>
+      <button type="submit" id="login-btn" class="big-btn">Sign in</button>
+    </form>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCFD9jf5dzh_-mlFiHXvgSl5QZle_QEKt8",
+      authDomain: "techorama-stream.firebaseapp.com",
+      databaseURL: "https://techorama-stream-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "techorama-stream",
+      storageBucket: "techorama-stream.firebasestorage.app",
+      messagingSenderId: "482767979960",
+      appId: "1:482767979960:web:ed592092560f57a0853b4d"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const hm = ts => new Date(ts).toTimeString().slice(0, 5);
+
+    // ─── State (same data as controller.html) ───
+    let target = 'all';                 // 'all', 'group:<name>' or 'screen:<id>'
+    try { target = localStorage.getItem('remote_target') || 'all'; } catch (e) {}
+    let screens = {}, groupsCurrent = {}, globalCurrent = null, timetable = null;
+    let library = {}, presets = {}, templates = {}, alerts = {}, fallbackUrl = null, rooms = null;
+
+    let toastTimer;
+    function toast(msg, isError) {
+      const t = $('toast');
+      t.textContent = msg;
+      t.classList.toggle('error', !!isError);
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+    }
+    const fail = err => toast('Error: ' + err.message, true);
+
+    // ─── Login ───
+    auth.onAuthStateChanged(async user => {
+      if (!user) { $('login').classList.add('show'); return; }
+      const allowed = await db.ref('signage_admins/' + user.uid).once('value').then(s => s.val() === true).catch(() => false);
+      if (!allowed) {
+        $('login-error').textContent = `${user.email} has no access yet.`;
+        auth.signOut();
+        return;
+      }
+      $('login-error').textContent = '';
+      $('login').classList.remove('show');
+    });
+    $('login-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      $('login-btn').disabled = true;
+      $('login-error').textContent = '';
+      try {
+        await auth.signInWithEmailAndPassword($('login-email').value.trim(), $('login-password').value);
+        $('login-password').value = '';
+      } catch (err) {
+        $('login-error').textContent = /wrong-password|user-not-found|invalid-email|invalid-login/.test(err.code || '') ? 'Wrong e-mail or password' : err.message;
+      }
+      $('login-btn').disabled = false;
+    });
+    $('logout-btn').addEventListener('click', () => { if (confirm('Sign out of the remote?')) auth.signOut(); });
+
+    // Theme: dark ↔ light, remembered (shared with the controller)
+    $('theme-btn').addEventListener('click', () => {
+      const dark = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() === '#0d0d0f';
+      document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+      try { localStorage.setItem('signage_theme', document.documentElement.dataset.theme); } catch (e) {}
+    });
+
+    db.ref('.info/connected').on('value', snap => {
+      $('conn').classList.toggle('live', !!snap.val());
+      $('conn-label').textContent = snap.val() ? 'Live' : 'Offline';
+    });
+
+    // ─── Tabs ───
+    function showTab(name) {
+      document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id === 'tab-' + name));
+      document.querySelector('main').scrollTop = 0;
+      if (name === 'schedule') { renderSchedule(); scrollToNow(); }
+    }
+    $('nav').addEventListener('click', e => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); });
+
+    // ─── Targets ───
+    const groupNames = () => [...new Set(Object.values(screens).map(s => s.group).filter(Boolean))].sort();
+    const online = id => !!(screens[id] && screens[id].presence && screens[id].presence.online);
+    const targetLabel = t => t === 'all' ? 'all screens' : t.startsWith('group:') ? 'group ' + t.slice(6) : t.slice(7);
+
+    function renderTargets() {
+      const ids = Object.keys(screens).filter(id => !id.startsWith('_')).sort();
+      const groups = groupNames();
+      if (target !== 'all' && !(target.startsWith('group:') && groups.includes(target.slice(6))) && !(target.startsWith('screen:') && ids.includes(target.slice(7)))) target = 'all';
+      const chip = (t, html) => `<button class="chip${t === target ? ' active' : ''}" data-target="${esc(t)}">${html}</button>`;
+      $('targets').innerHTML = chip('all', '📺 All screens')
+        + (groups.length ? '<span class="chip-label">Groups</span>' + groups.map(g => chip('group:' + g, '📁 ' + esc(g))).join('') : '')
+        + (ids.length ? '<span class="chip-label">Screens</span>' + ids.map(id => chip('screen:' + id, `<span class="dot${online(id) ? ' on' : ''}"></span>${esc(id)}`)).join('') : '');
+      $('al-where').textContent = targetLabel(target);
+    }
+    $('targets').addEventListener('click', e => {
+      const b = e.target.closest('[data-target]');
+      if (b) selectTarget(b.dataset.target);
+    });
+    function selectTarget(t) {
+      target = t;
+      try { localStorage.setItem('remote_target', t); } catch (e) {}
+      renderAll();
+      const chip = document.querySelector(`#targets [data-target="${CSS.escape(t)}"]`);
+      if (chip) chip.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    }
+
+    // ─── Schedule rules (same as controller.html / receiver.html) ───
+    function newest(...items) {
+      return items.filter(Boolean).reduce((n, d) => !n || (d.updatedAt || 0) > (n.updatedAt || 0) ? d : n, null);
+    }
+    function timetableActive(screenId, group) {
+      if (!timetable || !timetable.enabled) return {};
+      const now = Date.now();
+      const rank = i => Math.max(-1, ...String(i.showOn || '').split(',').map(t =>
+        t === 'all' ? 0 : group && t === 'group:' + group ? 1 : t === 'screen:' + screenId ? 2 : -1));
+      const items = Object.values(timetable.items || {}).filter(i => rank(i) >= 0);
+      const active = (from, until) => items.filter(i => i[from] && i[from] <= now && now < (i[until] || i.start + 60000));
+      const clocks = active('clockFrom', 'clockUntil');
+      const starts = items.filter(i => i.kind === 'content' && i.clockFrom).map(i => i.clockFrom);
+      return {
+        lastStart: Math.max(0, ...starts.filter(t => t <= now)),
+        nextStart: Math.min(Infinity, ...starts.filter(t => t > now)),
+        content: clocks.filter(i => i.kind === 'content').sort((a, b) => rank(b) - rank(a) || b.start - a.start)[0],
+        overlay: clocks.filter(i => i.kind !== 'content').sort((a, b) => a.start - b.start)[0],
+        bar: active('barFrom', 'barUntil').sort((a, b) => a.start - b.start)[0]
+      };
+    }
+    function targetSchedule(t) {
+      if (t.startsWith('screen:')) { const id = t.slice(7); return timetableActive(id, (screens[id] || {}).group); }
+      return timetableActive(null, t.startsWith('group:') ? t.slice(6) : null);
+    }
+    function manualFor(t) {
+      if (t.startsWith('screen:')) {
+        const s = screens[t.slice(7)] || {};
+        return newest(globalCurrent, s.group && (groupsCurrent[s.group] || {}).current, s.current);
+      }
+      if (t.startsWith('group:')) return newest(globalCurrent, (groupsCurrent[t.slice(6)] || {}).current);
+      return globalCurrent;
+    }
+    const pushLive = (m, tt) => !!m && !m.followSchedule && (m.updatedAt || 0) >= (tt.lastStart || 0);
+
+    // What a target shows: { data, override, tt }
+    function nowOn(t) {
+      const tt = targetSchedule(t), m = manualFor(t);
+      if (pushLive(m, tt)) return { data: m, override: true, tt };
+      return { data: tt.content && tt.content.show ? tt.content.show : null, override: false, tt, item: tt.content };
+    }
+
+    // ─── Describing content ───
+    const libByUrl = () => { const o = {}; Object.values(library).forEach(i => o[i.url] = i); return o; };
+    function describe(d) {
+      if (!d) return fallbackUrl ? 'Fallback image' : 'Nothing';
+      if (d.label) return d.label;
+      if (d.mode === 'blank' || (!d.url && !['html', 'slideshow'].includes(d.mode))) return 'Fallback image';
+      if (d.mode === 'slideshow') {
+        const imgs = Array.isArray(d.images) ? d.images : Object.values(d.images || {});
+        const p = Object.values(presets).find(p => JSON.stringify(p.images) === JSON.stringify(imgs));
+        return (p ? 'Slideshow ' + p.name : 'Slideshow') + ` · ${imgs.length} images`;
+      }
+      if (d.mode === 'html') {
+        const img = (d.html || '').match(/<img src="([^"]+)"/);
+        if (img) { const it = libByUrl()[img[1]]; return 'Image ' + (it ? it.name : decodeURIComponent(img[1].split('/').pop())); }
+        const col = (d.html || '').match(/background:(#[0-9a-f]{3,8})\}<\/style><\/head><body><\/body>/i);
+        if (col) return /^#0{3,6}$/i.test(col[1]) ? 'Black screen' : 'Colour ' + col[1];
+        return 'HTML slide';
+      }
+      if (d.mode === 'video') { const it = libByUrl()[d.url]; return 'Video ' + (it ? it.name : d.url.split('/').pop()); }
+      if (/sessions\.html/.test(d.url || '')) {
+        const q = new URL(d.url, location.href).searchParams;
+        return q.get('room') ? 'Sessions in ' + q.get('room') : q.get('slot') ? 'Sessions ' + q.get('slot').replace('T', ' ') : 'Upcoming sessions' + (q.get('mode') ? ' (' + q.get('mode') + ')' : '');
+      }
+      try { return 'Website ' + new URL(d.url).hostname; } catch (e) { return d.url; }
+    }
+
+    // ─── Pushing ───
+    function currentRef(t) {
+      if (t.startsWith('group:')) return db.ref('signage/groups/' + t.slice(6) + '/current');
+      if (t.startsWith('screen:')) return db.ref('signage/screens/' + t.slice(7) + '/current');
+      return db.ref('signage/current');
+    }
+    function untilNote(t) {
+      const next = targetSchedule(t).nextStart;
+      return next < Infinity ? ` The schedule takes over again at ${hm(next)}.` : '';
+    }
+    function send(data, label) {
+      const t = target;
+      return currentRef(t).set(Object.assign({}, data, { label, updatedAt: Date.now() }))
+        .then(() => toast(`${label} → ${targetLabel(t)}.` + untilNote(t)))
+        .catch(fail);
+    }
+    function backToSchedule(t = target) {
+      return currentRef(t).set({ followSchedule: true, updatedAt: Date.now() })
+        .then(() => toast(targetLabel(t).replace(/^./, c => c.toUpperCase()) + ' follow the schedule again'))
+        .catch(fail);
+    }
+    const imagePageHtml = url => `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{width:100vw;height:100vh;overflow:hidden;background:#000}img{width:100%;height:100%;object-fit:cover}</style></head><body><img src="${url}"></body></html>`;
+    const colorHtml = c => `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>html,body{margin:0;height:100%;background:${c}}</style></head><body></body></html>`;
+    const sessionsUrl = v => {
+      const u = new URLSearchParams();
+      if (v.startsWith('room:')) u.set('room', v.slice(5));
+      else if (v !== 'all') u.set('mode', v);
+      return 'sessions.html' + (u.toString() ? '?' + u : '');
+    };
+
+    // Confirm sheet: one tap to pick, one tap to send (so a bump in the crowd doesn't change the screens)
+    let sheetAction = null;
+    function ask({ title, preview, okText = 'Show now', danger = false, sub }, action) {
+      $('sh-title').textContent = title;
+      $('sh-sub').innerHTML = sub || `On <b>${esc(targetLabel(target))}</b>` + (target.startsWith('screen:') && !online(target.slice(7)) ? ' (offline now)' : '');
+      $('sh-pv').innerHTML = preview || '';
+      $('sh-ok').textContent = okText;
+      $('sh-ok').classList.toggle('danger', danger);
+      sheetAction = action;
+      $('sheet').classList.add('show');
+    }
+    const closeSheet = () => { $('sheet').classList.remove('show'); sheetAction = null; };
+    $('sh-cancel').addEventListener('click', closeSheet);
+    $('sheet').addEventListener('click', e => { if (e.target === $('sheet')) closeSheet(); });
+    $('sh-ok').addEventListener('click', () => { const a = sheetAction; closeSheet(); if (a) a(); });
+
+    // ─── Now tab ───
+    function renderStatus() {
+      const { data, override, tt, item } = nowOn(target);
+      $('st-where').textContent = 'On ' + targetLabel(target) + (target.startsWith('screen:') && !online(target.slice(7)) ? ' · offline' : '');
+      $('st-title').textContent = override ? describe(data) : item ? (item.title || describe(data)) : describe(null);
+      const src = $('st-src');
+      src.className = 'src' + (override ? ' override' : '');
+      src.textContent = override ? '✋ Sent by hand' + (tt.nextStart < Infinity ? ' · until ' + hm(tt.nextStart) : '')
+        : timetable && timetable.enabled ? '🗓 Following the schedule' : '⏸ Schedule is off';
+      const extra = [];
+      if (tt.overlay) extra.push('⏱ Countdown: ' + (tt.overlay.title || 'session') + ' at ' + hm(tt.overlay.start));
+      if (tt.bar) extra.push('▬ Bar: ' + (tt.bar.title || '') );
+      $('st-extra').textContent = extra.join(' · ');
+      $('st-back').classList.toggle('hidden', !override);
+
+      const on = !!(timetable && timetable.enabled);
+      $('tt-toggle').classList.toggle('on', on);
+      $('tt-toggle').classList.toggle('off', !!timetable && !on);
+      $('tt-toggle-label').textContent = !timetable ? 'No schedule' : on ? 'Schedule is on' : 'Schedule is off';
+      $('tt-toggle-sub').textContent = !timetable ? 'Upload one in the controller' : on ? 'Tap to pause it' : 'Tap to switch it on';
+
+      // Coming up for this target
+      const items = timetable && timetable.enabled ? Object.values(timetable.items || {}) : [];
+      const forMe = forTarget(target);
+      const next = items.filter(i => forMe(i) && (i.start || 0) > Date.now()).sort((a, b) => a.start - b.start).slice(0, 5);
+      $('next-list').innerHTML = next.length ? next.map(i => `<div class="alert-row"><span class="sw" style="background:${i.kind === 'content' ? 'var(--accent)' : 'var(--warn)'}"></span>
+        <div class="t">${esc(i.title || (i.kind === 'content' ? describe(i.show) : 'Countdown'))}<small>${hm(i.start)}${i.kind === 'content' && i.clockUntil ? '–' + hm(i.clockUntil) : ''} · ${i.kind === 'content' ? 'content' : 'countdown'}</small></div></div>`).join('')
+        : `<div class="empty">${timetable && timetable.enabled ? 'Nothing else planned today.' : 'The schedule is off.'}</div>`;
+    }
+    $('st-back').addEventListener('click', () => backToSchedule());
+
+    // Does a schedule item reach this target? (a group also sees items for "all")
+    function forTarget(t) {
+      const id = t.startsWith('screen:') ? t.slice(7) : null, g = id ? (screens[id] || {}).group : t.startsWith('group:') ? t.slice(6) : null;
+      return i => String(i.showOn || '').split(',').some(x => x === 'all' || (g && x === 'group:' + g) || (id && x === 'screen:' + id));
+    }
+
+    // ─── Schedule tab: the day as a timeline ───
+    const dayKey = ts => { const d = new Date(ts); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+    let schDay = null;
+    function renderSchedule() {
+      const all = Object.entries((timetable && timetable.items) || {}).filter(([, i]) => i && i.start && forTarget(target)(i));
+      const days = [...new Set(all.map(([, i]) => dayKey(i.start)))].sort();
+      const today = dayKey(Date.now());
+      if (!days.includes(schDay)) schDay = days.includes(today) ? today : days.find(d => d > today) || days[days.length - 1] || null;
+      $('sch-days').innerHTML = days.map(d => `<button class="chip${d === schDay ? ' active' : ''}" data-day="${d}">${d === today ? 'Today' :
+        new Date(d + 'T12:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })}</button>`).join('');
+      $('sch-now-btn').classList.toggle('hidden', schDay !== today);
+
+      const { data, override, tt } = nowOn(target);
+      $('sch-note').classList.toggle('hidden', !override);
+      if (override) $('sch-note-text').textContent = `✋ ${describe(data)} was sent by hand and is on screen instead of the schedule` + (tt.nextStart < Infinity ? ` until ${hm(tt.nextStart)}.` : '.');
+
+      if (!timetable) { $('sch').innerHTML = '<div class="empty">No schedule yet. Upload one in the full controller.</div>'; return; }
+      const now = Date.now(), off = !timetable.enabled;
+      const list = all.filter(([, i]) => dayKey(i.start) === schDay).sort((a, b) => a[1].start - b[1].start || (a[1].kind === 'content') - (b[1].kind === 'content'));
+      let html = off ? '<div class="sch-note" style="margin-bottom:12px;"><span>⏸ The schedule is paused: nothing below is shown until you switch it on (Now → Schedule).</span></div>' : '';
+      let hour = null, nowDrawn = schDay !== today;
+      list.forEach(([key, i]) => {
+        const content = i.kind === 'content';
+        const from = content ? i.clockFrom || i.start : Math.min(i.clockFrom || i.start, i.barFrom || i.start);
+        const end = content ? i.clockUntil || i.start + 60000 : Math.max(i.start + 60000, i.barUntil || 0, i.clockUntil || 0);
+        const h = new Date(i.start).getHours();
+        if (!nowDrawn && from > now) { html += `<div class="nowline" id="sch-now">Now · ${hm(now)}</div>`; nowDrawn = true; }
+        if (h !== hour) { hour = h; html += `<div class="hour">${String(h).padStart(2, '0')}:00</div>`; }
+        const live = !off && from <= now && now < end, past = end <= now;
+        const pct = live ? Math.round((now - from) / (end - from) * 100) : 0;
+        const sub = content ? describe(i.show) + (i.effectiveTransition && i.effectiveTransition.type ? ' · ' + i.effectiveTransition.type : '')
+          : [i.subtitle, i.clockFrom ? 'countdown from ' + hm(i.clockFrom) : '', i.barFrom ? 'bar from ' + hm(i.barFrom) : '', i.text ? '“' + i.text + '”' : ''].filter(Boolean).join(' · ');
+        html += `<button class="it ${content ? 'ct' : 'cd'}${live ? ' live' : past ? ' past' : ''}" data-item="${esc(key)}"${live ? ' id="sch-live"' : ''}>
+          <div class="tm">${hm(i.start)}<small>${content && i.clockUntil ? '→ ' + hm(i.clockUntil) : content ? '' : '⏱'}</small></div>
+          ${thumbOf(i) ? `<img class="th" src="${esc(thumbOf(i))}" loading="lazy" alt="">` : ''}
+          <div class="bd"><b>${esc(i.title || (content ? describe(i.show) : 'Countdown'))}</b><small>${esc(sub)}</small></div>
+          <span class="tag">${live ? 'ON NOW' : content ? 'Content' : 'Countdown'}</span>
+          ${live ? `<div class="prog" style="width:${pct}%"></div>` : ''}</button>`;
+      });
+      if (!nowDrawn) html += `<div class="nowline" id="sch-now">Now · ${hm(now)}</div>`;
+      $('sch').innerHTML = list.length ? html : html + '<div class="empty">Nothing planned for this screen on this day.</div>';
+    }
+    // A picture for a content block: its image, or the first slide of a slideshow
+    function thumbOf(i) {
+      const s = i.kind === 'content' && i.show;
+      if (!s) return null;
+      if (s.mode === 'slideshow') return (Array.isArray(s.images) ? s.images : Object.values(s.images || {}))[0] || null;
+      return ((s.html || '').match(/<img src="([^"]+)"/) || [])[1] || null;
+    }
+    function scrollToNow() {
+      const el = $('sch-live') || $('sch-now');
+      if (el) el.scrollIntoView({ block: 'center' });
+    }
+    $('sch-days').addEventListener('click', e => { const b = e.target.closest('[data-day]'); if (b) { schDay = b.dataset.day; renderSchedule(); document.querySelector('main').scrollTop = 0; } });
+    $('sch-now-btn').addEventListener('click', () => scrollToNow());
+    $('sch-note-back').addEventListener('click', () => backToSchedule());
+    // Tap a content block to show it now, ahead of its time
+    $('sch').addEventListener('click', e => {
+      const b = e.target.closest('[data-item]');
+      const i = b && timetable && (timetable.items || {})[b.dataset.item];
+      if (!i || i.kind !== 'content' || !i.show) return;
+      const img = ((i.show.html || '').match(/<img src="([^"]+)"/) || [])[1];
+      ask({ title: i.title || describe(i.show), preview: img ? `<img src="${esc(img)}">` : '🕒', okText: 'Show it now',
+            sub: `Planned for ${hm(i.start)}. Show it now on <b>${esc(targetLabel(target))}</b>; the schedule takes over again at the next block.` },
+        () => send(i.show, i.title || describe(i.show)));
+    });
+
+    document.querySelectorAll('[data-quick]').forEach(b => b.addEventListener('click', () => {
+      const q = b.dataset.quick;
+      if (q === 'sessions') ask({ title: 'Upcoming sessions', preview: '🗓' }, () => send({ mode: 'iframe', url: sessionsUrl('all') }, 'Upcoming sessions'));
+      if (q === 'back') ask({ title: 'Back to the schedule', okText: '↩ Back to schedule', sub: `<b>${esc(targetLabel(target))}</b> stop what was sent by hand and follow the schedule again.` }, () => backToSchedule());
+      if (q === 'fallback') ask({ title: 'Fallback image', preview: fallbackUrl ? `<img src="${esc(fallbackUrl)}">` : '🖼' }, () => send({ url: '', mode: 'blank' }, 'Fallback image'));
+      if (q === 'black') ask({ title: 'Black screen', preview: '', danger: true, okText: 'Make it black' }, () => send({ mode: 'html', html: colorHtml('#000000') }, 'Black screen'));
+      if (q === 'message') showTab('message');
+      if (q === 'schedule') {
+        if (!timetable) { toast('There is no schedule yet: upload one in the controller', true); return; }
+        const turnOn = !timetable.enabled;
+        ask({ title: turnOn ? 'Switch the schedule on' : 'Pause the schedule', okText: turnOn ? 'Switch on' : 'Pause', danger: !turnOn,
+              sub: turnOn ? 'All screens follow the planned content and countdowns again.' : 'All screens stop following the plan: no planned content, countdowns or bars until you switch it on again.' },
+          () => db.ref('signage/timetable/enabled').set(turnOn).then(() => toast(turnOn ? 'Schedule is on' : 'Schedule paused')).catch(fail));
+      }
+    }));
+
+    // ─── Images tab ───
+    let folder = '';
+    try { folder = localStorage.getItem('remote_folder') || ''; } catch (e) {}
+    function renderMedia() {
+      const items = Object.values(library).filter(i => i && i.url);
+      const folders = [...new Set(items.map(i => i.folder || ''))].sort((a, b) => (a === '') - (b === '') || a.localeCompare(b));
+      if (folder && folder !== '*' && !folders.includes(folder)) folder = '';
+      const showAll = folder === '' ;
+      $('folders').innerHTML = `<button class="chip${showAll ? ' active' : ''}" data-folder="">All (${items.length})</button>` +
+        folders.map(f => `<button class="chip${folder === f && f ? ' active' : ''}" data-folder="${esc(f)}" ${f ? '' : 'data-root="1"'}>${f ? '📁 ' + esc(f) : '📄 Not in a folder'} (${items.filter(i => (i.folder || '') === f).length})</button>`)
+          .filter((h, i) => folders[i] !== '' || folders.length > 1).join('');
+      const list = items.filter(i => showAll || (folder === '*' ? !i.folder : (i.folder || '') === folder))
+        .sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { numeric: true }));
+      const { data } = nowOn(target);
+      const liveUrl = data && (data.mode === 'video' ? data.url : ((data.html || '').match(/<img src="([^"]+)"/) || [])[1]);
+      $('media').innerHTML = list.length ? list.map(i => `<button class="thumb" data-id="${esc(i.id)}">
+          <div class="pic${i.url === liveUrl ? ' live' : ''}">${i.mediaType === 'video' ? `<video src="${esc(i.url)}#t=1" muted playsinline preload="metadata"></video><span class="badge">▶ VIDEO</span>` : `<img src="${esc(i.url)}" loading="lazy" alt="">`}</div>
+          <div class="name">${esc(i.name)}</div></button>`).join('')
+        : '<div class="empty">No images in the library yet. Upload them in the controller.</div>';
+    }
+    $('folders').addEventListener('click', e => {
+      const b = e.target.closest('[data-folder]');
+      if (!b) return;
+      folder = b.dataset.root ? '*' : b.dataset.folder;
+      try { localStorage.setItem('remote_folder', folder); } catch (err) {}
+      renderMedia();
+    });
+    $('media').addEventListener('click', e => {
+      const b = e.target.closest('[data-id]');
+      const i = b && library[b.dataset.id];
+      if (!i) return;
+      const video = i.mediaType === 'video';
+      ask({ title: i.name, preview: video ? '▶' : `<img src="${esc(i.url)}">` },
+        () => send(video ? { url: i.url, mode: 'video' } : { mode: 'html', html: imagePageHtml(i.url) }, (video ? 'Video ' : 'Image ') + i.name));
+    });
+
+    // ─── Sessions tab ───
+    document.querySelectorAll('[data-sessions]').forEach(b => b.addEventListener('click', () => {
+      const v = b.dataset.sessions, label = 'Upcoming sessions' + (v === 'all' ? '' : ' (' + v + ')');
+      ask({ title: label, preview: '🗓' }, () => send({ mode: 'iframe', url: sessionsUrl(v) }, label));
+    }));
+    function renderRooms() {
+      if (!rooms) return;
+      $('rooms').innerHTML = rooms.length ? rooms.map(r => `<button class="tile" data-room="${esc(r)}"><span class="ic">📍</span><span><b>${esc(r)}</b><small>The session now, else the next one</small></span></button>`).join('')
+        : '<div class="empty">No rooms found.</div>';
+    }
+    $('rooms').addEventListener('click', e => {
+      const b = e.target.closest('[data-room]');
+      if (b) ask({ title: 'Sessions in ' + b.dataset.room, preview: '📍' }, () => send({ mode: 'iframe', url: sessionsUrl('room:' + b.dataset.room) }, 'Sessions in ' + b.dataset.room));
+    });
+    fetch('data/techorama-sessions.json').then(r => r.json()).then(d => {
+      rooms = [...new Set(d.sessions.filter(s => s.kind === 'session' && s.room).map(s => s.room))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+      renderRooms();
+    }).catch(() => { rooms = []; $('rooms').innerHTML = '<div class="empty">Could not load the sessions.</div>'; });
+
+    // ─── Slideshows & templates tab ───
+    function renderShows() {
+      const ps = Object.values(presets).filter(p => p && p.images).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      $('presets').innerHTML = ps.length ? ps.map(p => `<button class="tile" data-preset="${esc(p.id)}"><span class="ic">🎞</span><span><b>${esc(p.name)}</b><small>${p.images.length} images · ${(p.interval || 0) / 1000}s each</small></span></button>`).join('')
+        : '<div class="empty">No slideshows saved yet. Make one in the controller (Slideshow → Save preset).</div>';
+      const ts = Object.entries(templates).filter(([, t]) => t).sort((a, b) => (a[1].name || '').localeCompare(b[1].name || ''));
+      $('templates').innerHTML = ts.length ? ts.map(([id, t]) => `<button class="tile" data-template="${esc(id)}"><span class="ic">${t.type === 'image' ? '🖼' : t.type === 'url' ? '🌐' : '📝'}</span><span><b>${esc(t.name)}</b><small>Template</small></span></button>`).join('')
+        : '<div class="empty">No templates yet.</div>';
+    }
+    $('presets').addEventListener('click', e => {
+      const b = e.target.closest('[data-preset]');
+      const p = b && presets[b.dataset.preset];
+      if (p) ask({ title: 'Slideshow ' + p.name, preview: p.images[0] ? `<img src="${esc(p.images[0])}">` : '🎞' },
+        () => send({ mode: 'slideshow', images: p.images, interval: p.interval, slideTransition: p.slideTransition || null }, 'Slideshow ' + p.name));
+    });
+    $('templates').addEventListener('click', e => {
+      const b = e.target.closest('[data-template]');
+      const t = b && templates[b.dataset.template];
+      if (!t) return;
+      const data = t.type === 'html' ? { mode: 'html', html: t.content } : t.type === 'image' ? { mode: 'html', html: imagePageHtml(t.content) } : { url: t.content, mode: t.mode || 'iframe' };
+      ask({ title: t.name, preview: t.type === 'image' ? `<img src="${esc(t.content)}">` : '📝' }, () => send(data, t.name));
+    });
+
+    // ─── Message tab (signage/alerts, same as the controller's Alerts) ───
+    const AL_PRESETS = ['Enjoy your lunch! 🍽', 'Sessions start in 5 minutes', '☕ Coffee break', 'Please take your seat', 'The keynote starts soon in Hall A', 'Thank you for coming! 👋'];
+    $('al-presets').innerHTML = AL_PRESETS.map(p => `<button class="preset">${esc(p)}</button>`).join('');
+    $('al-presets').addEventListener('click', e => { const b = e.target.closest('.preset'); if (b) $('al-text').value = b.textContent; });
+    ['al-style', 'al-display', 'al-duration'].forEach(id => $(id).addEventListener('click', e => {
+      const b = e.target.closest('button');
+      if (b) $(id).querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+    }));
+    const segVal = id => $(id).querySelector('button.active').dataset.v;
+    const AL_COLORS = { info: '#18181b', warning: '#f0a500', urgent: '#d92d32' };
+    $('al-send').addEventListener('click', () => {
+      const text = $('al-text').value.trim();
+      if (!text) { toast('Type a message first', true); $('al-text').focus(); return; }
+      const minutes = Number(segVal('al-duration')), t = target, now = Date.now();
+      db.ref('signage/alerts').push({ text, showOn: t, style: segVal('al-style'), display: segVal('al-display'), until: minutes ? now + minutes * 60000 : null, createdAt: now })
+        .then(() => { $('al-text').value = ''; $('al-text').blur(); toast('Message on ' + targetLabel(t)); })
+        .catch(fail);
+    });
+    const liveAlerts = () => Object.entries(alerts).filter(([, a]) => a && a.text && !(a.until && Date.now() >= a.until)).sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
+    function renderAlerts() {
+      const list = liveAlerts();
+      $('al-count').textContent = list.length;
+      $('al-count').classList.toggle('hidden', !list.length);
+      $('al-list').innerHTML = list.length ? list.map(([k, a]) => `<div class="alert-row"><span class="sw" style="background:${AL_COLORS[a.style] || AL_COLORS.info}; border:1px solid var(--border);"></span>
+          <div class="t">${esc(a.text)}<small>${esc(String(a.showOn || '').split(',').map(targetLabel).join(', '))} · ${a.display === 'fullscreen' ? 'full screen' : 'bar'} · ${a.until ? 'until ' + hm(a.until) : 'until removed'}</small></div>
+          <button data-key="${esc(k)}">Remove</button></div>`).join('')
+        + (list.length > 1 ? '<div class="row"><button class="big-btn ghost" id="al-clear" style="flex:1;">Remove all messages</button></div>' : '')
+        : '<div class="empty">No messages on the screens.</div>';
+    }
+    $('al-list').addEventListener('click', e => {
+      const b = e.target.closest('[data-key]');
+      if (b) db.ref('signage/alerts/' + b.dataset.key).remove().then(() => toast('Message removed')).catch(fail);
+      if (e.target.closest('#al-clear')) ask({ title: 'Remove all messages', okText: 'Remove all', danger: true, sub: 'Every message disappears from every screen.' },
+        () => db.ref('signage/alerts').remove().then(() => toast('All messages removed')).catch(fail));
+    });
+
+    // ─── Screens tab ───
+    function renderScreens() {
+      const ids = Object.keys(screens).filter(id => !id.startsWith('_')).sort((a, b) => online(b) - online(a) || a.localeCompare(b));
+      $('screens').innerHTML = ids.length ? ids.map(id => {
+        const t = 'screen:' + id, { data, override, item } = nowOn(t);
+        const what = override ? describe(data) : item ? (item.title || describe(data)) : describe(null);
+        return `<div class="scr${online(id) ? '' : ' offline'}${target === t ? ' sel' : ''}">
+          <div class="n"><span class="dot${online(id) ? ' on' : ''}"></span>${esc(id)}${screens[id].group ? `<span class="g">📁 ${esc(screens[id].group)}</span>` : ''}</div>
+          <div class="s">${online(id) ? '' : 'Offline · '}${override ? '✋' : '🗓'} <b>${esc(what)}</b></div>
+          <div class="acts"><button data-pick="${esc(t)}" class="${target === t ? 'sel' : ''}">${target === t ? '✓ Selected' : 'Control this one'}</button>${override ? `<button data-back="${esc(t)}">↩ Schedule</button>` : ''}</div>
+        </div>`;
+      }).join('') : '<div class="empty">No screens yet. Open receiver.html on a screen.</div>';
+    }
+    $('screens').addEventListener('click', e => {
+      const p = e.target.closest('[data-pick]'), b = e.target.closest('[data-back]');
+      if (p) { selectTarget(p.dataset.pick); showTab('now'); }
+      if (b) backToSchedule(b.dataset.back);
+    });
+
+    function renderAll() {
+      renderTargets();
+      renderStatus();
+      renderSchedule();
+      renderMedia();
+      renderShows();
+      renderAlerts();
+      renderScreens();
+    }
+
+    // ─── Live data ───
+    const on = (path, fn) => db.ref(path).on('value', snap => { fn(snap.val()); renderAll(); });
+    on('signage/screens', v => screens = v || {});
+    on('signage/groups', v => groupsCurrent = v || {});
+    on('signage/current', v => globalCurrent = v);
+    on('signage/timetable', v => timetable = v);
+    on('signage/imageLibrary', v => library = v || {});
+    on('signage/slideshowPresets', v => presets = v || {});
+    on('signage/templates', v => templates = v || {});
+    on('signage/alerts', v => alerts = v || {});
+    on('signage/settings/fallbackImage', v => fallbackUrl = v || null);
+    // The schedule moves on by itself
+    setInterval(() => { renderStatus(); renderSchedule(); renderAlerts(); renderScreens(); }, 15000);
+    renderAll();
+  </script>
+</body>
+</html>
